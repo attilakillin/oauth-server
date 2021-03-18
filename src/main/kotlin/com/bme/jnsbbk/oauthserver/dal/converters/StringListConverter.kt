@@ -5,7 +5,6 @@ import javax.persistence.Converter
 
 @Converter
 class StringListConverter : AttributeConverter<List<String>, String> {
-
     override fun convertToDatabaseColumn(list: List<String>) = list.joinToString(separator = ",")
 
     override fun convertToEntityAttribute(str: String) = str.split(",")
