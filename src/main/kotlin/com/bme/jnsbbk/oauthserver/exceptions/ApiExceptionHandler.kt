@@ -7,7 +7,7 @@ import org.springframework.web.context.request.WebRequest
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler
 
 @ControllerAdvice
-class ApiExceptionController : ResponseEntityExceptionHandler() {
+class ApiExceptionHandler : ResponseEntityExceptionHandler() {
 
     @ExceptionHandler(ApiException::class)
     fun handleException(e: ApiException, request: WebRequest): ResponseEntity<String> {

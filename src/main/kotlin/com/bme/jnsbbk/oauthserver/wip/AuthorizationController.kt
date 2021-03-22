@@ -1,4 +1,4 @@
-package com.bme.jnsbbk.oauthserver.controllers
+package com.bme.jnsbbk.oauthserver.wip
 
 import org.springframework.stereotype.Controller
 
