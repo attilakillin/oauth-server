@@ -34,8 +34,8 @@ data class Client(
     @JsonDeserialize(using = SpacedSetDeserializer::class)
     var scope: Set<String> = setOf(),
 
-    @JsonProperty("client_id_created_at")
-    var registrationTime: Instant?,
+    @JsonProperty("client_id_issued_at")
+    var idIssuedAt: Instant?,
 
     @JsonProperty("client_secret_expires_at")
     var expiresAt: Instant?,

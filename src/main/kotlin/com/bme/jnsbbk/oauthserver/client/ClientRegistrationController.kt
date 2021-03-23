@@ -16,10 +16,10 @@ class ClientRegistrationController(
 
     @PostMapping("")
     fun registerClient(@RequestBody client: Client): ResponseEntity<Client> {
-        if (clientValidator.shouldReject(client))
+        if (clientValidator.shouldRejectCreation(client))
             throw ApiException(HttpStatus.BAD_REQUEST, "invalid_client_metadata")
 
-        clientValidator.parseAndValidate(client)
+        clientValidator.validateCreationValues(client)
         clientRepository.save(client)
         return ResponseEntity.ok(client)
     }
@@ -32,6 +32,23 @@ class ClientRegistrationController(
             return ResponseEntity(HttpStatus.UNAUTHORIZED)
 
         return ResponseEntity.ok(result.get())
+    }
+
+    @PutMapping("/{id}")
+    fun updateClient(@RequestHeader("Authorization") header: String?,
+                     @PathVariable id: String,
+                     @RequestBody newClient: Client): ResponseEntity<Client> {
+        val result = validateHeaderAndReturnClient(header, id)
+        if (result.isEmpty)
+            return ResponseEntity(HttpStatus.UNAUTHORIZED)
+        val oldClient = result.get()
+
+        if (clientValidator.shouldRejectUpdate(oldClient, newClient))
+            throw ApiException(HttpStatus.BAD_REQUEST, "invalid_client_metadata")
+
+        clientValidator.validateUpdateValues(oldClient, newClient)
+        clientRepository.save(newClient)
+        return ResponseEntity.ok(newClient)
     }
 
     @DeleteMapping("/{id}")

@@ -5,6 +5,9 @@ import org.springframework.stereotype.Service
 
 @Service
 interface ClientValidator {
-    fun shouldReject(client: Client): Boolean
-    fun parseAndValidate(client: Client)
+    fun shouldRejectCreation(client: Client): Boolean
+    fun validateCreationValues(client: Client)
+
+    fun shouldRejectUpdate(old: Client, new: Client): Boolean
+    fun validateUpdateValues(old: Client, new: Client)
 }
