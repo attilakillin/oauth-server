@@ -37,7 +37,7 @@ class BasicClientValidator : ClientValidator {
         if (old.id != new.id || old.secret != new.secret)
             return true
         if (new.expiresAt != null || new.registrationAccessToken != null
-            || new.idIssuedAt != null) // TODO Registration URI
+            || new.idIssuedAt != null)
                 return true
         return false
     }
@@ -48,7 +48,6 @@ class BasicClientValidator : ClientValidator {
         new.idIssuedAt = old.idIssuedAt
         new.expiresAt = old.expiresAt
         new.registrationAccessToken = old.registrationAccessToken
-        // TODO Registration URI
     }
 
     private fun failsBasicChecks(client: Client): Boolean {
@@ -63,6 +62,8 @@ class BasicClientValidator : ClientValidator {
         client.responseTypes.forEach {
             if (it !in validGrantPairs.values) return true
         }
+        if (client.extraInfo.keys.contains("registration_client_uri"))
+            return true
         return false
     }
 

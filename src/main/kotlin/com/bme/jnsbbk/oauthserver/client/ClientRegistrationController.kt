@@ -5,6 +5,7 @@ import com.bme.jnsbbk.oauthserver.exceptions.ApiException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder
 import java.util.*
 
 @RestController
@@ -21,6 +22,8 @@ class ClientRegistrationController(
 
         clientValidator.validateCreationValues(client)
         clientRepository.save(client)
+
+        appendRegistrationUri(client)
         return ResponseEntity.ok(client)
     }
 
@@ -31,7 +34,9 @@ class ClientRegistrationController(
         if (result.isEmpty)
             return ResponseEntity(HttpStatus.UNAUTHORIZED)
 
-        return ResponseEntity.ok(result.get())
+        val client = result.get()
+        appendRegistrationUri(client)
+        return ResponseEntity.ok(client)
     }
 
     @PutMapping("/{id}")
@@ -48,6 +53,8 @@ class ClientRegistrationController(
 
         clientValidator.validateUpdateValues(oldClient, newClient)
         clientRepository.save(newClient)
+
+        appendRegistrationUri(newClient)
         return ResponseEntity.ok(newClient)
     }
 
@@ -75,5 +82,10 @@ class ClientRegistrationController(
             return Optional.empty()
 
         return Optional.of(result.get())
+    }
+
+    private fun appendRegistrationUri(client: Client) {
+        val url = ServletUriComponentsBuilder.fromCurrentContextPath().toUriString()
+        client.extraInfo.put("registration_client_uri", url + "/register/" + client.id)
     }
 }
