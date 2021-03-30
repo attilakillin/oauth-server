@@ -10,7 +10,7 @@ import java.util.*
 
 @RestController
 @RequestMapping("/register")
-class ClientRegistrationController(
+class ClientRegistrationController (
     private val clientValidator: ClientValidator,
     private val clientRepository: ClientRepository
 ) {

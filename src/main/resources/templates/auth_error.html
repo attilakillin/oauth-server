@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Authorization: an error occurred!</title>
+</head>
+<body>
+    <h1>An error occurred during client authorization:</h1>
+    <p th:text="'Cause: ' + ${reason}"></p>
+</body>
+</html>
