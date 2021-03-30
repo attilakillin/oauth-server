@@ -20,7 +20,12 @@ class ClientRegistrationController(
         if (clientValidator.shouldRejectCreation(client))
             throw ApiException(HttpStatus.BAD_REQUEST, "invalid_client_metadata")
 
-        clientValidator.validateCreationValues(client)
+        do {
+            clientValidator.validateCreationValues(client)
+        } while (clientRepository.findById(client.id!!).isPresent)
+        /* Note: if the above line throws an error, the client validator
+                 failed to create an ID for the client */
+
         clientRepository.save(client)
 
         appendRegistrationUri(client)
