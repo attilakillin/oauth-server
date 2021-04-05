@@ -1,11 +1,15 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>Authorize</title>
 </head>
 <body>
-    Approve client?
-    TODO
+<h1>Approve client <span th:text="${client_name}" th:remove="tag"></span>?</h1>
+    <form method="post" action="/approve">
+        <input type="hidden" name="reqid" th:value="${reqid}">
+        <input type="submit" name="approve" value="Approve">
+        <input type="submit" name="deny" value="Deny">
+    </form>
 </body>
 </html>

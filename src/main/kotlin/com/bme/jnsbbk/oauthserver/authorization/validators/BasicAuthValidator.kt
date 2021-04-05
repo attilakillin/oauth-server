@@ -7,13 +7,12 @@ import java.util.*
 @Service
 class BasicAuthValidator : AuthValidator {
 
-    override fun shouldRejectRequest(clientId: String, redirectUri: String,
-                                     repo: ClientRepository): Optional<String> {
-        val client = repo.findById(clientId)
+    override fun shouldRejectRequest(params: Map<String, String>, repo: ClientRepository): Optional<String> {
+        val client = repo.findById(params["client_id"] ?: "")
         if (client.isEmpty)
             return Optional.of("Unknown client!")
 
-        if (redirectUri !in client.get().redirectUris)
+        if (params["redirect_uri"] !in client.get().redirectUris)
             return Optional.of("Invalid redirect URI!")
 
         return Optional.empty()

@@ -6,6 +6,5 @@ import java.util.*
 
 @Service
 interface AuthValidator {
-    fun shouldRejectRequest(clientId: String, redirectUri: String,
-                            repo: ClientRepository): Optional<String>
+    fun shouldRejectRequest(params: Map<String, String>, repo: ClientRepository): Optional<String>
 }
