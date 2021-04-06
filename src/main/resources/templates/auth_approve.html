@@ -5,8 +5,8 @@
     <title>Authorize</title>
 </head>
 <body>
-<h1>Approve client <span th:text="${client_name}" th:remove="tag"></span>?</h1>
-    <form method="post" action="/approve">
+<h1>Approve client '<span th:text="${client_name}" th:remove="tag"></span>'?</h1>
+    <form method="post" action="/authorize/approve">
         <input type="hidden" name="reqid" th:value="${reqid}">
         <input type="submit" name="approve" value="Approve">
         <input type="submit" name="deny" value="Deny">

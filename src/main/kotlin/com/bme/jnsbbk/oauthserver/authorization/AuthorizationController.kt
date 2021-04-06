@@ -2,22 +2,26 @@ package com.bme.jnsbbk.oauthserver.authorization
 
 import com.bme.jnsbbk.oauthserver.authorization.validators.AuthValidator
 import com.bme.jnsbbk.oauthserver.client.ClientRepository
+import com.bme.jnsbbk.oauthserver.repositories.TransientRepository
 import com.bme.jnsbbk.oauthserver.utils.RandomString
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.util.UriComponentsBuilder
 
 @Controller
+@RequestMapping("/authorize")
 class AuthorizationController (
     private val authValidator: AuthValidator,
-    private val clientRepository: ClientRepository
+    private val clientRepository: ClientRepository,
+    private val transientRepository: TransientRepository
 ) {
     private val requests = mutableMapOf<String, Map<String, String>>()
 
-    @GetMapping("/authorize")
+    @GetMapping
     fun authorizationRequested(@RequestParam params: Map<String, String>, model: Model): String {
         val rejectionResult = authValidator.shouldRejectRequest(params, clientRepository)
         if (rejectionResult.isPresent) {
@@ -54,7 +58,7 @@ class AuthorizationController (
 
         val code = RandomString.generate(16)
 
-        // TODO Store codes
+        transientRepository.authCodes[code] = query
 
         return "redirect:${buildURL(redirectUri, mapOf("code" to code, "state" to query["state"]))}"
     }
