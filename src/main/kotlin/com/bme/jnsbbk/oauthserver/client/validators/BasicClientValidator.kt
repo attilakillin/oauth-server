@@ -50,7 +50,7 @@ class BasicClientValidator : ClientValidator {
     }
 
     private fun failsBasicChecks(client: Client): Boolean {
-        if (client.redirectUris.isEmpty())
+        if (client.redirectUris.isEmpty() || client.scope.isEmpty())
             return true
         if (client.tokenEndpointAuthMethod.isNotEmpty() &&
             client.tokenEndpointAuthMethod !in validAuthMethods)
