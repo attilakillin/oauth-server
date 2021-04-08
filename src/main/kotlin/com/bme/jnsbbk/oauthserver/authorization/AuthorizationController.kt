@@ -103,7 +103,8 @@ class AuthorizationController (
 
     private fun handleCodeResponse(redirectUri: String, query: Map<String, String>): String {
         val code = RandomString.generate(16)
-        transientRepository.authCodes[code] = query
+        transientRepository.saveAuthorizationCode(code, query, 60)
+        // TODO Lifetime should be a constant somewhere
 
         return "redirect:" + buildURL(redirectUri, mapOf("code" to code, "state" to query["state"]))
     }

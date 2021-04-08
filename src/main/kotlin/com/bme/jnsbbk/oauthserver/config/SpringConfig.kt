@@ -4,9 +4,8 @@ import com.bme.jnsbbk.oauthserver.authorization.validators.AuthValidator
 import com.bme.jnsbbk.oauthserver.authorization.validators.BasicAuthValidator
 import com.bme.jnsbbk.oauthserver.client.validators.BasicClientValidator
 import com.bme.jnsbbk.oauthserver.client.validators.ClientValidator
-import com.bme.jnsbbk.oauthserver.repositories.TransientRepository
-import com.bme.jnsbbk.oauthserver.token.validators.BasicTokenRequestValidator
-import com.bme.jnsbbk.oauthserver.token.validators.TokenRequestValidator
+import com.bme.jnsbbk.oauthserver.token.validators.BasicTokenValidator
+import com.bme.jnsbbk.oauthserver.token.validators.TokenValidator
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -18,6 +17,6 @@ class SpringConfig {
     @Bean("authValidator")
     fun getAuthValidator(): AuthValidator = BasicAuthValidator()
 
-    @Bean("tokenRequestValidator")
-    fun getTokenRequestValidator(): TokenRequestValidator = BasicTokenRequestValidator()
+    @Bean("tokenValidator")
+    fun getTokenValidator(): TokenValidator = BasicTokenValidator()
 }

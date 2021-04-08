@@ -6,9 +6,9 @@ import org.springframework.stereotype.Service
 import java.util.*
 
 @Service
-class BasicTokenRequestValidator : TokenRequestValidator {
-    override fun validateClient(authHeader: String?, params: Map<String, String>,
-                                repo: ClientRepository): Optional<Client> {
+class BasicTokenValidator : TokenValidator {
+    override fun validClientOrNull(authHeader: String?, params: Map<String, String>,
+                                   repo: ClientRepository): Client? {
         var clientId: String? = null
         var clientSecret: String? = null
 
@@ -19,17 +19,16 @@ class BasicTokenRequestValidator : TokenRequestValidator {
         }
 
         if ("client_id" in params.keys) {
-            if (clientId != null) return Optional.empty()
+            if (clientId != null) return null
             clientId = params["client_id"]
             clientSecret = params["client_secret"]
         }
 
-        if (clientId == null || clientSecret == null) return Optional.empty()
+        if (clientId == null || clientSecret == null) return null
 
         val client = repo.findById(clientId)
+        if (client.isEmpty || client.get().secret != clientSecret) return null
 
-        if (client.isEmpty || client.get().secret != clientSecret) return Optional.empty()
-
-        return Optional.of(client.get())
+        return client.get()
     }
 }
