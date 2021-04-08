@@ -1,7 +1,9 @@
 package com.bme.jnsbbk.oauthserver.client.validators
 
 import com.bme.jnsbbk.oauthserver.client.Client
+import com.bme.jnsbbk.oauthserver.client.ClientRepository
 import com.bme.jnsbbk.oauthserver.utils.RandomString
+import com.bme.jnsbbk.oauthserver.utils.StringSetConverter
 import org.springframework.stereotype.Service
 import java.time.Instant
 
@@ -12,34 +14,31 @@ class BasicClientValidator : ClientValidator {
     private val validGrantPairs = mapOf("authorization_code" to "code")
 
     override fun shouldRejectCreation(client: Client): Boolean {
-        if (failsBasicChecks(client))
-            return true
-        if (client.id != null || client.secret != null)
-            return true
-        return false
+        return failsBasicChecks(client)
+                || hasInvalidChars(client)
+                || anyNotNull(client.id, client.secret)
     }
 
-    override fun validateCreationValues(client: Client) {
+    override fun validateCreationValues(client: Client, repo: ClientRepository) {
         fixInconsistentProperties(client)
 
-        client.id = RandomString.generate()
+        var id: String
+        do { id = RandomString.generate() } while (repo.findById(id).isPresent)
+
+        client.id = id
         client.idIssuedAt = Instant.now()
+        client.registrationAccessToken = RandomString.generate()
 
         if (client.tokenEndpointAuthMethod in authMethodsRequiringSecret)
             client.secret = RandomString.generate(48)
-
-        client.registrationAccessToken = RandomString.generate()
     }
 
     override fun shouldRejectUpdate(old: Client, new: Client): Boolean {
-        if (failsBasicChecks(new))
-            return true
-        if (old.id != new.id || old.secret != new.secret)
-            return true
-        if (new.expiresAt != null || new.registrationAccessToken != null
-            || new.idIssuedAt != null)
-                return true
-        return false
+        return failsBasicChecks(new)
+                || hasInvalidChars(new)
+                || old.id != new.id
+                || (new.secret != null && new.secret != old.secret)
+                || anyNotNull(new.expiresAt, new.registrationAccessToken, new.idIssuedAt)
     }
 
     override fun validateUpdateValues(old: Client, new: Client) {
@@ -62,8 +61,14 @@ class BasicClientValidator : ClientValidator {
         client.responseTypes.forEach {
             if (it !in validGrantPairs.values) return true
         }
-        if (client.extraInfo.keys.contains("registration_client_uri"))
+        if ("registration_client_uri" in client.extraInfo.keys)
             return true
+        return false
+    }
+
+    private fun hasInvalidChars(client: Client): Boolean {
+        for (set in listOf(client.redirectUris, client.grantTypes, client.responseTypes, client.scope))
+            set.forEach { if (StringSetConverter.SEPARATOR in it) return true }
         return false
     }
 
@@ -81,5 +86,10 @@ class BasicClientValidator : ClientValidator {
             client.grantTypes.add(
                 validGrantPairs.filterValues { it == response }.keys.first())
         }
+    }
+
+    private fun anyNotNull(vararg things: Any?): Boolean {
+        things.forEach { if (it != null) return true }
+        return false
     }
 }

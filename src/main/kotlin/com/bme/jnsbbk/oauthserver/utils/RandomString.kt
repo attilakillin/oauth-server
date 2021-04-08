@@ -4,7 +4,7 @@ import java.security.SecureRandom
 import kotlin.streams.asSequence
 
 object RandomString {
-    private val chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+    private const val chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
     private val random = SecureRandom()
 
     fun generate(length: Long = 32): String {

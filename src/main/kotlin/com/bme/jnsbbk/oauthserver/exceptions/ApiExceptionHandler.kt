@@ -10,7 +10,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 class ApiExceptionHandler : ResponseEntityExceptionHandler() {
 
     @ExceptionHandler(ApiException::class)
-    fun handleException(e: ApiException, request: WebRequest): ResponseEntity<String> {
-        return ResponseEntity.status(e.status).body("{\"error\": \"${e.message}\"}")
+    fun handleException(e: ApiException, request: WebRequest): ResponseEntity<Map<String, String?>> {
+        return ResponseEntity.status(e.status).body(e.message?.let { mapOf("error" to e.message) })
     }
 }

@@ -20,38 +20,33 @@ class ClientRegistrationController (
         if (clientValidator.shouldRejectCreation(client))
             throw ApiException(HttpStatus.BAD_REQUEST, "invalid_client_metadata")
 
-        do {
-            clientValidator.validateCreationValues(client)
-        } while (clientRepository.findById(client.id!!).isPresent)
-        /* Note: if the above line throws an error, the client validator
-                 failed to create an ID for the client */
-
+        clientValidator.validateCreationValues(client, clientRepository)
         clientRepository.save(client)
 
-        appendRegistrationUri(client)
-        return ResponseEntity.ok(client)
+        return ResponseEntity.ok(client.withRegistrationUri())
     }
 
     @GetMapping("/{id}")
     fun getClient(@RequestHeader("Authorization") header: String?,
                   @PathVariable id: String): ResponseEntity<Client> {
-        val result = validateHeaderAndReturnClient(header, id)
-        if (result.isEmpty)
-            return ResponseEntity(HttpStatus.UNAUTHORIZED)
+        val client = validClientOrThrow(header, id, HttpStatus.UNAUTHORIZED)
+        return ResponseEntity.ok(client.withRegistrationUri())
+    }
 
-        val client = result.get()
-        appendRegistrationUri(client)
-        return ResponseEntity.ok(client)
+    @DeleteMapping("/{id}")
+    fun deleteClient(@RequestHeader("Authorization") header: String?,
+                     @PathVariable id: String): ResponseEntity<String> {
+        val client = validClientOrThrow(header, id, HttpStatus.UNAUTHORIZED)
+
+        clientRepository.delete(client)
+        return ResponseEntity.noContent().build()
     }
 
     @PutMapping("/{id}")
     fun updateClient(@RequestHeader("Authorization") header: String?,
                      @PathVariable id: String,
                      @RequestBody newClient: Client): ResponseEntity<Client> {
-        val result = validateHeaderAndReturnClient(header, id)
-        if (result.isEmpty)
-            return ResponseEntity(HttpStatus.UNAUTHORIZED)
-        val oldClient = result.get()
+        val oldClient = validClientOrThrow(header, id, HttpStatus.UNAUTHORIZED)
 
         if (clientValidator.shouldRejectUpdate(oldClient, newClient))
             throw ApiException(HttpStatus.BAD_REQUEST, "invalid_client_metadata")
@@ -59,38 +54,23 @@ class ClientRegistrationController (
         clientValidator.validateUpdateValues(oldClient, newClient)
         clientRepository.save(newClient)
 
-        appendRegistrationUri(newClient)
-        return ResponseEntity.ok(newClient)
+        return ResponseEntity.ok(newClient.withRegistrationUri())
     }
 
-    @DeleteMapping("/{id}")
-    fun deleteClient(@RequestHeader("Authorization") header: String?,
-                     @PathVariable id: String): ResponseEntity<String> {
-        val result = validateHeaderAndReturnClient(header, id)
-        if (result.isEmpty)
-            return ResponseEntity(HttpStatus.UNAUTHORIZED)
+    private fun validClientOrThrow(header: String?, id: String, error: HttpStatus): Client {
+        val token = header?.removePrefix("Bearer ")
+        if (token != header) {
+            val client = clientRepository.findById(id)
+            if (client.isPresent && client.get().registrationAccessToken == token)
+                return client.get()
+        }
 
-        clientRepository.delete(result.get())
-        return ResponseEntity.noContent().build()
+        throw ApiException(error)
     }
 
-    private fun validateHeaderAndReturnClient(header: String?, id: String): Optional<Client> {
-        if (header.isNullOrEmpty() || !header.startsWith("Bearer "))
-            return Optional.empty()
-
-        val token = header.removePrefix("Bearer ")
-        if (token.isEmpty())
-            return Optional.empty()
-
-        val result = clientRepository.findById(id)
-        if (result.isEmpty || result.get().registrationAccessToken != token)
-            return Optional.empty()
-
-        return Optional.of(result.get())
-    }
-
-    private fun appendRegistrationUri(client: Client) {
+    private fun Client.withRegistrationUri(): Client {
         val url = ServletUriComponentsBuilder.fromCurrentContextPath().toUriString()
-        client.extraInfo.put("registration_client_uri", url + "/register/" + client.id)
+        this.extraInfo["registration_client_uri"] = "$url/register/$id"
+        return this
     }
 }
