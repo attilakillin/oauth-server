@@ -36,7 +36,7 @@ class TokenController(
     }
 
     private fun handleAuthCode(client: Client, params: Map<String, String>): Map<String, String> {
-        val code = transientRepository.findAuthorizationCode(params["code"]!!)
+        val code = transientRepository.findAuthCode(params["code"]!!)
             ?: throw ApiException(HttpStatus.BAD_REQUEST, "invalid_grant")
 
         if (code.clientId != client.id)

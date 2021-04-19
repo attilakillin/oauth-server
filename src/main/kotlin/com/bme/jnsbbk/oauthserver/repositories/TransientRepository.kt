@@ -1,15 +1,12 @@
 package com.bme.jnsbbk.oauthserver.repositories
 
-import com.bme.jnsbbk.oauthserver.authorization.AuthorizationCode
+import com.bme.jnsbbk.oauthserver.authorization.AuthCode
 import org.springframework.stereotype.Service
 
 @Service
 class TransientRepository {
-    private val authorizationCodes = mutableListOf<AuthorizationCode>()
+    private val authCodes = mutableListOf<AuthCode>()
 
-    fun saveAuthorizationCode(value: String, properties: Map<String, String>, lifeInSeconds: Long) =
-        authorizationCodes.add(AuthorizationCode(value, properties, lifeInSeconds))
-
-    fun findAuthorizationCode(value: String): AuthorizationCode? =
-        authorizationCodes.find { code -> code.value == value }
+    fun saveAuthCode(code: AuthCode) = authCodes.add(code)
+    fun findAuthCode(value: String): AuthCode? = authCodes.find { code -> code.value == value }
 }

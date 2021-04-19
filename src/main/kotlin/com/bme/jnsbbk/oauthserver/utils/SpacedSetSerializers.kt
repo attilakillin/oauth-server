@@ -8,13 +8,11 @@ import com.fasterxml.jackson.databind.JsonSerializer
 import com.fasterxml.jackson.databind.SerializerProvider
 
 class SpacedSetSerializer : JsonSerializer<Set<String>>() {
-    override fun serialize(value: Set<String>, gen: JsonGenerator, provider: SerializerProvider) {
+    override fun serialize(value: Set<String>, gen: JsonGenerator, provider: SerializerProvider) =
         gen.writeString(value.joinToString(" "))
-    }
 }
 
 class SpacedSetDeserializer : JsonDeserializer<Set<String>>() {
-    override fun deserialize(parser: JsonParser, context: DeserializationContext): Set<String> {
-        return parser.text.split(" ").toSet()
-    }
+    override fun deserialize(parser: JsonParser, context: DeserializationContext): Set<String> =
+        parser.text.split(" ").toSet()
 }

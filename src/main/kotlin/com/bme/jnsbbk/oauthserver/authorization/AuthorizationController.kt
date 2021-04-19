@@ -5,6 +5,8 @@ import com.bme.jnsbbk.oauthserver.client.Client
 import com.bme.jnsbbk.oauthserver.client.ClientRepository
 import com.bme.jnsbbk.oauthserver.repositories.TransientRepository
 import com.bme.jnsbbk.oauthserver.utils.RandomString
+import com.fasterxml.jackson.module.kotlin.convertValue
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.GetMapping
@@ -20,58 +22,55 @@ class AuthorizationController (
     private val clientRepository: ClientRepository,
     private val transientRepository: TransientRepository
 ) {
-    private val requests = mutableMapOf<String, MutableMap<String, String>>()
+    private val requests = mutableMapOf<String, AuthRequest>()
 
     @GetMapping
-    fun authorizationRequested(@RequestParam params: MutableMap<String, String>, model: Model): String {
-        authValidator.ifShouldReject(params, clientRepository)?.let {
+    fun authorizationRequested(@RequestParam params: Map<String, String>, model: Model): String {
+        val request = jacksonObjectMapper().convertValue<AuthRequest>(params)
+        authValidator.ifShouldReject(request, clientRepository)?.let {
             return errorPageWithReason(model, it)
         }
 
-        val client = clientRepository.findById(params["client_id"]!!).get()
+        val client = clientRepository.findById(request.clientId!!).get()
 
-        /* If it's null, but passed validation, then the client only has one redirect URI. We'll use that. */
-        if (params["redirect_uri"] == null) params["redirect_uri"] = client.redirectUris.first()
-        val redirectUri = params["redirect_uri"]!!
+        /* If it's null, but passed validation, then the client only has one redirect URI. */
+        request.redirectUri = request.redirectUri ?: client.redirectUris.first()
 
-        if (params["response_type"] !in client.responseTypes)
-            return redirectWithError(redirectUri, "unsupported_response_type")
+        if (request.responseType !in client.responseTypes)
+            return redirectWithError(request.redirectUri!!, "unsupported_response_type")
 
-        var scope = params["scope"]?.split(' ')?.toSet()
-        if (scope == null) scope = client.scope
+        if (request.scope.isEmpty())
+            request.scope.addAll(client.scope)
 
-        if (authValidator.shouldRejectScope(scope, client))
-            return redirectWithError(redirectUri, "invalid_scope")
+        if (authValidator.shouldRejectScope(request.scope, client))
+            return redirectWithError(request.redirectUri!!, "invalid_scope")
 
         val reqId = RandomString.generate(8)
-        requests[reqId] = params
+        requests[reqId] = request
 
-        model.addAllAttributes(mapOf("reqId" to reqId, "scope" to scope))
+        model.addAllAttributes(mapOf("reqId" to reqId, "scope" to request.scope))
         model.addClientAttributes(client)
         return "auth_approve"
     }
 
     @PostMapping("/approve")
     fun approveAuthorization(@RequestParam params: Map<String, String>, model: Model): String {
-        val query = requests.remove(params["reqId"])
+        val request = requests.remove(params["reqId"])
             ?: return errorPageWithReason(model, "No matching authorization request!")
 
-        val redirectUri = query["redirect_uri"]!!
-
         if (params["approve"] == null)
-            return redirectWithError(redirectUri,"access_denied")
-
-        val client = clientRepository.findById(query["client_id"]!!).get()
+            return redirectWithError(request.redirectUri!!,"access_denied")
 
         val scope = getScopeFrom(params)
-        scope.split(" ").forEach {
-            if (it !in client.scope) return redirectWithError(redirectUri, "invalid_scope")
+        scope.forEach {
+            if (it !in request.scope)
+                return redirectWithError(request.redirectUri!!, "invalid_scope")
         }
-        query["scope"] = scope
+        request.scope = scope
 
-        return when (query["response_type"]) {
-            "code" -> handleCodeResponse(redirectUri, query)
-            else -> redirectWithError(redirectUri, "unsupported_response_type")
+        return when (request.responseType) {
+            "code" -> handleCodeResponse(request)
+            else -> redirectWithError(request.redirectUri!!, "unsupported_response_type")
         }
     }
 
@@ -94,18 +93,19 @@ class AuthorizationController (
         return "redirect:" + buildURL(redirectUri, mapOf("error" to error))
     }
 
-    private fun getScopeFrom(params: Map<String, String>): String {
+    private fun getScopeFrom(params: Map<String, String>): MutableSet<String> {
         return params.asSequence()
                      .filter { it.key.startsWith("scope_") }.distinct()
                      .map { it.key.removePrefix("scope_") }
-                     .joinToString(" ")
+                     .toMutableSet()
     }
 
-    private fun handleCodeResponse(redirectUri: String, query: Map<String, String>): String {
+    private fun handleCodeResponse(request: AuthRequest): String {
         val code = RandomString.generate(16)
-        transientRepository.saveAuthorizationCode(code, query, 60)
+        transientRepository.saveAuthCode(AuthCode.fromRequest(code, request, 60))
         // TODO Lifetime should be a constant somewhere
 
-        return "redirect:" + buildURL(redirectUri, mapOf("code" to code, "state" to query["state"]))
+        return "redirect:" + buildURL(request.redirectUri!!,
+            mapOf("code" to code, "state" to request.state))
     }
 }

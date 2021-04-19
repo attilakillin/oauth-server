@@ -1,7 +1,7 @@
 @file:Suppress("JpaAttributeTypeInspection")
 package com.bme.jnsbbk.oauthserver.token
 
-import com.bme.jnsbbk.oauthserver.authorization.AuthorizationCode
+import com.bme.jnsbbk.oauthserver.authorization.AuthCode
 import java.time.Instant
 import javax.persistence.Entity
 import javax.persistence.Id
@@ -28,7 +28,7 @@ enum class TokenType {
     ACCESS, REFRESH
 }
 
-fun Token.Companion.accessFromCode(value: String, code: AuthorizationCode, lifeInSeconds: Long): Token {
+fun Token.Companion.accessFromCode(value: String, code: AuthCode, lifeInSeconds: Long): Token {
     return Token(
         value = value,
         type = TokenType.ACCESS,
@@ -38,7 +38,7 @@ fun Token.Companion.accessFromCode(value: String, code: AuthorizationCode, lifeI
     )
 }
 
-fun Token.Companion.refreshFromCode(value: String, code: AuthorizationCode, lifeInSeconds: Long): Token {
+fun Token.Companion.refreshFromCode(value: String, code: AuthCode, lifeInSeconds: Long): Token {
     return Token(
         value = value,
         type = TokenType.REFRESH,

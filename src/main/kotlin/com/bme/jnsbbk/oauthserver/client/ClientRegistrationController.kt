@@ -2,11 +2,11 @@ package com.bme.jnsbbk.oauthserver.client
 
 import com.bme.jnsbbk.oauthserver.client.validators.ClientValidator
 import com.bme.jnsbbk.oauthserver.exceptions.ApiException
+import com.bme.jnsbbk.oauthserver.utils.getOrNull
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder
-import java.util.*
 
 @RestController
 @RequestMapping("/register")
@@ -60,9 +60,9 @@ class ClientRegistrationController (
     private fun validClientOrThrow(header: String?, id: String, error: HttpStatus): Client {
         val token = header?.removePrefix("Bearer ")
         if (token != header) {
-            val client = clientRepository.findById(id)
-            if (client.isPresent && client.get().registrationAccessToken == token)
-                return client.get()
+            val client = clientRepository.findById(id).getOrNull()
+            if (client != null && client.registrationAccessToken == token)
+                return client
         }
 
         throw ApiException(error)

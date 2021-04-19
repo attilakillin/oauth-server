@@ -1,26 +1,21 @@
 package com.bme.jnsbbk.oauthserver.authorization.validators
 
+import com.bme.jnsbbk.oauthserver.authorization.AuthRequest
 import com.bme.jnsbbk.oauthserver.client.Client
 import com.bme.jnsbbk.oauthserver.client.ClientRepository
+import com.bme.jnsbbk.oauthserver.utils.getOrNull
 import org.springframework.stereotype.Service
-import java.util.*
 
 @Service
 class BasicAuthValidator : AuthValidator {
 
-    override fun ifShouldReject(params: Map<String, String>, repo: ClientRepository): String? {
-        var client: Client? = null
-        val id = params["client_id"]
-        if (id != null) client = repo.findById(id).getOrNull()
-
-        if (client == null) return "Unknown client!"
-        val redirectUri = params["redirect_uri"]
+    override fun ifShouldReject(request: AuthRequest, repo: ClientRepository): String? {
+        val client = request.clientId?.let { repo.findById(it).getOrNull() } ?: return "Unknown client!"
+        val uri = request.redirectUri
 
         when (client.redirectUris.size) {
-            1 -> if (redirectUri != null && redirectUri !in client.redirectUris)
-                return "Invalid redirect URI!"
-            else -> if (redirectUri !in client.redirectUris)
-                return "Invalid redirect URI!"
+            1 -> if (uri != null && uri !in client.redirectUris) return "Invalid redirect URI!"
+            else -> if (uri !in client.redirectUris) return "Invalid redirect URI!"
         }
 
         return null
@@ -30,6 +25,4 @@ class BasicAuthValidator : AuthValidator {
         scope.forEach { if (it !in client.scope) return true }
         return false
     }
-
-    private fun <T> Optional<T>.getOrNull(): T? = if (isPresent) get() else null
 }
