@@ -7,7 +7,8 @@ import org.springframework.stereotype.Repository
 interface TokenRepository : JpaRepository<Token, String> {
     fun findFirstByValueAndType(value: String, type: TokenType): Token?
 
-    @JvmDefault // Allows the creation of "default functions" that don't get mapped by JPA
+    /* "Default functions" that don't get mapped by JPA */
+    @JvmDefault
     fun findAccessById(value: String): Token? = findFirstByValueAndType(value, TokenType.ACCESS)
     @JvmDefault
     fun findRefreshById(value: String): Token? = findFirstByValueAndType(value, TokenType.REFRESH)

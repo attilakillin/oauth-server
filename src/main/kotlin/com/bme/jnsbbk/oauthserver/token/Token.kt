@@ -58,3 +58,7 @@ fun Token.Companion.accessFromRefresh(value: String, refreshToken: Token, lifeIn
         lifeInSeconds = lifeInSeconds
     )
 }
+
+fun Token.toUnsignedJWT() {
+
+}

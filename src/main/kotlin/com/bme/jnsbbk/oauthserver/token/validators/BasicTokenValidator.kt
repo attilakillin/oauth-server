@@ -2,6 +2,7 @@ package com.bme.jnsbbk.oauthserver.token.validators
 
 import com.bme.jnsbbk.oauthserver.client.Client
 import com.bme.jnsbbk.oauthserver.client.ClientRepository
+import com.bme.jnsbbk.oauthserver.utils.getOrNull
 import org.springframework.stereotype.Service
 import java.util.*
 
@@ -24,11 +25,11 @@ class BasicTokenValidator : TokenValidator {
             clientSecret = params["client_secret"]
         }
 
-        if (clientId == null || clientSecret == null) return null
+        if (clientId == null) return null
 
-        val client = repo.findById(clientId)
-        if (client.isEmpty || client.get().secret != clientSecret) return null
+        val client = repo.findById(clientId).getOrNull()
+        if (client == null || client.secret != clientSecret) return null
 
-        return client.get()
+        return client
     }
 }
