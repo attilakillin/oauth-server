@@ -2,6 +2,7 @@ package com.bme.jnsbbk.oauthserver.client
 
 import com.bme.jnsbbk.oauthserver.client.validators.ClientValidator
 import com.bme.jnsbbk.oauthserver.exceptions.ApiException
+import com.bme.jnsbbk.oauthserver.exceptions.BadRequestException
 import com.bme.jnsbbk.oauthserver.utils.getOrNull
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -18,7 +19,7 @@ class ClientRegistrationController (
     @PostMapping("")
     fun registerClient(@RequestBody client: Client): ResponseEntity<Client> {
         if (clientValidator.shouldRejectCreation(client))
-            throw ApiException(HttpStatus.BAD_REQUEST, "invalid_client_metadata")
+            throw BadRequestException("invalid_client_metadata")
 
         clientValidator.validateCreationValues(client, clientRepository)
         clientRepository.save(client)
@@ -49,7 +50,7 @@ class ClientRegistrationController (
         val oldClient = validClientOrThrow(header, id, HttpStatus.UNAUTHORIZED)
 
         if (clientValidator.shouldRejectUpdate(oldClient, newClient))
-            throw ApiException(HttpStatus.BAD_REQUEST, "invalid_client_metadata")
+            throw BadRequestException("invalid_client_metadata")
 
         clientValidator.validateUpdateValues(oldClient, newClient)
         clientRepository.save(newClient)
