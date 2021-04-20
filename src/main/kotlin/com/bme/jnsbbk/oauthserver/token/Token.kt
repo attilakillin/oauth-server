@@ -2,7 +2,10 @@
 package com.bme.jnsbbk.oauthserver.token
 
 import com.bme.jnsbbk.oauthserver.authorization.AuthCode
+import com.bme.jnsbbk.oauthserver.utils.RandomString
+import io.jsonwebtoken.Jwts
 import java.time.Instant
+import java.util.*
 import javax.persistence.Entity
 import javax.persistence.Id
 
@@ -59,6 +62,13 @@ fun Token.Companion.accessFromRefresh(value: String, refreshToken: Token, lifeIn
     )
 }
 
-fun Token.toUnsignedJWT() {
-
+fun Token.toUnsignedJWT(): String {
+    return Jwts.builder().setHeader(mapOf("typ" to "JWT", "alg" to "none"))
+        .setIssuer("http://localhost:8080/") // TODO Don't hardcode server ID
+        .setSubject("") // TODO Set up user authentication
+        .setAudience("") // TODO Set client url
+        .setIssuedAt(Date.from(issuedAt))
+        .setExpiration(Date.from(expiresAt))
+        .claim("jti", RandomString.generate(16))
+        .compact()
 }

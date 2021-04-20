@@ -19,7 +19,7 @@ data class TokenResponse (
 
 fun TokenResponse.Companion.fromTokens(access: Token, refresh: Token): TokenResponse {
     return TokenResponse (
-        access.value,
+        access.toUnsignedJWT(),
         refresh.value,
         "Bearer",
         Duration.between(Instant.now(), access.expiresAt).seconds,
