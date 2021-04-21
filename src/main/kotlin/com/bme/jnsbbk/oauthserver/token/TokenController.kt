@@ -4,6 +4,7 @@ import com.bme.jnsbbk.oauthserver.client.Client
 import com.bme.jnsbbk.oauthserver.client.ClientRepository
 import com.bme.jnsbbk.oauthserver.exceptions.BadRequestException
 import com.bme.jnsbbk.oauthserver.exceptions.UnauthorizedException
+import com.bme.jnsbbk.oauthserver.jwt.JwtHandler
 import com.bme.jnsbbk.oauthserver.repositories.TransientRepository
 import com.bme.jnsbbk.oauthserver.token.validators.TokenValidator
 import com.bme.jnsbbk.oauthserver.utils.RandomString
@@ -13,10 +14,11 @@ import org.springframework.web.bind.annotation.*
 @Controller
 @RequestMapping("/token")
 class TokenController(
-    val tokenValidator: TokenValidator,
-    val clientRepository: ClientRepository,
-    val transientRepository: TransientRepository,
-    val tokenRepository: TokenRepository
+    private val tokenValidator: TokenValidator,
+    private val clientRepository: ClientRepository,
+    private val transientRepository: TransientRepository,
+    private val tokenRepository: TokenRepository,
+    private val jwtHandler: JwtHandler
 ) {
 
     @PostMapping
@@ -48,7 +50,7 @@ class TokenController(
         tokenRepository.save(accessToken)
         tokenRepository.save(refreshToken)
 
-        return TokenResponse.fromTokens(accessToken, refreshToken)
+        return TokenResponse.jwtFromTokens(accessToken, refreshToken, jwtHandler)
     }
 
     private fun handleRefreshToken(client: Client, refreshValue: String?): TokenResponse {
@@ -65,6 +67,6 @@ class TokenController(
         val accessToken = Token.accessFromRefresh(RandomString.generate(), refreshToken, 300)
         tokenRepository.save(accessToken)
 
-        return TokenResponse.fromTokens(accessToken, refreshToken)
+        return TokenResponse.jwtFromTokens(accessToken, refreshToken, jwtHandler)
     }
 }

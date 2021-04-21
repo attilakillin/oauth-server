@@ -1,5 +1,6 @@
 package com.bme.jnsbbk.oauthserver.token
 
+import com.bme.jnsbbk.oauthserver.jwt.JwtHandler
 import com.bme.jnsbbk.oauthserver.utils.SpacedSetSerializer
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
@@ -17,10 +18,21 @@ data class TokenResponse (
     val scope: Set<String>
 ) { companion object }
 
-fun TokenResponse.Companion.fromTokens(access: Token, refresh: Token): TokenResponse {
+fun TokenResponse.Companion.opaqueFromTokens(access: Token, refresh: Token): TokenResponse {
     return TokenResponse (
-        access.toUnsignedJWT(),
+        access.value,
         refresh.value,
+        "Bearer",
+        Duration.between(Instant.now(), access.expiresAt).seconds,
+        access.scope
+    )
+}
+
+fun TokenResponse.Companion.jwtFromTokens(access: Token, refresh: Token,
+                                          jwtHandler: JwtHandler): TokenResponse {
+    return TokenResponse (
+        jwtHandler.createSigned(access).compact(),
+        refresh.value, // TODO This should be JWT too
         "Bearer",
         Duration.between(Instant.now(), access.expiresAt).seconds,
         access.scope

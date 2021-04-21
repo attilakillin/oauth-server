@@ -61,14 +61,3 @@ fun Token.Companion.accessFromRefresh(value: String, refreshToken: Token, lifeIn
         lifeInSeconds = lifeInSeconds
     )
 }
-
-fun Token.toUnsignedJWT(): String {
-    return Jwts.builder().setHeader(mapOf("typ" to "JWT", "alg" to "none"))
-        .setIssuer("http://localhost:8080/") // TODO Don't hardcode server ID
-        .setSubject("") // TODO Set up user authentication
-        .setAudience("") // TODO Set client url
-        .setIssuedAt(Date.from(issuedAt))
-        .setExpiration(Date.from(expiresAt))
-        .claim("jti", RandomString.generate(16))
-        .compact()
-}
