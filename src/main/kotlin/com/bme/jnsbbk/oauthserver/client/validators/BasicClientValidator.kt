@@ -23,7 +23,7 @@ class BasicClientValidator : ClientValidator {
         fixInconsistentProperties(client)
 
         var id: String
-        do { id = RandomString.generate() } while (repo.findById(id).isPresent)
+        do { id = RandomString.generate() } while (repo.existsById(id))
 
         client.id = id
         client.idIssuedAt = Instant.now()
