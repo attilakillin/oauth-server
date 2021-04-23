@@ -11,7 +11,7 @@ import javax.persistence.*
 
 @Entity
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-data class Client (
+class Client (
     @JsonProperty("client_id") @Id
     var id: String?,
 

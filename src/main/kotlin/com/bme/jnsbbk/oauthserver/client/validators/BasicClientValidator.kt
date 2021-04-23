@@ -4,6 +4,7 @@ import com.bme.jnsbbk.oauthserver.client.Client
 import com.bme.jnsbbk.oauthserver.client.ClientRepository
 import com.bme.jnsbbk.oauthserver.utils.RandomString
 import com.bme.jnsbbk.oauthserver.utils.StringSetConverter
+import com.bme.jnsbbk.oauthserver.utils.anyNotNull
 import org.springframework.stereotype.Service
 import java.time.Instant
 
@@ -86,10 +87,5 @@ class BasicClientValidator : ClientValidator {
             client.grantTypes.add(
                 validGrantPairs.filterValues { it == response }.keys.first())
         }
-    }
-
-    private fun anyNotNull(vararg things: Any?): Boolean {
-        things.forEach { if (it != null) return true }
-        return false
     }
 }
