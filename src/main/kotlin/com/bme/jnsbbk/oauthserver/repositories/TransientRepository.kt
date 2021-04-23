@@ -9,4 +9,5 @@ class TransientRepository {
 
     fun saveAuthCode(code: AuthCode) = authCodes.add(code)
     fun findAuthCode(value: String): AuthCode? = authCodes.find { code -> code.value == value }
+    fun removeAuthCode(code: AuthCode) = authCodes.remove(code)
 }

@@ -41,6 +41,7 @@ class TokenController(
         val code = transientRepository.findAuthCode(codeValue)
             ?: throw BadRequestException("invalid_grant")
 
+        transientRepository.removeAuthCode(code)
         if (code.clientId != client.id) throw BadRequestException("invalid_grant")
 
         // TODO Don't hardcode lifetimes

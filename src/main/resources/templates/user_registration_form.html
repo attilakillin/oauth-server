@@ -25,7 +25,6 @@
         request.onreadystatechange = function () {
             if (this.readyState !== 4) return;
             if (request.status !== 200) {
-                console.log(request.response);
                 const body = JSON.parse(request.response);
                 message_p.textContent = "Registration failed! Reason: " + body.error;
             } else {
