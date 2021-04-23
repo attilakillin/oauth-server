@@ -1,13 +1,13 @@
 package com.bme.jnsbbk.oauthserver.users
 
+import com.bme.jnsbbk.oauthserver.exceptions.ApiException
+import com.bme.jnsbbk.oauthserver.exceptions.BadRequestException
 import com.bme.jnsbbk.oauthserver.users.validators.UserValidator
 import com.bme.jnsbbk.oauthserver.utils.PasswordHasher
 import com.bme.jnsbbk.oauthserver.utils.RandomString
+import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Controller
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.*
 
 @Controller
 @RequestMapping("/user/register")
@@ -20,10 +20,12 @@ class UserRegistrationController (
     fun returnRegistrationForm(): String = "user_registration_form"
 
     @PostMapping
+    @ResponseBody
     fun handleRegistration(@RequestParam email: String,
-                           @RequestParam password: String): String {
+                           @RequestParam password: String): ResponseEntity<Unit> {
         if (!userValidator.isRegistrationValid(email, password)) {
-            // TODO
+            throw BadRequestException("Credentials failed server-side validation. " +
+                    "Please enter valid information!")
         }
 
         var userId: String
@@ -34,6 +36,7 @@ class UserRegistrationController (
         val user = User(userId, email, hash)
 
         userRepository.save(user)
-        return "user_registration_successful"
+        return ResponseEntity.ok().build()
     }
+
 }
