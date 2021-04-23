@@ -31,7 +31,7 @@ fun TokenResponse.Companion.opaqueFromTokens(access: Token, refresh: Token): Tok
 fun TokenResponse.Companion.jwtFromTokens(access: Token, refresh: Token,
                                           jwtHandler: JwtHandler): TokenResponse {
     return TokenResponse (
-        jwtHandler.createSigned(access).compact(),
+        jwtHandler.createSigned(access),
         refresh.value, // TODO This should be JWT too
         "Bearer",
         Duration.between(Instant.now(), access.expiresAt).seconds,
