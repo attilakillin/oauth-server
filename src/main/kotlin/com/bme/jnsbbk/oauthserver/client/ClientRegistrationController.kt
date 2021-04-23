@@ -15,14 +15,13 @@ class ClientRegistrationController (
     private val clientRepository: ClientRepository
 ) {
 
-    @PostMapping("")
-    fun registerClient(@RequestBody client: Client): ResponseEntity<Client> {
-        if (clientValidator.shouldRejectCreation(client))
+    @PostMapping
+    fun registerClient(@RequestBody requested: Client): ResponseEntity<Client> {
+        val client = clientValidator.validateNewOr(requested) {
             badRequest("invalid_client_metadata")
+        }
 
-        clientValidator.validateCreationValues(client, clientRepository)
         clientRepository.save(client)
-
         return ResponseEntity.ok(client.withRegistrationUri())
     }
 
@@ -37,7 +36,6 @@ class ClientRegistrationController (
     fun deleteClient(@RequestHeader("Authorization") header: String?,
                      @PathVariable id: String): ResponseEntity<String> {
         val client = validClientOrUnauthorized(header, id)
-
         clientRepository.delete(client)
         return ResponseEntity.noContent().build()
     }
@@ -45,15 +43,13 @@ class ClientRegistrationController (
     @PutMapping("/{id}")
     fun updateClient(@RequestHeader("Authorization") header: String?,
                      @PathVariable id: String,
-                     @RequestBody newClient: Client): ResponseEntity<Client> {
+                     @RequestBody requested: Client): ResponseEntity<Client> {
         val oldClient = validClientOrUnauthorized(header, id)
-
-        if (clientValidator.shouldRejectUpdate(oldClient, newClient))
+        val newClient = clientValidator.validateUpdateOr(oldClient, requested) {
             badRequest("invalid_client_metadata")
+        }
 
-        clientValidator.validateUpdateValues(oldClient, newClient)
         clientRepository.save(newClient)
-
         return ResponseEntity.ok(newClient.withRegistrationUri())
     }
 

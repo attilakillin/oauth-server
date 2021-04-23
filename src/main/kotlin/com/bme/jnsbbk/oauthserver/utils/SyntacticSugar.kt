@@ -10,7 +10,10 @@ fun <T> Optional<T>.getOrNull(): T? = if (isPresent) get() else null
 fun getServerBaseUrl() = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString()
 
 /** Provides an easy to read wrapper for multiple null checks. */
-fun anyNotNull(vararg things: Any?): Boolean {
-    things.forEach { if (it != null) return true }
-    return false
-}
+fun anyNotNull(vararg things: Any?) = things.any { it != null }
+
+/** Provides an easy to read wrapper for multiple truth checks. */
+fun anyTrue(vararg things: Boolean) = things.any { it }
+
+/** Method to find a key of a given [Map] with the given [value]. */
+fun <K, V> Map<K, V>.findKey(value: V) = filterValues { it == value }.keys.first()
