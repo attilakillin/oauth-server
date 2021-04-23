@@ -3,6 +3,7 @@ package com.bme.jnsbbk.oauthserver.jwt
 import com.bme.jnsbbk.oauthserver.client.Client
 import com.bme.jnsbbk.oauthserver.client.ClientRepository
 import com.bme.jnsbbk.oauthserver.exceptions.BadRequestException
+import com.bme.jnsbbk.oauthserver.exceptions.badRequest
 import com.bme.jnsbbk.oauthserver.token.Token
 import com.bme.jnsbbk.oauthserver.utils.getOrNull
 import com.bme.jnsbbk.oauthserver.utils.getServerBaseUrl
@@ -37,7 +38,7 @@ class JwtHandler(
     /** Returns the client with the supplied [id], or throws
      *  a [BadRequestException] if no such client exists. */
     private fun getClientById(id: String): Client =
-        clientRepository.findById(id).getOrNull() ?: throw BadRequestException("invalid_client")
+        clientRepository.findById(id).getOrNull() ?: badRequest("invalid_client")
 
     /** Extension function. Allows setting every relevant claim from the
      *  supplied [token] and [client]. Behaves like other builder functions. */

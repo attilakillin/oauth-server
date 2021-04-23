@@ -1,10 +1,9 @@
 package com.bme.jnsbbk.oauthserver.client
 
 import com.bme.jnsbbk.oauthserver.client.validators.ClientValidator
-import com.bme.jnsbbk.oauthserver.exceptions.ApiException
-import com.bme.jnsbbk.oauthserver.exceptions.BadRequestException
+import com.bme.jnsbbk.oauthserver.exceptions.badRequest
+import com.bme.jnsbbk.oauthserver.exceptions.unauthorized
 import com.bme.jnsbbk.oauthserver.utils.getOrNull
-import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder
@@ -19,7 +18,7 @@ class ClientRegistrationController (
     @PostMapping("")
     fun registerClient(@RequestBody client: Client): ResponseEntity<Client> {
         if (clientValidator.shouldRejectCreation(client))
-            throw BadRequestException("invalid_client_metadata")
+            badRequest("invalid_client_metadata")
 
         clientValidator.validateCreationValues(client, clientRepository)
         clientRepository.save(client)
@@ -30,14 +29,14 @@ class ClientRegistrationController (
     @GetMapping("/{id}")
     fun getClient(@RequestHeader("Authorization") header: String?,
                   @PathVariable id: String): ResponseEntity<Client> {
-        val client = validClientOrThrow(header, id, HttpStatus.UNAUTHORIZED)
+        val client = validClientOrUnauthorized(header, id)
         return ResponseEntity.ok(client.withRegistrationUri())
     }
 
     @DeleteMapping("/{id}")
     fun deleteClient(@RequestHeader("Authorization") header: String?,
                      @PathVariable id: String): ResponseEntity<String> {
-        val client = validClientOrThrow(header, id, HttpStatus.UNAUTHORIZED)
+        val client = validClientOrUnauthorized(header, id)
 
         clientRepository.delete(client)
         return ResponseEntity.noContent().build()
@@ -47,10 +46,10 @@ class ClientRegistrationController (
     fun updateClient(@RequestHeader("Authorization") header: String?,
                      @PathVariable id: String,
                      @RequestBody newClient: Client): ResponseEntity<Client> {
-        val oldClient = validClientOrThrow(header, id, HttpStatus.UNAUTHORIZED)
+        val oldClient = validClientOrUnauthorized(header, id)
 
         if (clientValidator.shouldRejectUpdate(oldClient, newClient))
-            throw BadRequestException("invalid_client_metadata")
+            badRequest("invalid_client_metadata")
 
         clientValidator.validateUpdateValues(oldClient, newClient)
         clientRepository.save(newClient)
@@ -58,7 +57,7 @@ class ClientRegistrationController (
         return ResponseEntity.ok(newClient.withRegistrationUri())
     }
 
-    private fun validClientOrThrow(header: String?, id: String, error: HttpStatus): Client {
+    private fun validClientOrUnauthorized(header: String?, id: String): Client {
         val token = header?.removePrefix("Bearer ")
         if (token != header) {
             val client = clientRepository.findById(id).getOrNull()
@@ -66,7 +65,7 @@ class ClientRegistrationController (
                 return client
         }
 
-        throw ApiException(error)
+        unauthorized()
     }
 
     private fun Client.withRegistrationUri(): Client {

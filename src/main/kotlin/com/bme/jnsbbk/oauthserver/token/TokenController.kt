@@ -2,8 +2,8 @@ package com.bme.jnsbbk.oauthserver.token
 
 import com.bme.jnsbbk.oauthserver.client.Client
 import com.bme.jnsbbk.oauthserver.client.ClientRepository
-import com.bme.jnsbbk.oauthserver.exceptions.BadRequestException
-import com.bme.jnsbbk.oauthserver.exceptions.UnauthorizedException
+import com.bme.jnsbbk.oauthserver.exceptions.badRequest
+import com.bme.jnsbbk.oauthserver.exceptions.unauthorized
 import com.bme.jnsbbk.oauthserver.jwt.JwtHandler
 import com.bme.jnsbbk.oauthserver.repositories.TransientRepository
 import com.bme.jnsbbk.oauthserver.token.validators.TokenValidator
@@ -26,23 +26,23 @@ class TokenController(
     fun issueToken(@RequestHeader("Authorization") header: String?,
                    @RequestParam params: Map<String, String>): TokenResponse {
         val client = tokenValidator.validClientOrNull(header, params, clientRepository)
-            ?: throw UnauthorizedException("invalid_client")
+            ?: unauthorized("invalid_client")
 
         return when (params["grant_type"]) {
             "authorization_code" -> handleAuthCode(client, params["code"])
             "refresh_token" -> handleRefreshToken(client, params["refresh_token"])
-            else -> throw BadRequestException("unsupported_grant_type")
+            else -> badRequest("unsupported_grant_type")
         }
     }
 
     private fun handleAuthCode(client: Client, codeValue: String?): TokenResponse {
-        if (codeValue == null) throw BadRequestException("invalid_grant")
+        if (codeValue == null) badRequest("invalid_grant")
 
         val code = transientRepository.findAuthCode(codeValue)
-            ?: throw BadRequestException("invalid_grant")
+            ?: badRequest("invalid_grant")
 
         transientRepository.removeAuthCode(code)
-        if (code.clientId != client.id) throw BadRequestException("invalid_grant")
+        if (code.clientId != client.id) badRequest("invalid_grant")
 
         // TODO Don't hardcode lifetimes
         val accessToken = Token.accessFromCode(RandomString.generate(), code, 300)
@@ -55,14 +55,14 @@ class TokenController(
     }
 
     private fun handleRefreshToken(client: Client, refreshValue: String?): TokenResponse {
-        if (refreshValue == null) throw BadRequestException("invalid_grant")
+        if (refreshValue == null) badRequest("invalid_grant")
 
         val refreshToken = tokenRepository.findRefreshById(refreshValue)
-            ?: throw BadRequestException("invalid_grant")
+            ?: badRequest("invalid_grant")
 
         if (refreshToken.clientId != client.id) {
             tokenRepository.delete(refreshToken)
-            throw BadRequestException("invalid_grant")
+            badRequest("invalid_grant")
         }
 
         val accessToken = Token.accessFromRefresh(RandomString.generate(), refreshToken, 300)
