@@ -4,14 +4,14 @@ import com.bme.jnsbbk.oauthserver.authorization.AuthRequest
 import com.bme.jnsbbk.oauthserver.authorization.UnvalidatedAuthRequest
 import com.bme.jnsbbk.oauthserver.client.ClientRepository
 import com.bme.jnsbbk.oauthserver.utils.getOrNull
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
 /** Reference implementation of [AuthValidator]. Validates the requested [UnvalidatedAuthRequest],
  *  and calls the relevant lambda based on whether the validation succeeded or failed. */
 @Service
-class BasicAuthValidator (
-    val clientRepository: ClientRepository
-) : AuthValidator {
+class BasicAuthValidator : AuthValidator {
+    @Autowired private lateinit var clientRepository: ClientRepository
 
     /** A complex validator method. Validates the given [request] and calls [success] if the
      *  validation succeeded. If the validation failed, and it was an authentication failure
