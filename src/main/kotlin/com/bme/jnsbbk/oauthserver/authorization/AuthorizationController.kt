@@ -33,7 +33,7 @@ class AuthorizationController (
             errorIfNoRedirect = { message -> errorPageWithReason(model, message) },
             errorIfRedirect = { uri, message -> redirectWithError(uri, message) },
             success = { request ->
-                val reqId = RandomString.generate(8)
+                val reqId = RandomString.generateUntil(8) { it !in requests.keys }
                 requests[reqId] = request
 
                 model.addAllAttributes(mapOf("reqId" to reqId, "scope" to request.scope))

@@ -14,4 +14,13 @@ object RandomString {
             .asSequence()
             .map(chars::get)
             .joinToString("")
+
+    /** Generates new random alphanumeric strings until the condition is met. */
+    fun generateUntil(length: Long = 32, condition: (String) -> Boolean): String {
+        var string: String
+        do {
+            string = generate(length)
+        } while (!condition(string))
+        return string
+    }
 }

@@ -26,7 +26,7 @@ class BasicClientValidator : ClientValidator {
         if (new.failsBasicChecks() || anyNotNull(new.id, new.secret))
             onFailure()
 
-        var id: String; do { id = RandomString.generate() } while (clientRepository.existsById(id))
+        val id = RandomString.generateUntil { !clientRepository.existsById(it) }
         val client = Client(id)
 
         client.fixAndCopyPropertiesFrom(new)
