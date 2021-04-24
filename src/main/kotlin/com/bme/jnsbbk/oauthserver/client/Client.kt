@@ -9,40 +9,40 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import java.time.Instant
 import javax.persistence.*
 
+/** An entity class representing an OAuth client. This is the validated equivalent of [UnvalidatedClient]. */
 @Entity
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 class Client (
-    @JsonProperty("client_id") @Id
-    var id: String?,
-
+    @JsonProperty("client_id") @Id val id: String,
+) {
     @JsonProperty("client_secret")
-    var secret: String?,
+    var secret: String? = null
 
-    val redirectUris: Set<String> = setOf(),
-    var tokenEndpointAuthMethod: String = "",
-    val grantTypes: MutableSet<String> = mutableSetOf(),
-    val responseTypes: MutableSet<String> = mutableSetOf(),
+    lateinit var redirectUris: Set<String>
+    lateinit var tokenEndpointAuthMethod: String
+    lateinit var grantTypes: Set<String>
+    lateinit var responseTypes: Set<String>
 
     @JsonSerialize(using = SpacedSetSerializer::class)
     @JsonDeserialize(using = SpacedSetDeserializer::class)
-    val scope: Set<String> = setOf(),
+    lateinit var scope: Set<String>
 
     @JsonProperty("client_id_issued_at")
-    var idIssuedAt: Instant?,
+    lateinit var idIssuedAt: Instant
 
     @JsonProperty("client_secret_expires_at")
-    var expiresAt: Instant?,
+    var expiresAt: Instant? = null
 
-    var registrationAccessToken: String?
-) {
+    lateinit var registrationAccessToken: String
+
     @JsonIgnore
     @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "client_metadata")
-    val extraInfo = mutableMapOf<String, String>()
+    @CollectionTable(name = "client_extra_data")
+    val extraData = mutableMapOf<String, String>()
 
     @JsonAnySetter
-    fun putInfo(key: String, value: String) = extraInfo.put(key, value)
+    fun putExtraData(key: String, value: String) = extraData.put(key, value)
 
     @JsonAnyGetter
-    fun getInfo() = extraInfo
+    fun getAllExtra() = extraData
 }

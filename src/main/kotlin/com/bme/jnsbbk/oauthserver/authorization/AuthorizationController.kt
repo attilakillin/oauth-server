@@ -75,7 +75,7 @@ class AuthorizationController (
     }
 
     private fun Model.addClientAttributes(client: Client) {
-        this.addAttribute("client_name", client.extraInfo["client_name"])
+        this.addAttribute("client_name", client.extraData["client_name"])
     }
 
     private fun buildURL(base: String, params: Map<String, String?>): String {
