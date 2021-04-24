@@ -1,17 +1,11 @@
 package com.bme.jnsbbk.oauthserver.authorization
 
-import com.bme.jnsbbk.oauthserver.utils.SpacedSetDeserializer
-import com.fasterxml.jackson.databind.PropertyNamingStrategy
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize
-import com.fasterxml.jackson.databind.annotation.JsonNaming
-
-@JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy::class)
-data class AuthRequest (
-    val clientId: String?,
-    var redirectUri: String?,
-    val responseType: String?,
-    val state: String?,
-
-    @JsonDeserialize(using = SpacedSetDeserializer::class)
-    var scope: MutableSet<String> = mutableSetOf()
+/** An entity class representing an OAuth authorization request.
+ *  This is the validated equivalent of [UnvalidatedAuthRequest]. */
+class AuthRequest (
+    val clientId: String,
+    val redirectUri: String,
+    val responseType: String,
+    var scope: Set<String>,
+    val state: String?
 )

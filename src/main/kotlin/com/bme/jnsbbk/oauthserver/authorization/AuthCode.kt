@@ -2,7 +2,8 @@ package com.bme.jnsbbk.oauthserver.authorization
 
 import java.time.Instant
 
-data class AuthCode (
+/** An entity class representing an OAuth authorization code. */
+class AuthCode (
     val value: String,
     val clientId: String,
     val scope: Set<String>,
@@ -10,10 +11,11 @@ data class AuthCode (
     val expiresAt: Instant
 ) { companion object }
 
+/** Creates an authorization code with the given [value] from the given [request]. */
 fun AuthCode.Companion.fromRequest(value: String, request: AuthRequest, lifeInSeconds: Long) : AuthCode {
     return AuthCode (
         value,
-        request.clientId!!,
+        request.clientId,
         request.scope,
         Instant.now(),
         Instant.now().plusSeconds(lifeInSeconds)

@@ -1,7 +1,6 @@
 package com.bme.jnsbbk.oauthserver.authorization
 
 import com.bme.jnsbbk.oauthserver.authorization.validators.AuthValidator
-import com.bme.jnsbbk.oauthserver.client.Client
 import com.bme.jnsbbk.oauthserver.client.ClientRepository
 import com.bme.jnsbbk.oauthserver.repositories.TransientRepository
 import com.bme.jnsbbk.oauthserver.utils.RandomString
@@ -24,75 +23,76 @@ class AuthorizationController (
 ) {
     private val requests = mutableMapOf<String, AuthRequest>()
 
+    /** Displays the "approve authorization" page to the caller, or, in case of an error,
+     *  it either redirects to the client or displays an error page to the caller. */
     @GetMapping
     fun authorizationRequested(@RequestParam params: Map<String, String>, model: Model): String {
-        val request = jacksonObjectMapper().convertValue<AuthRequest>(params)
-        authValidator.ifShouldReject(request, clientRepository)?.let {
-            return errorPageWithReason(model, it)
-        }
+        val unvalidatedRequest = jacksonObjectMapper().convertValue<UnvalidatedAuthRequest>(params)
 
-        val client = clientRepository.findById(request.clientId!!).get()
+        return authValidator.validate(unvalidatedRequest,
+            errorIfNoRedirect = { message -> errorPageWithReason(model, message) },
+            errorIfRedirect = { uri, message -> redirectWithError(uri, message) },
+            success = { request ->
+                val reqId = RandomString.generate(8)
+                requests[reqId] = request
 
-        /* If it's null, but passed validation, then the client only has one redirect URI. */
-        request.redirectUri = request.redirectUri ?: client.redirectUris.first()
-
-        if (request.responseType !in client.responseTypes)
-            return redirectWithError(request.redirectUri!!, "unsupported_response_type")
-
-        if (request.scope.isEmpty())
-            request.scope.addAll(client.scope)
-
-        if (authValidator.shouldRejectScope(request.scope, client))
-            return redirectWithError(request.redirectUri!!, "invalid_scope")
-
-        val reqId = RandomString.generate(8)
-        requests[reqId] = request
-
-        model.addAllAttributes(mapOf("reqId" to reqId, "scope" to request.scope))
-        model.addClientAttributes(client)
-        return "auth_approve"
+                model.addAllAttributes(mapOf("reqId" to reqId, "scope" to request.scope))
+                model.addClientAttributes(request.clientId)
+                return@validate "auth_approve"
+            }
+        )
     }
 
+    /** Approved authorization forms are processed here. If the authorization request passes
+     *  validation, the function redirects the caller to the client, otherwise it displays
+     *  an error page to the caller (or redirects to the client with an error code depending on the
+     *  error itself). */
     @PostMapping("/approve")
     fun approveAuthorization(@RequestParam params: Map<String, String>, model: Model): String {
         val request = requests.remove(params["reqId"])
             ?: return errorPageWithReason(model, "No matching authorization request!")
 
         if (params["approve"] == null)
-            return redirectWithError(request.redirectUri!!,"access_denied")
+            return redirectWithError(request.redirectUri,"access_denied")
 
         val scope = getScopeFrom(params)
         scope.forEach {
-            if (it !in request.scope)
-                return redirectWithError(request.redirectUri!!, "invalid_scope")
+            if (it !in request.scope) return redirectWithError(request.redirectUri, "invalid_scope")
         }
         request.scope = scope
 
         return when (request.responseType) {
             "code" -> handleCodeResponse(request)
-            else -> redirectWithError(request.redirectUri!!, "unsupported_response_type")
+            else -> redirectWithError(request.redirectUri, "unsupported_response_type")
         }
     }
 
-    private fun Model.addClientAttributes(client: Client) {
+    /** Adds every client attribute to the model that is required for the authorization prompt. */
+    private fun Model.addClientAttributes(id: String) {
+        val client = clientRepository.findById(id).get()
         this.addAttribute("client_name", client.extraData["client_name"])
     }
 
+    /** Creates an URL string from a [base] with the given [params]. If a parameter has a null
+     *  value, the corresponding key is skipped. */
     private fun buildURL(base: String, params: Map<String, String?>): String {
         val builder = UriComponentsBuilder.fromUriString(base)
         params.forEach { (key, value) -> if (value != null) builder.queryParam(key, value) }
         return builder.toUriString()
     }
 
+    /** Sets the error [reason] and returns a string pointing to the authorization error page. */
     private fun errorPageWithReason(model: Model, reason: String): String {
         model.addAttribute("reason", reason)
         return "auth_error"
     }
 
+    /** Returns a string pointing to the given [redirectUri] with the given [error] as a query param. */
     private fun redirectWithError(redirectUri: String, error: String): String {
         return "redirect:" + buildURL(redirectUri, mapOf("error" to error))
     }
 
+    /** Extracts the scope values from a map where they are prefixed with "scope_". */
     private fun getScopeFrom(params: Map<String, String>): MutableSet<String> {
         return params.asSequence()
                      .filter { it.key.startsWith("scope_") }.distinct()
@@ -100,12 +100,12 @@ class AuthorizationController (
                      .toMutableSet()
     }
 
+    /** Handles the authorization code response. */
     private fun handleCodeResponse(request: AuthRequest): String {
         val code = RandomString.generate(16)
         transientRepository.saveAuthCode(AuthCode.fromRequest(code, request, 60))
         // TODO Lifetime should be a constant somewhere
 
-        return "redirect:" + buildURL(request.redirectUri!!,
-            mapOf("code" to code, "state" to request.state))
+        return "redirect:" + buildURL(request.redirectUri, mapOf("code" to code, "state" to request.state))
     }
 }
