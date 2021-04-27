@@ -29,18 +29,20 @@ class AuthorizationController (
     fun authorizationRequested(@RequestParam params: Map<String, String>, model: Model): String {
         val unvalidatedRequest = jacksonObjectMapper().convertValue<UnvalidatedAuthRequest>(params)
 
-        return authValidator.validate(unvalidatedRequest,
-            errorIfNoRedirect = { message -> errorPageWithReason(model, message) },
-            errorIfRedirect = { uri, message -> redirectWithError(uri, message) },
-            success = { request ->
-                val reqId = RandomString.generateUntil(8) { it !in requests.keys }
-                requests[reqId] = request
+        authValidator.validateSensitiveOrError(unvalidatedRequest)?.let { message ->
+            return errorPageWithReason(model, message)
+        }
+        authValidator.validateAdditionalOrError(unvalidatedRequest)?.let { message ->
+            return redirectWithError(unvalidatedRequest.redirectUri!!, message)
+        }
+        val request = authValidator.convertToValidRequest(unvalidatedRequest)
 
-                model.addAllAttributes(mapOf("reqId" to reqId, "scope" to request.scope))
-                model.addClientAttributes(request.clientId)
-                return@validate "auth_approve"
-            }
-        )
+        val reqId = RandomString.generateUntil(8) { it !in requests.keys }
+        requests[reqId] = request
+
+        model.addAllAttributes(mapOf("reqId" to reqId, "scope" to request.scope))
+        model.addClientAttributes(request.clientId)
+        return "auth_approve"
     }
 
     /** Approved authorization forms are processed here. If the authorization request passes

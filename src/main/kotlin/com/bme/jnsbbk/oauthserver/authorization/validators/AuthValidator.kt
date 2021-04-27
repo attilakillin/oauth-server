@@ -7,14 +7,22 @@ import org.springframework.stereotype.Service
 /** Base interface for authorization request validation used in the authorization controller. */
 @Service
 interface AuthValidator {
-    /** A complex validator method. Validates the given [request] and calls [success] if the
-     *  validation succeeded. If the validation failed, and it was an authentication failure
-     *  that should not result in a redirect, [errorIfNoRedirect] is called. If it was an otherwise
-     *  minor error that can be safely communicated back to the client, [errorIfRedirect] is called.
+    /** Validates sensitive information. The expected return value of this method is null.
+     *  If the method returns something else, caution should be used, and the resource owner
+     *  must not be redirected to the client redirect URI!
      *
-     *  The return value is the same as the return value of the lambda that was called during validation. */
-    fun validate(request: UnvalidatedAuthRequest,
-                 errorIfNoRedirect: (String) -> String,
-                 errorIfRedirect: (String, String) -> String,
-                 success: (AuthRequest) -> String): String
+     *  Validated fields are updated in the [request] object. */
+    fun validateSensitiveOrError(request: UnvalidatedAuthRequest): String?
+    /** Validates additional information. The method requires that the [validateSensitiveOrError]
+     *  method be called before this, otherwise it can throw an error.
+     *
+     *  The expected return value of this method is null. If a string is returned, the resource
+     *  owner can safely be redirected to the client redirect URI.
+     *
+     *  Validated fields are updated in the [request] object. */
+    fun validateAdditionalOrError(request: UnvalidatedAuthRequest): String?
+    /** Converts the [request] object into a validated [AuthRequest].
+     *  Throws an error, if the validation methods were not used beforehand and either (otherwise
+     *  required) field is null. */
+    fun convertToValidRequest(request: UnvalidatedAuthRequest): AuthRequest
 }

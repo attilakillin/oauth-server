@@ -13,33 +13,56 @@ import org.springframework.stereotype.Service
 class BasicAuthValidator : AuthValidator {
     @Autowired private lateinit var clientRepository: ClientRepository
 
-    /** A complex validator method. Validates the given [request] and calls [success] if the
-     *  validation succeeded. If the validation failed, and it was an authentication failure
-     *  that should not result in a redirect, [errorIfNoRedirect] is called. If it was an otherwise
-     *  minor error that can be safely communicated back to the client, [errorIfRedirect] is called.
+    /** Validates sensitive information. The expected return value of this method is null.
+     *  If the method returns something else, caution should be used, and the resource owner
+     *  must not be redirected to the client redirect URI!
      *
-     *  The return value is the same as the return value of the lambda that was called during validation. */
-    override fun validate(request: UnvalidatedAuthRequest,
-                          errorIfNoRedirect: (String) -> String,
-                          errorIfRedirect: (String, String) -> String,
-                          success: (AuthRequest) -> String): String {
+     *  Validated fields are updated in the [request] object. */
+    override fun validateSensitiveOrError(request: UnvalidatedAuthRequest): String? {
         val client = request.clientId?.let { clientRepository.findById(it).getOrNull() }
-            ?: return errorIfNoRedirect("Unknown client")
+            ?: return "Unknown client"
 
-        var uri = request.redirectUri
+        val uri = request.redirectUri
         if (uri == null) {
-            if (client.redirectUris.size != 1) return errorIfNoRedirect("Invalid redirect URI!")
-            uri = client.redirectUris.first()
+            if (client.redirectUris.size != 1) return "Invalid redirect URI!"
+            request.redirectUri = client.redirectUris.first()
         } else {
-            if (uri !in client.redirectUris) return errorIfNoRedirect("Invalid redirect URI!")
+            if (uri !in client.redirectUris) return "Invalid redirect URI!"
         }
+        return null
+    }
+
+    /** Validates additional information. The method requires that the [validateSensitiveOrError]
+     *  method be called before this, otherwise it can throw an error.
+     *
+     *  The expected return value of this method is null. If a string is returned, the resource
+     *  owner can safely be redirected to the client redirect URI.
+     *
+     *  Validated fields are updated in the [request] object. */
+    override fun validateAdditionalOrError(request: UnvalidatedAuthRequest): String? {
+        requireNotNull(request.clientId)
+
+        val client = clientRepository.findById(request.clientId).get()
 
         if (request.responseType !in client.responseTypes)
-            return errorIfRedirect(uri, "unsupported_response_type")
+            return "unsupported_response_type"
 
         val scope = request.scope ?: client.scope
-        scope.forEach { if (it !in client.scope) return errorIfRedirect(uri, "invalid_scope") }
+        scope.forEach { if (it !in client.scope) return "invalid_scope" }
+        request.scope = scope
+        return null
+    }
 
-        return success(AuthRequest(client.id, uri, request.responseType!!, scope, request.state))
+    /** Converts the [request] object into a validated [AuthRequest].
+     *  Throws an error, if the validation methods were not used beforehand and either (otherwise
+     *  required) field is null. */
+    override fun convertToValidRequest(request: UnvalidatedAuthRequest): AuthRequest {
+        return AuthRequest(
+            request.clientId!!,
+            request.redirectUri!!,
+            request.responseType!!,
+            request.scope!!,
+            request.state
+        )
     }
 }
