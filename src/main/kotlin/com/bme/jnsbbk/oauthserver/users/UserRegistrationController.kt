@@ -1,7 +1,5 @@
 package com.bme.jnsbbk.oauthserver.users
 
-import com.bme.jnsbbk.oauthserver.exceptions.ApiException
-import com.bme.jnsbbk.oauthserver.exceptions.BadRequestException
 import com.bme.jnsbbk.oauthserver.exceptions.badRequest
 import com.bme.jnsbbk.oauthserver.users.validators.UserValidator
 import com.bme.jnsbbk.oauthserver.utils.PasswordHasher
@@ -18,7 +16,7 @@ class UserRegistrationController (
 ) {
 
     @GetMapping
-    fun returnRegistrationForm(): String = "user_registration_form"
+    fun serveRequest(): String = "user_registration_form"
 
     @PostMapping
     @ResponseBody
@@ -26,6 +24,9 @@ class UserRegistrationController (
                            @RequestParam password: String): ResponseEntity<Unit> {
         if (!userValidator.isRegistrationValid(email, password)) {
             badRequest("Credentials failed server-side validation. Please enter valid information!")
+        }
+        if (!userValidator.isRegistrationUnique(email, password)) {
+            badRequest("This email is already registered!")
         }
 
         var userId: String

@@ -26,7 +26,7 @@ class JwtHandler(
         return Jwts.builder()
             .setHeader(mapOf("typ" to "JWT", "alg" to RSAKey.algorithm))
             .setInfo(token, client)
-            .signWith(getKeyById(client.id!!).private)
+            .signWith(getKeyById(client.id).private)
             .compact()
     }
 

@@ -19,4 +19,12 @@
         <input type="submit" name="deny" value="Deny">
     </form>
 </body>
+<script>
+    window.onload = function () {
+        const authToken = sessionStorage.getItem("oauth-user-session-token")
+        if (!authToken) {
+            window.location.href = window.location.origin + "/user/login"
+        }
+    }
+</script>
 </html>

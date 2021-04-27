@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Log in</title>
+</head>
+<body>
+    <h1>Log in</h1>
+    <form method="post" id="form_login">
+        <label for="email">Email:</label>
+        <input type="email" name="email" id="email" required pattern="^.+@.+\.[a-z]{2,4}$">
+        <label for="password">Password</label>
+        <input type="password" name="password" id="password" required minlength="8">
+        <input type="submit" value="Log in">
+    </form>
+    <div id="message-div" style="display: none">
+        <p id="message"></p>
+    </div>
+</body>
+<script>
+    document.getElementById('form_login').onsubmit = async function(event) {
+        event.preventDefault();
+        const message_p = document.getElementById("message");
+        const request = new XMLHttpRequest();
+        request.onreadystatechange = function () {
+            if (this.readyState !== 4) return;
+            if (request.status !== 200) {
+                const body = JSON.parse(request.response);
+                message_p.textContent = "Login failed! Reason: " + body.error;
+            } else {
+                console.log(request.response)
+                sessionStorage.setItem("oauth-user-session-token", request.response);
+                if (!document.referrer) {
+                    message_p.textContent = "Login successful!"
+                } else if (!document.referrer.startsWith(window.location.origin)) {
+                    message_p.textContent = "Login successful! However the referrer URL <i>("
+                        + document.referrer + ")</i> is unknown, not redirecting back."
+                } else {
+                    message_p.textContent = "Login successful! Redirecting...";
+                    window.location.href = document.referrer;
+                }
+            }
+            document.getElementById("message-div").style.display = "block";
+        }
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+
+        request.open('POST', '/user/login', true);
+        request.send(new URLSearchParams({"email": email, "password": password}));
+    }
+</script>
+</html>
