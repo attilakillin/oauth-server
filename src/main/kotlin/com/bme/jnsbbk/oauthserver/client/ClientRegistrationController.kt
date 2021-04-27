@@ -4,6 +4,7 @@ import com.bme.jnsbbk.oauthserver.client.validators.ClientValidator
 import com.bme.jnsbbk.oauthserver.exceptions.badRequest
 import com.bme.jnsbbk.oauthserver.exceptions.unauthorized
 import com.bme.jnsbbk.oauthserver.utils.getOrNull
+import com.bme.jnsbbk.oauthserver.utils.getServerBaseUrl
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder
@@ -72,8 +73,7 @@ class ClientRegistrationController (
 
     /** Extension function, appends the registration client URI to the client's extra data. */
     private fun Client.withRegistrationUri(): Client {
-        val url = ServletUriComponentsBuilder.fromCurrentContextPath().toUriString()
-        this.extraData["registration_client_uri"] = "$url/register/$id"
+        this.extraData["registration_client_uri"] = getServerBaseUrl() + "/register/$id"
         return this
     }
 }
