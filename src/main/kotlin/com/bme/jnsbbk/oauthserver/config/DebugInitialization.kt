@@ -25,6 +25,9 @@ class DebugInitialization (
     private var executed = false
     private val logger = LoggerFactory.getLogger(this::class.java)
 
+    /** This method calls everything that should be run after the Spring initialization.
+     *
+     *  Automatically called after the environment is initialized. */
     @EventListener(ContextRefreshedEvent::class)
     fun onRefreshEvent() {
         if (environment.getProperty("debug") == "true" && !executed) {
@@ -34,6 +37,8 @@ class DebugInitialization (
         }
     }
 
+    /** Creates and posts a default client implementation to the server, and prints the returned data
+     *  along with an automatically generated authorization link to aid testing and debugging. */
     private fun createDefaultClient() {
         val template = RestTemplate()
         val url = "$SERVER_URL/register"
@@ -69,6 +74,6 @@ class DebugInitialization (
             .queryParam("state", RandomString.generate())
             .build()
 
-        println("  >> " + builder.toUriString())
+        println("\n  " + builder.toUriString() + "\n")
     }
 }
