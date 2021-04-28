@@ -1,7 +1,9 @@
 package com.bme.jnsbbk.oauthserver.client.validators
 
+import com.bme.jnsbbk.oauthserver.ValidationException
 import com.bme.jnsbbk.oauthserver.client.ClientRepository
 import com.bme.jnsbbk.oauthserver.client.UnvalidatedClient
+import com.bme.jnsbbk.oauthserver.onError
 import com.bme.jnsbbk.oauthserver.utils.StringSetConverter
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
@@ -13,19 +15,8 @@ import java.time.Instant
 
 @ExtendWith(MockitoExtension::class)
 class BasicClientValidatorTests {
-    @Mock
-    private lateinit var repository: ClientRepository
-
-    @InjectMocks
-    private val validator = BasicClientValidator()
-
-    private class ValidationException : Exception()
-    private fun onError(): Nothing = throw ValidationException()
-
-    private lateinit var newClient: UnvalidatedClient
-    private val redirectUris = setOf("http://localhost:8082/callback")
-    private val scope = setOf("alpha", "beta", "gamma", "delta")
-    private val extraData = mapOf("test" to "thing", "data" to "another thing")
+    @Mock private lateinit var repository: ClientRepository
+    @InjectMocks private val validator = BasicClientValidator()
 
     companion object {
         @BeforeAll
@@ -34,10 +25,20 @@ class BasicClientValidatorTests {
         }
     }
 
+    private lateinit var newClient: UnvalidatedClient
+    private val extraData = mapOf("test" to "thing", "data" to "another thing")
+
     @BeforeEach
     fun createSampleClient() {
-        newClient = UnvalidatedClient(null, null, redirectUris,
-            null, null, null, scope)
+        newClient = UnvalidatedClient(
+            id = null,
+            secret = null,
+            redirectUris = setOf("http://localhost:8082/callback"),
+            tokenEndpointAuthMethod = null,
+            grantTypes = null,
+            responseTypes = null,
+            scope = setOf("alpha", "beta", "gamma", "delta")
+        )
         newClient.extraData.putAll(extraData)
     }
 
@@ -88,8 +89,8 @@ class BasicClientValidatorTests {
     @Test
     fun validateNewOrElse_disallowsSetSeparators() {
         val badScope = mutableSetOf("text" + StringSetConverter.SEPARATOR)
-        badScope.addAll(scope)
-        val client = UnvalidatedClient(null, null, redirectUris,
+        badScope.addAll(newClient.scope!!)
+        val client = UnvalidatedClient(null, null, newClient.redirectUris!!,
             null, null, null, badScope)
         assertThrows<ValidationException> { validator.validateNewOrElse(client, ::onError) }
     }
