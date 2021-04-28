@@ -2,6 +2,7 @@ package com.bme.jnsbbk.oauthserver.authorization
 
 import com.bme.jnsbbk.oauthserver.authorization.validators.AuthValidator
 import com.bme.jnsbbk.oauthserver.client.ClientRepository
+import com.bme.jnsbbk.oauthserver.jwt.UserJwtHandler
 import com.bme.jnsbbk.oauthserver.repositories.TransientRepository
 import com.bme.jnsbbk.oauthserver.utils.RandomString
 import com.fasterxml.jackson.module.kotlin.convertValue
@@ -19,7 +20,8 @@ import org.springframework.web.util.UriComponentsBuilder
 class AuthorizationController (
     private val authValidator: AuthValidator,
     private val clientRepository: ClientRepository,
-    private val transientRepository: TransientRepository
+    private val transientRepository: TransientRepository,
+    private val jwtHandler: UserJwtHandler
 ) {
     private val requests = mutableMapOf<String, AuthRequest>()
 
@@ -54,6 +56,16 @@ class AuthorizationController (
         val request = requests.remove(params["reqId"])
             ?: return errorPageWithReason(model, "No matching authorization request!")
 
+        val userToken = params["userToken"] ?:
+            return errorPageWithReason(model, "User did not authenticate themselves!")
+
+        if (!jwtHandler.isUserTokenValid(userToken)) {
+            return errorPageWithReason(model, "User authentication token invalid!")
+        }
+
+        val userId = jwtHandler.getUserIdFrom(userToken) ?:
+            return errorPageWithReason(model, "User authentication token invalid!")
+
         if (params["approve"] == null)
             return redirectWithError(request.redirectUri,"access_denied")
 
@@ -64,7 +76,7 @@ class AuthorizationController (
         request.scope = scope
 
         return when (request.responseType) {
-            "code" -> handleCodeResponse(request)
+            "code" -> handleCodeResponse(request, userId)
             else -> redirectWithError(request.redirectUri, "unsupported_response_type")
         }
     }
@@ -103,9 +115,9 @@ class AuthorizationController (
     }
 
     /** Handles the authorization code response. */
-    private fun handleCodeResponse(request: AuthRequest): String {
-        val code = RandomString.generate(16)
-        transientRepository.saveAuthCode(AuthCode.fromRequest(code, request, 60))
+    private fun handleCodeResponse(request: AuthRequest, userId: String): String {
+        val code = RandomString.generate(16) // TODO uniqueness check
+        transientRepository.saveAuthCode(AuthCode.fromRequest(code, request, userId, 60))
         // TODO Lifetime should be a constant somewhere
 
         return "redirect:" + buildURL(request.redirectUri, mapOf("code" to code, "state" to request.state))

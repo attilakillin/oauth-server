@@ -11,7 +11,10 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
+import org.springframework.util.LinkedMultiValueMap
+import org.springframework.util.MultiValueMap
 import org.springframework.web.client.RestTemplate
+import org.springframework.web.client.postForEntity
 import org.springframework.web.util.UriComponentsBuilder
 
 /** A post-initialization class that creates default instances of entity classes to help debugging.
@@ -34,6 +37,7 @@ class DebugInitialization (
             executed = true
             logger.info("Debug mode enabled, creating default entity instances...")
             createDefaultClient()
+            createDefaultUser()
         }
     }
 
@@ -55,7 +59,7 @@ class DebugInitialization (
             }
         """.trimIndent(), headers)
 
-        val response = template.postForEntity(url, entity, String::class.java)
+        val response = template.postForEntity<String>(url, entity)
         if (response.statusCode != HttpStatus.OK) {
             logger.warn("Error creating default client instance: POST returned with status ${response.statusCodeValue}!")
             return
@@ -75,5 +79,29 @@ class DebugInitialization (
             .build()
 
         println("\n  " + builder.toUriString() + "\n")
+    }
+
+    private fun createDefaultUser() {
+        val email = "admin@admin.hu"
+        val password = "12345678"
+
+        val template = RestTemplate()
+        val url = "$SERVER_URL/user/register"
+        val headers = HttpHeaders()
+        headers.contentType = MediaType.APPLICATION_FORM_URLENCODED
+
+        val params = LinkedMultiValueMap<String, String>()
+        params.add("email", email)
+        params.add("password", password)
+        val entity = HttpEntity<MultiValueMap<String, String>>(params, headers)
+        val response = template.postForEntity<Unit>(url, entity)
+
+        if (response.statusCode != HttpStatus.OK) {
+            logger.warn("Error creating default user instance: POST returned with status ${response.statusCodeValue}!")
+            return
+        }
+
+        logger.info("Created default user instance, details below:")
+        println("\n  Email: $email, password: $password\n")
     }
 }

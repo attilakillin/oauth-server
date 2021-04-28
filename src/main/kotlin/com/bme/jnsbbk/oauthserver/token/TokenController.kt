@@ -4,7 +4,7 @@ import com.bme.jnsbbk.oauthserver.client.Client
 import com.bme.jnsbbk.oauthserver.client.ClientRepository
 import com.bme.jnsbbk.oauthserver.exceptions.badRequest
 import com.bme.jnsbbk.oauthserver.exceptions.unauthorized
-import com.bme.jnsbbk.oauthserver.jwt.JwtHandler
+import com.bme.jnsbbk.oauthserver.jwt.TokenJwtHandler
 import com.bme.jnsbbk.oauthserver.repositories.TransientRepository
 import com.bme.jnsbbk.oauthserver.token.validators.TokenValidator
 import com.bme.jnsbbk.oauthserver.utils.RandomString
@@ -18,7 +18,7 @@ class TokenController(
     private val clientRepository: ClientRepository,
     private val transientRepository: TransientRepository,
     private val tokenRepository: TokenRepository,
-    private val jwtHandler: JwtHandler
+    private val jwtHandler: TokenJwtHandler
 ) {
 
     @PostMapping

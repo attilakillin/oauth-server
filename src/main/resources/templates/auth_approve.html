@@ -15,15 +15,32 @@
             </li>
         </ul>
         <input type="hidden" name="reqId" th:value="${reqId}">
+        <input type="hidden" name="userToken" id="userTokenInput">
         <input type="submit" name="approve" value="Approve">
         <input type="submit" name="deny" value="Deny">
     </form>
 </body>
 <script>
     window.onload = function () {
-        const authToken = sessionStorage.getItem("oauth-user-session-token")
+        let authToken = sessionStorage.getItem("oauth-user-session-token")
         if (!authToken) {
             window.location.href = window.location.origin + "/user/login"
+        }
+        authToken = sessionStorage.getItem("oauth-user-session-token")
+        if (!authToken) {
+            // TODO Redirect to default error page
+        }
+
+        const request = new XMLHttpRequest();
+        request.open('POST', '/user/validate', true);
+        request.send(new URLSearchParams({"userToken": authToken}));
+        request.onreadystatechange = function () {
+            if (this.readyState !== 4) return;
+            if (request.status !== 200) {
+                window.location.href = window.location.origin + "/user/login"
+            } else {
+                document.getElementById("userTokenInput").setAttribute("value", authToken)
+            }
         }
     }
 </script>

@@ -1,6 +1,6 @@
 package com.bme.jnsbbk.oauthserver.token
 
-import com.bme.jnsbbk.oauthserver.jwt.JwtHandler
+import com.bme.jnsbbk.oauthserver.jwt.TokenJwtHandler
 import com.bme.jnsbbk.oauthserver.utils.SpacedSetSerializer
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
@@ -29,7 +29,7 @@ fun TokenResponse.Companion.opaqueFromTokens(access: Token, refresh: Token): Tok
 }
 
 fun TokenResponse.Companion.jwtFromTokens(access: Token, refresh: Token,
-                                          jwtHandler: JwtHandler): TokenResponse {
+                                          jwtHandler: TokenJwtHandler): TokenResponse {
     return TokenResponse (
         jwtHandler.createSigned(access),
         refresh.value, // TODO This should be JWT too

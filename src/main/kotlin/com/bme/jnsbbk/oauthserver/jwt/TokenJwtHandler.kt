@@ -12,10 +12,10 @@ import io.jsonwebtoken.Jwts
 import org.springframework.stereotype.Service
 import java.util.*
 
-/** JWT service class, encompassing every function
- *  that's strictly necessary for JSON Web Token creation. */
+/** Token JWT service class, encompassing every function that's strictly
+ *  necessary for access & refresh token-related JSON Web Token creation. */
 @Service
-class JwtHandler(
+class TokenJwtHandler (
     private val rsaKeyRepository: RSAKeyRepository,
     private val clientRepository: ClientRepository
 ) {
@@ -44,7 +44,7 @@ class JwtHandler(
      *  supplied [token] and [client]. Behaves like other builder functions. */
     private fun JwtBuilder.setInfo(token: Token, client: Client): JwtBuilder {
         setIssuer(getServerBaseUrl())
-        setSubject("") // TODO Set up user authentication
+        setSubject(token.userId)
         setAudience(client.id)
         setIssuedAt(Date.from(token.issuedAt))
         setExpiration(Date.from(token.expiresAt))

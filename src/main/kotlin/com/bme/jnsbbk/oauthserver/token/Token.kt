@@ -15,15 +15,16 @@ data class Token (
     val value: String,
     val type: TokenType,
     val clientId: String,
+    val userId: String,
     val scope: Set<String>,
     val issuedAt: Instant,
     val expiresAt: Instant
 ) {
     companion object;
 
-    constructor (value: String, type: TokenType, clientId: String,
+    constructor (value: String, type: TokenType, clientId: String, userId: String,
                  scope: Set<String>, lifeInSeconds: Long) : this (
-        value, type, clientId, scope, Instant.now(), Instant.now().plusSeconds(lifeInSeconds)
+        value, type, clientId, userId, scope, Instant.now(), Instant.now().plusSeconds(lifeInSeconds)
     )
 }
 
@@ -36,6 +37,7 @@ fun Token.Companion.accessFromCode(value: String, code: AuthCode, lifeInSeconds:
         value = value,
         type = TokenType.ACCESS,
         clientId = code.clientId,
+        userId = code.userId,
         scope = code.scope,
         lifeInSeconds = lifeInSeconds
     )
@@ -46,6 +48,7 @@ fun Token.Companion.refreshFromCode(value: String, code: AuthCode, lifeInSeconds
         value = value,
         type = TokenType.REFRESH,
         clientId = code.clientId,
+        userId = code.userId,
         scope = code.scope,
         lifeInSeconds = lifeInSeconds
     )
@@ -57,6 +60,7 @@ fun Token.Companion.accessFromRefresh(value: String, refreshToken: Token, lifeIn
         value = value,
         type = TokenType.ACCESS,
         clientId = refreshToken.clientId,
+        userId = refreshToken.userId,
         scope = refreshToken.scope,
         lifeInSeconds = lifeInSeconds
     )
