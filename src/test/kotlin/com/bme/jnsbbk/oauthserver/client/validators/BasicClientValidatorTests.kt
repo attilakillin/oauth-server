@@ -2,7 +2,7 @@ package com.bme.jnsbbk.oauthserver.client.validators
 
 import com.bme.jnsbbk.oauthserver.ValidationException
 import com.bme.jnsbbk.oauthserver.client.ClientRepository
-import com.bme.jnsbbk.oauthserver.client.UnvalidatedClient
+import com.bme.jnsbbk.oauthserver.client.entities.UnvalidatedClient
 import com.bme.jnsbbk.oauthserver.onError
 import com.bme.jnsbbk.oauthserver.utils.StringSetConverter
 import org.junit.jupiter.api.*

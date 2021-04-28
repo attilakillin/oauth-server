@@ -4,6 +4,7 @@ plugins {
 	id("org.springframework.boot") version "2.4.3"
 	id("io.spring.dependency-management") version "1.0.11.RELEASE"
 	kotlin("jvm") version "1.4.30"
+	kotlin("kapt") version "1.4.30"
 	kotlin("plugin.spring") version "1.4.30"
 	kotlin("plugin.jpa") version "1.4.30"
 }
@@ -30,6 +31,8 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.mockito:mockito-core:2.28.2")
 	testImplementation("org.mockito.kotlin:mockito-kotlin:3.1.0")
+	implementation("org.springframework.boot:spring-boot-configuration-processor")
+	kapt("org.springframework.boot:spring-boot-configuration-processor")
 }
 
 tasks.withType<KotlinCompile> {

@@ -1,13 +1,13 @@
 package com.bme.jnsbbk.oauthserver.token
 
-import com.bme.jnsbbk.oauthserver.client.Client
-import com.bme.jnsbbk.oauthserver.client.ClientRepository
+import com.bme.jnsbbk.oauthserver.authorization.AuthCodeRepository
+import com.bme.jnsbbk.oauthserver.client.entities.Client
 import com.bme.jnsbbk.oauthserver.exceptions.badRequest
 import com.bme.jnsbbk.oauthserver.exceptions.unauthorized
-import com.bme.jnsbbk.oauthserver.jwt.TokenJwtHandler
-import com.bme.jnsbbk.oauthserver.repositories.TransientRepository
+import com.bme.jnsbbk.oauthserver.token.entities.TokenResponse
 import com.bme.jnsbbk.oauthserver.token.validators.TokenValidator
 import com.bme.jnsbbk.oauthserver.utils.RandomString
+import com.bme.jnsbbk.oauthserver.utils.getOrNull
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.*
 
@@ -15,17 +15,16 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/token")
 class TokenController(
     private val tokenValidator: TokenValidator,
-    private val clientRepository: ClientRepository,
-    private val transientRepository: TransientRepository,
+    private val authCodeRepository: AuthCodeRepository,
     private val tokenRepository: TokenRepository,
-    private val jwtHandler: TokenJwtHandler
+    private val tokenFactory: TokenFactory
 ) {
 
     @PostMapping
     @ResponseBody
     fun issueToken(@RequestHeader("Authorization") header: String?,
                    @RequestParam params: Map<String, String>): TokenResponse {
-        val client = tokenValidator.validClientOrNull(header, params, clientRepository)
+        val client = tokenValidator.validClientOrNull(header, params)
             ?: unauthorized("invalid_client")
 
         return when (params["grant_type"]) {
@@ -38,20 +37,19 @@ class TokenController(
     private fun handleAuthCode(client: Client, codeValue: String?): TokenResponse {
         if (codeValue == null) badRequest("invalid_grant")
 
-        val code = transientRepository.findAuthCode(codeValue)
+        val code = authCodeRepository.findById(codeValue).getOrNull()
             ?: badRequest("invalid_grant")
+        authCodeRepository.delete(code)
 
-        transientRepository.removeAuthCode(code)
         if (code.clientId != client.id) badRequest("invalid_grant")
 
-        // TODO Don't hardcode lifetimes
-        val accessToken = Token.accessFromCode(RandomString.generate(), code, 300)
-        val refreshToken = Token.refreshFromCode(RandomString.generate(), code, 3600)
+        val accessToken = tokenFactory.accessFromCode(RandomString.generate(), code)
+        val refreshToken = tokenFactory.refreshFromCode(RandomString.generate(), code)
 
         tokenRepository.save(accessToken)
         tokenRepository.save(refreshToken)
 
-        return TokenResponse.jwtFromTokens(accessToken, refreshToken, jwtHandler)
+        return tokenFactory.responseJWTFromTokens(accessToken, refreshToken)
     }
 
     private fun handleRefreshToken(client: Client, refreshValue: String?): TokenResponse {
@@ -65,9 +63,9 @@ class TokenController(
             badRequest("invalid_grant")
         }
 
-        val accessToken = Token.accessFromRefresh(RandomString.generate(), refreshToken, 300)
+        val accessToken = tokenFactory.accessFromRefresh(RandomString.generate(), refreshToken)
         tokenRepository.save(accessToken)
 
-        return TokenResponse.jwtFromTokens(accessToken, refreshToken, jwtHandler)
+        return tokenFactory.responseJWTFromTokens(accessToken, refreshToken)
     }
 }

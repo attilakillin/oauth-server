@@ -1,9 +1,10 @@
 package com.bme.jnsbbk.oauthserver.authorization
 
+import com.bme.jnsbbk.oauthserver.authorization.entities.AuthRequest
+import com.bme.jnsbbk.oauthserver.authorization.entities.UnvalidatedAuthRequest
 import com.bme.jnsbbk.oauthserver.authorization.validators.AuthValidator
 import com.bme.jnsbbk.oauthserver.client.ClientRepository
 import com.bme.jnsbbk.oauthserver.jwt.UserJwtHandler
-import com.bme.jnsbbk.oauthserver.repositories.TransientRepository
 import com.bme.jnsbbk.oauthserver.utils.RandomString
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
@@ -20,8 +21,9 @@ import org.springframework.web.util.UriComponentsBuilder
 class AuthorizationController (
     private val authValidator: AuthValidator,
     private val clientRepository: ClientRepository,
-    private val transientRepository: TransientRepository,
-    private val jwtHandler: UserJwtHandler
+    private val authCodeRepository: AuthCodeRepository,
+    private val jwtHandler: UserJwtHandler,
+    private val authCodeFactory: AuthCodeFactory
 ) {
     private val requests = mutableMapOf<String, AuthRequest>()
 
@@ -29,42 +31,34 @@ class AuthorizationController (
      *  it either redirects to the client or displays an error page to the caller. */
     @GetMapping
     fun authorizationRequested(@RequestParam params: Map<String, String>, model: Model): String {
-        val unvalidatedRequest = jacksonObjectMapper().convertValue<UnvalidatedAuthRequest>(params)
+        val request = jacksonObjectMapper().convertValue<UnvalidatedAuthRequest>(params)
 
-        authValidator.validateSensitiveOrError(unvalidatedRequest)?.let { message ->
+        authValidator.validateSensitiveOrError(request)?.let { message ->
             return errorPageWithReason(model, message)
         }
-        authValidator.validateAdditionalOrError(unvalidatedRequest)?.let { message ->
-            return redirectWithError(unvalidatedRequest.redirectUri!!, message)
+        authValidator.validateAdditionalOrError(request)?.let { message ->
+            return redirectWithError(request.redirectUri!!, message)
         }
-        val request = authValidator.convertToValidRequest(unvalidatedRequest)
+        val validRequest = authValidator.convertToValidRequest(request)
 
         val reqId = RandomString.generateUntil(8) { it !in requests.keys }
-        requests[reqId] = request
+        requests[reqId] = validRequest
 
-        model.addAllAttributes(mapOf("reqId" to reqId, "scope" to request.scope))
-        model.addClientAttributes(request.clientId)
+        model.addAllAttributes(mapOf("reqId" to reqId, "scope" to validRequest.scope))
+        model.addClientAttributes(validRequest.clientId)
         return "auth_approve"
     }
 
     /** Approved authorization forms are processed here. If the authorization request passes
-     *  validation, the function redirects the caller to the client, otherwise it displays
-     *  an error page to the caller (or redirects to the client with an error code depending on the
-     *  error itself). */
+     *  validation, the function redirects the caller to the client, otherwise it either displays
+     *  an error page to the caller or redirects to the client with a relevant error code. */
     @PostMapping("/approve")
     fun approveAuthorization(@RequestParam params: Map<String, String>, model: Model): String {
         val request = requests.remove(params["reqId"])
             ?: return errorPageWithReason(model, "No matching authorization request!")
 
-        val userToken = params["userToken"] ?:
-            return errorPageWithReason(model, "User did not authenticate themselves!")
-
-        if (!jwtHandler.isUserTokenValid(userToken)) {
-            return errorPageWithReason(model, "User authentication token invalid!")
-        }
-
-        val userId = jwtHandler.getUserIdFrom(userToken) ?:
-            return errorPageWithReason(model, "User authentication token invalid!")
+        request.userId = getUserIdFrom(params["userToken"])
+            ?: return errorPageWithReason(model, "User authentication failed!")
 
         if (params["approve"] == null)
             return redirectWithError(request.redirectUri,"access_denied")
@@ -76,12 +70,13 @@ class AuthorizationController (
         request.scope = scope
 
         return when (request.responseType) {
-            "code" -> handleCodeResponse(request, userId)
+            "code" -> handleCodeResponse(request)
             else -> redirectWithError(request.redirectUri, "unsupported_response_type")
         }
     }
 
-    /** Adds every client attribute to the model that is required for the authorization prompt. */
+    /** Adds every client attribute to the model that is required for the authorization prompt.
+     *  In case the HTML form is extended with other information, add those here. */
     private fun Model.addClientAttributes(id: String) {
         val client = clientRepository.findById(id).get()
         this.addAttribute("client_name", client.extraData["client_name"])
@@ -106,6 +101,12 @@ class AuthorizationController (
         return "redirect:" + buildURL(redirectUri, mapOf("error" to error))
     }
 
+    /** Validates and extracts the user ID from a user JWT token. */
+    private fun getUserIdFrom(token: String?): String? {
+        if (token == null || !jwtHandler.isUserTokenValid(token)) return null
+        return jwtHandler.getUserIdFrom(token)
+    }
+
     /** Extracts the scope values from a map where they are prefixed with "scope_". */
     private fun getScopeFrom(params: Map<String, String>): MutableSet<String> {
         return params.asSequence()
@@ -115,10 +116,9 @@ class AuthorizationController (
     }
 
     /** Handles the authorization code response. */
-    private fun handleCodeResponse(request: AuthRequest, userId: String): String {
-        val code = RandomString.generate(16) // TODO uniqueness check
-        transientRepository.saveAuthCode(AuthCode.fromRequest(code, request, userId, 60))
-        // TODO Lifetime should be a constant somewhere
+    private fun handleCodeResponse(request: AuthRequest): String {
+        val code = RandomString.generateUntil(16) { !authCodeRepository.existsById(it) }
+        authCodeRepository.save(authCodeFactory.fromRequest(code, request))
 
         return "redirect:" + buildURL(request.redirectUri, mapOf("code" to code, "state" to request.state))
     }

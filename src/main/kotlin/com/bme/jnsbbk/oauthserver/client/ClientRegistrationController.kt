@@ -1,5 +1,7 @@
 package com.bme.jnsbbk.oauthserver.client
 
+import com.bme.jnsbbk.oauthserver.client.entities.Client
+import com.bme.jnsbbk.oauthserver.client.entities.UnvalidatedClient
 import com.bme.jnsbbk.oauthserver.client.validators.ClientValidator
 import com.bme.jnsbbk.oauthserver.exceptions.badRequest
 import com.bme.jnsbbk.oauthserver.exceptions.unauthorized
@@ -7,7 +9,6 @@ import com.bme.jnsbbk.oauthserver.utils.getOrNull
 import com.bme.jnsbbk.oauthserver.utils.getServerBaseUrl
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder
 
 @RestController
 @RequestMapping("/register")
@@ -44,7 +45,7 @@ class ClientRegistrationController (
         return ResponseEntity.noContent().build()
     }
 
-    /** Given the right authentication, updates the client with the given [id] with the [requested] values. */
+    /** Given the right authentication, updates the client with the given [id] and the [requested] values. */
     @PutMapping("/{id}")
     fun updateClient(@RequestHeader("Authorization") header: String?,
                      @PathVariable id: String,

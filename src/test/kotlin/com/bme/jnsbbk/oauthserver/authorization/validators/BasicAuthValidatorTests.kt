@@ -1,7 +1,7 @@
 package com.bme.jnsbbk.oauthserver.authorization.validators
 
-import com.bme.jnsbbk.oauthserver.authorization.UnvalidatedAuthRequest
-import com.bme.jnsbbk.oauthserver.client.Client
+import com.bme.jnsbbk.oauthserver.authorization.entities.UnvalidatedAuthRequest
+import com.bme.jnsbbk.oauthserver.client.entities.Client
 import com.bme.jnsbbk.oauthserver.client.ClientRepository
 import com.bme.jnsbbk.oauthserver.utils.RandomString
 import org.junit.jupiter.api.*

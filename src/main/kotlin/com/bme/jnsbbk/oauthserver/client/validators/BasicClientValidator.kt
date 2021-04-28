@@ -1,20 +1,21 @@
 package com.bme.jnsbbk.oauthserver.client.validators
 
-import com.bme.jnsbbk.oauthserver.client.Client
+import com.bme.jnsbbk.oauthserver.client.entities.Client
 import com.bme.jnsbbk.oauthserver.client.ClientRepository
-import com.bme.jnsbbk.oauthserver.client.UnvalidatedClient
+import com.bme.jnsbbk.oauthserver.client.entities.UnvalidatedClient
 import com.bme.jnsbbk.oauthserver.utils.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.time.Instant
 
-/** Reference implementation of [ClientValidator]. Does basic checks on the requested [UnvalidatedClient], and
- *  outputs a valid [Client]. Other implementations may do additional checks before accepting a registration. */
+/** Reference implementation of [ClientValidator]. Does basic checks on the requested
+ *  [UnvalidatedClient], and outputs a valid [Client]. Other implementations may do
+ *  additional checks before accepting a registration. */
 @Service
 class BasicClientValidator : ClientValidator {
     @Autowired private lateinit var clientRepository: ClientRepository
 
-    private object Whitelist {
+    private object Accepted {
         val authMethods = arrayOf("none", "client_secret_basic", "client_secret_post")
         val authMethodsWithSecret = arrayOf("client_secret_basic", "client_secret_post")
         val grantPairs = mapOf("authorization_code" to "code")
@@ -33,7 +34,7 @@ class BasicClientValidator : ClientValidator {
         client.idIssuedAt = Instant.now()
         client.registrationAccessToken = RandomString.generate()
 
-        if (client.tokenEndpointAuthMethod in Whitelist.authMethodsWithSecret)
+        if (client.tokenEndpointAuthMethod in Accepted.authMethodsWithSecret)
             client.secret = RandomString.generate(48)
         return client
     }
@@ -56,9 +57,9 @@ class BasicClientValidator : ClientValidator {
     /** Returns true if the [UnvalidatedClient] fails any basic checks, and should be rejected. */
     private fun UnvalidatedClient.failsBasicChecks() = anyTrue(
         redirectUris.isNullOrEmpty() || scope.isNullOrEmpty(),
-        tokenEndpointAuthMethod != null && tokenEndpointAuthMethod !in Whitelist.authMethods,
-        grantTypes?.any { it !in Whitelist.grantPairs.keys } ?: false,
-        responseTypes?.any { it !in Whitelist.grantPairs.values } ?: false,
+        tokenEndpointAuthMethod != null && tokenEndpointAuthMethod !in Accepted.authMethods,
+        grantTypes?.any { it !in Accepted.grantPairs.keys } ?: false,
+        responseTypes?.any { it !in Accepted.grantPairs.values } ?: false,
         "registration_client_uri" in extraData.keys,
         hasInvalidChars()
     )
@@ -78,8 +79,8 @@ class BasicClientValidator : ClientValidator {
 
         val grants = request.grantTypes?.toMutableSet() ?: mutableSetOf("authorization_code")
         val responses = request.responseTypes?.toMutableSet() ?: mutableSetOf()
-        grants.forEach { responses.add(Whitelist.grantPairs[it]!!) }
-        responses.forEach { grants.add(Whitelist.grantPairs.findKey(it)) }
+        grants.forEach { responses.add(Accepted.grantPairs[it]!!) }
+        responses.forEach { grants.add(Accepted.grantPairs.findKey(it)) }
 
         grantTypes = grants
         responseTypes = responses

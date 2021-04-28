@@ -1,5 +1,7 @@
 package com.bme.jnsbbk.oauthserver.token
 
+import com.bme.jnsbbk.oauthserver.token.entities.Token
+import com.bme.jnsbbk.oauthserver.token.entities.TokenType
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 

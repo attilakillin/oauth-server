@@ -19,7 +19,7 @@ import org.springframework.web.util.UriComponentsBuilder
 
 /** A post-initialization class that creates default instances of entity classes to help debugging.
  *
- *  Only executes one time, and only if debug mode is enabled for the Spring environment. */
+ *  Only executes one time, and only if the Spring environment has the "defaultInstances" flag set. */
 @Component
 class DebugInitialization (
     private val environment: Environment
@@ -33,9 +33,9 @@ class DebugInitialization (
      *  Automatically called after the environment is initialized. */
     @EventListener(ContextRefreshedEvent::class)
     fun onRefreshEvent() {
-        if (environment.getProperty("debug") == "true" && !executed) {
+        if (environment.getProperty("defaultInstances") == "true" && !executed) {
             executed = true
-            logger.info("Debug mode enabled, creating default entity instances...")
+            logger.info("Default entity instancing enabled, creating default entities...")
             createDefaultClient()
             createDefaultUser()
         }

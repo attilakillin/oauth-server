@@ -1,5 +1,5 @@
 @file:Suppress("JpaAttributeTypeInspection")
-package com.bme.jnsbbk.oauthserver.client
+package com.bme.jnsbbk.oauthserver.client.entities
 
 import com.bme.jnsbbk.oauthserver.utils.SpacedSetDeserializer
 import com.bme.jnsbbk.oauthserver.utils.SpacedSetSerializer

@@ -1,4 +1,4 @@
-package com.bme.jnsbbk.oauthserver.authorization
+package com.bme.jnsbbk.oauthserver.authorization.entities
 
 import com.bme.jnsbbk.oauthserver.utils.SpacedSetDeserializer
 import com.fasterxml.jackson.databind.PropertyNamingStrategy

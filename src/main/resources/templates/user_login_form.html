@@ -28,7 +28,6 @@
                 const body = JSON.parse(request.response);
                 message_p.textContent = "Login failed! Reason: " + body.error;
             } else {
-                console.log(request.response)
                 sessionStorage.setItem("oauth-user-session-token", request.response);
                 if (!document.referrer) {
                     message_p.textContent = "Login successful!"
