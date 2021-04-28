@@ -1,6 +1,7 @@
 package com.bme.jnsbbk.oauthserver.token
 
 import com.bme.jnsbbk.oauthserver.authorization.AuthCodeRepository
+import com.bme.jnsbbk.oauthserver.authorization.entities.isTimestampValid
 import com.bme.jnsbbk.oauthserver.client.entities.Client
 import com.bme.jnsbbk.oauthserver.exceptions.badRequest
 import com.bme.jnsbbk.oauthserver.exceptions.unauthorized
@@ -41,7 +42,7 @@ class TokenController(
             ?: badRequest("invalid_grant")
         authCodeRepository.delete(code)
 
-        if (code.clientId != client.id) badRequest("invalid_grant")
+        if (code.clientId != client.id || !code.isTimestampValid()) badRequest("invalid_grant")
 
         val accessToken = tokenFactory.accessFromCode(RandomString.generate(), code)
         val refreshToken = tokenFactory.refreshFromCode(RandomString.generate(), code)

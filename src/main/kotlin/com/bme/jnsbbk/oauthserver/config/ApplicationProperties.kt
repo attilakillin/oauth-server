@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Configuration
 
 @Configuration
 @ConstructorBinding
-@ConfigurationProperties("token-lifetimes")
+@ConfigurationProperties("application.token-lifetimes")
 data class TokenLifetimes (
     var authorizationCode: LifetimeConfig = LifetimeConfig(),
     var accessToken: LifetimeConfig = LifetimeConfig(),
@@ -19,3 +19,12 @@ data class TokenLifetimes (
         val lifetime: Long = 0
     )
 }
+
+@Configuration
+@ConstructorBinding
+@ConfigurationProperties("application.scheduling")
+data class Scheduling (
+    /** How often should the application check for expired entities
+     *  and delete them from repositories? Use 6-digit cron syntax. */
+    var deleteExpiredEntities: String = "0 0 0 * * ?"
+)

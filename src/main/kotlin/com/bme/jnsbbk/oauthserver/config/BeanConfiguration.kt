@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 @Configuration
-class SpringConfig {
+class BeanConfiguration {
     @Bean("clientValidator")
     fun getClientValidator(): ClientValidator = BasicClientValidator()
 
