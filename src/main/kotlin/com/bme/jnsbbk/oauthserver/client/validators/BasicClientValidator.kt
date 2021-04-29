@@ -60,7 +60,7 @@ class BasicClientValidator : ClientValidator {
         tokenEndpointAuthMethod != null && tokenEndpointAuthMethod !in Accepted.authMethods,
         grantTypes?.any { it !in Accepted.grantPairs.keys } ?: false,
         responseTypes?.any { it !in Accepted.grantPairs.values } ?: false,
-        "registration_client_uri" in extraData.keys,
+        hasIllegalExtraKeys(),
         hasInvalidChars()
     )
 
@@ -69,6 +69,12 @@ class BasicClientValidator : ClientValidator {
         return listOf(redirectUris, grantTypes, responseTypes, scope).any { set ->
             set?.any { string -> StringSetConverter.SEPARATOR in string } ?: false
         }
+    }
+
+    /** Returns true if the [UnvalidatedClient] has illegal keys in it, and should be rejected. */
+    private fun UnvalidatedClient.hasIllegalExtraKeys(): Boolean {
+        val keys = listOf("client_id_issued_at", "client_id_expires_at", "registration_client_uri")
+        return keys.any { it in extraData.keys }
     }
 
     /** Copies and fixes otherwise invalid properties from the [request] client to the receiver client. */

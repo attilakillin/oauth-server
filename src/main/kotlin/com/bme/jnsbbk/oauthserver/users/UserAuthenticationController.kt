@@ -22,7 +22,9 @@ class UserAuthenticationController (
     @ResponseBody
     fun handleLogin(@RequestParam email: String,
                     @RequestParam password: String): ResponseEntity<String> {
-        val user = userRepository.findByEmail(email) ?: badRequest("Invalid credentials!")
+        val user = userRepository.findByEmail(email)
+            ?: badRequest("Invalid credentials!")
+
         if (!PasswordHasher.matchesHash(password, user.passwordHash)) {
             badRequest("Invalid credentials!")
         }

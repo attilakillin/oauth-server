@@ -9,6 +9,7 @@ class AuthRequest (
     var scope: Set<String>,
     val state: String?
 ) {
-    /* Lateinit, because the user is not yet authenticated when the request is created. */
+    /* Lateinit, because the user may not yet be authenticated
+     * when the request object is created. */
     lateinit var userId: String
 }

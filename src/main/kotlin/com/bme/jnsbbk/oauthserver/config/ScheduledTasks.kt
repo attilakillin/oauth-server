@@ -14,10 +14,10 @@ class ScheduledTasks (
 ) {
 
     @Transactional
-    @Scheduled(cron = "#{scheduling.deleteExpiredEntities}")
+    @Scheduled(cron = "#{schedulingConfig.deleteExpiredEntities}")
     fun removeExpiredEntries() {
         val now = Instant.now()
-        authCodeRepository.removeExpiredCodes(now)
-        tokenRepository.removeExpiredTokens(now)
+        authCodeRepository.removeCodesThatExpireBefore(now)
+        tokenRepository.removeTokensThatExpireBefore(now)
     }
 }

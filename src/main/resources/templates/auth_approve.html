@@ -20,28 +20,10 @@
         <input type="submit" name="deny" value="Deny">
     </form>
 </body>
+<script th:src="@{/require_authenticated.js}"></script>
 <script>
-    window.onload = function () {
-        let authToken = sessionStorage.getItem("oauth-user-session-token")
-        if (!authToken) {
-            window.location.href = window.location.origin + "/user/login"
-        }
-        authToken = sessionStorage.getItem("oauth-user-session-token")
-        if (!authToken) {
-            // TODO Redirect to default error page
-        }
-
-        const request = new XMLHttpRequest();
-        request.open('POST', '/user/validate', true);
-        request.send(new URLSearchParams({"userToken": authToken}));
-        request.onreadystatechange = function () {
-            if (this.readyState !== 4) return;
-            if (request.status !== 200) {
-                window.location.href = window.location.origin + "/user/login"
-            } else {
-                document.getElementById("userTokenInput").setAttribute("value", authToken)
-            }
-        }
-    }
+    window.addEventListener("load", function () {
+        document.getElementById("userTokenInput").setAttribute("value", userAuthToken)
+    })
 </script>
 </html>

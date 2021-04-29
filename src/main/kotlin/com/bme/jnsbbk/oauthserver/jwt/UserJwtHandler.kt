@@ -1,5 +1,6 @@
 package com.bme.jnsbbk.oauthserver.jwt
 
+import com.bme.jnsbbk.oauthserver.config.UserConfig
 import com.bme.jnsbbk.oauthserver.users.User
 import com.bme.jnsbbk.oauthserver.users.UserRepository
 import com.bme.jnsbbk.oauthserver.utils.getServerBaseUrl
@@ -16,7 +17,8 @@ import javax.crypto.spec.SecretKeySpec
 
 @Service
 class UserJwtHandler (
-    val userRepository: UserRepository
+    val userRepository: UserRepository,
+    val userConfig: UserConfig
 ) {
     private val signingKey: Key
     private val keyAlgorithm = SignatureAlgorithm.HS256
@@ -32,7 +34,7 @@ class UserJwtHandler (
             .setIssuer(getServerBaseUrl())
             .setSubject(user.id)
             .setIssuedAt(Date.from(Instant.now()))
-            .setExpiration(Date.from(Instant.now().plusSeconds(300)))
+            .setExpiration(Date.from(Instant.now().plusSeconds(userConfig.tokenLifetime)))
             .signWith(signingKey)
             .compact()
     }

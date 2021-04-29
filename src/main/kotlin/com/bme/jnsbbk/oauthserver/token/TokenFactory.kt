@@ -1,7 +1,7 @@
 package com.bme.jnsbbk.oauthserver.token
 
 import com.bme.jnsbbk.oauthserver.authorization.entities.AuthCode
-import com.bme.jnsbbk.oauthserver.config.TokenLifetimes
+import com.bme.jnsbbk.oauthserver.config.TokenConfig
 import com.bme.jnsbbk.oauthserver.jwt.TokenJwtHandler
 import com.bme.jnsbbk.oauthserver.token.entities.Token
 import com.bme.jnsbbk.oauthserver.token.entities.TokenResponse
@@ -13,12 +13,12 @@ import java.time.Instant
 /** Factory class to create tokens from specific templates. */
 @Service
 class TokenFactory (
-    val tokenLifetimes: TokenLifetimes,
+    val tokenConfig: TokenConfig,
     val jwtHandler: TokenJwtHandler
 ) {
     /** Creates a token with the specified parameters. Used to reduce code duplication below. */
     private fun fromTemplate(value: String, code: AuthCode,
-                             times: TokenLifetimes.LifetimeConfig, type: TokenType): Token {
+                             times: TokenConfig.LifetimeConfig, type: TokenType): Token {
         val now = Instant.now()
         val notBefore = now.plusSeconds(times.notBeforeOffset)
         return Token(
@@ -35,18 +35,18 @@ class TokenFactory (
 
     /** Creates an access token with the given [value] and from the given [code]. */
     fun accessFromCode(value: String, code: AuthCode) =
-        fromTemplate(value, code, tokenLifetimes.accessToken, TokenType.ACCESS)
+        fromTemplate(value, code, tokenConfig.accessToken, TokenType.ACCESS)
 
     /** Creates a refresh token with the given [value] and from the given [code]. */
     fun refreshFromCode(value: String, code: AuthCode) =
-        fromTemplate(value, code, tokenLifetimes.refreshToken, TokenType.REFRESH)
+        fromTemplate(value, code, tokenConfig.refreshToken, TokenType.REFRESH)
 
     /** Creates an access token with the given [value] and from the given [refresh] token. */
     fun accessFromRefresh(value: String, refresh: Token): Token {
         require(refresh.type == TokenType.REFRESH)
 
         val now = Instant.now()
-        val notBefore = now.plusSeconds(tokenLifetimes.accessToken.notBeforeOffset)
+        val notBefore = now.plusSeconds(tokenConfig.accessToken.notBeforeOffset)
         return Token(
             value = value,
             type = TokenType.ACCESS,
@@ -55,7 +55,7 @@ class TokenFactory (
             scope = refresh.scope,
             issuedAt = now,
             notBefore = notBefore,
-            expiresAt = notBefore.plusSeconds(tokenLifetimes.accessToken.lifetime)
+            expiresAt = notBefore.plusSeconds(tokenConfig.accessToken.lifetime)
         )
     }
 

@@ -13,7 +13,7 @@ interface TokenRepository : JpaRepository<Token, String> {
 
     @Modifying
     @Query("DELETE FROM Token token WHERE token.expiresAt < :time")
-    fun removeExpiredTokens(time: Instant): Int
+    fun removeTokensThatExpireBefore(time: Instant): Int
 
     fun findFirstByValueAndType(value: String, type: TokenType): Token?
 

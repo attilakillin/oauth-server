@@ -29,12 +29,9 @@ class UserRegistrationController (
             badRequest("This email is already registered!")
         }
 
-        var userId: String
-        do {
-            userId = RandomString.generate(16)
-        } while (userRepository.existsById(userId))
+        val id = RandomString.generateUntil(16) { !userRepository.existsById(it) }
         val hash = PasswordHasher.hash(password)
-        val user = User(userId, email, hash)
+        val user = User(id, email, hash)
 
         userRepository.save(user)
         return ResponseEntity.ok().build()

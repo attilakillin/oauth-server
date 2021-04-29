@@ -6,6 +6,8 @@ import com.bme.jnsbbk.oauthserver.client.entities.Client
 import com.bme.jnsbbk.oauthserver.exceptions.badRequest
 import com.bme.jnsbbk.oauthserver.exceptions.unauthorized
 import com.bme.jnsbbk.oauthserver.token.entities.TokenResponse
+import com.bme.jnsbbk.oauthserver.token.entities.isExpired
+import com.bme.jnsbbk.oauthserver.token.entities.isTimestampValid
 import com.bme.jnsbbk.oauthserver.token.validators.TokenValidator
 import com.bme.jnsbbk.oauthserver.utils.RandomString
 import com.bme.jnsbbk.oauthserver.utils.getOrNull
@@ -56,17 +58,19 @@ class TokenController(
     private fun handleRefreshToken(client: Client, refreshValue: String?): TokenResponse {
         if (refreshValue == null) badRequest("invalid_grant")
 
-        val refreshToken = tokenRepository.findRefreshById(refreshValue)
+        val refresh = tokenRepository.findRefreshById(refreshValue)
             ?: badRequest("invalid_grant")
 
-        if (refreshToken.clientId != client.id) {
-            tokenRepository.delete(refreshToken)
+        if (refresh.clientId != client.id || refresh.isExpired()) {
+            tokenRepository.delete(refresh)
             badRequest("invalid_grant")
         }
 
-        val accessToken = tokenFactory.accessFromRefresh(RandomString.generate(), refreshToken)
-        tokenRepository.save(accessToken)
+        if (!refresh.isTimestampValid()) badRequest("invalid_grant")
 
-        return tokenFactory.responseJWTFromTokens(accessToken, refreshToken)
+        val access = tokenFactory.accessFromRefresh(RandomString.generate(), refresh)
+        tokenRepository.save(access)
+
+        return tokenFactory.responseJWTFromTokens(access, refresh)
     }
 }

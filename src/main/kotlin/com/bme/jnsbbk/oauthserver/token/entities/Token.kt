@@ -20,3 +20,10 @@ data class Token (
 enum class TokenType {
     ACCESS, REFRESH
 }
+
+fun Token.isExpired(): Boolean = expiresAt.isBefore(Instant.now())
+
+fun Token.isTimestampValid(): Boolean {
+    val now = Instant.now()
+    return issuedAt.isBefore(now) && notBefore.isBefore(now) && expiresAt.isAfter(now)
+}

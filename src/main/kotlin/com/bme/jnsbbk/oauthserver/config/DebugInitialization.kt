@@ -5,7 +5,6 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.slf4j.LoggerFactory
 import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.context.event.EventListener
-import org.springframework.core.env.Environment
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -19,21 +18,20 @@ import org.springframework.web.util.UriComponentsBuilder
 
 /** A post-initialization class that creates default instances of entity classes to help debugging.
  *
- *  Only executes one time, and only if the Spring environment has the "defaultInstances" flag set. */
+ *  Only executes one time, and only if the default-instances property is enabled in the application config. */
 @Component
 class DebugInitialization (
-    private val environment: Environment
+    private val debugConfig: DebugConfig
 ) {
-    private val SERVER_URL = "http://localhost:8080"
+    private val serverUrl = "http://localhost:8080"
     private var executed = false
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     /** This method calls everything that should be run after the Spring initialization.
-     *
      *  Automatically called after the environment is initialized. */
     @EventListener(ContextRefreshedEvent::class)
     fun onRefreshEvent() {
-        if (environment.getProperty("defaultInstances") == "true" && !executed) {
+        if (debugConfig.defaultInstances && !executed) {
             executed = true
             logger.info("Default entity instancing enabled, creating default entities...")
             createDefaultClient()
@@ -45,7 +43,7 @@ class DebugInitialization (
      *  along with an automatically generated authorization link to aid testing and debugging. */
     private fun createDefaultClient() {
         val template = RestTemplate()
-        val url = "$SERVER_URL/register"
+        val url = "$serverUrl/register"
         val headers = HttpHeaders()
         headers.contentType = MediaType.APPLICATION_JSON
 
@@ -70,7 +68,7 @@ class DebugInitialization (
 
         logger.info("Creating sample authorization request link:")
 
-        val builder = UriComponentsBuilder.fromUriString("$SERVER_URL/authorize")
+        val builder = UriComponentsBuilder.fromUriString("$serverUrl/authorize")
             .queryParam("client_id", result["client_id"].toString().trim('"'))
             .queryParam("scope", result["scope"].toString().trim('"').replace(' ', '+'))
             .queryParam("redirect_uri", result["redirect_uris"][0].toString().trim('"'))
@@ -81,12 +79,14 @@ class DebugInitialization (
         println("\n  " + builder.toUriString() + "\n")
     }
 
+    /** Creates and posts a default user implementation to the server and prints the credentials used
+     *  to aid testing and debugging. */
     private fun createDefaultUser() {
         val email = "admin@admin.hu"
         val password = "12345678"
 
         val template = RestTemplate()
-        val url = "$SERVER_URL/user/register"
+        val url = "$serverUrl/user/register"
         val headers = HttpHeaders()
         headers.contentType = MediaType.APPLICATION_FORM_URLENCODED
 
