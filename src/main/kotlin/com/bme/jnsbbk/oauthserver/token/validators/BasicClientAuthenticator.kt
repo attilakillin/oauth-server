@@ -7,8 +7,14 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.util.*
 
+/**
+ * Reference implementation of [ClientAuthenticator].
+ *
+ * Accepts "Basic" authentication in the authorization header, or url encoded form parameters.
+ * If both ways are used simultaneously, authentication fails deliberately.
+ */
 @Service
-class BasicTokenValidator : TokenValidator {
+class BasicClientAuthenticator : ClientAuthenticator {
     @Autowired private lateinit var clientRepository: ClientRepository
 
     override fun validClientOrNull(authHeader: String?, params: Map<String, String>): Client? {

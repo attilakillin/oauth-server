@@ -5,9 +5,14 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategy
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.annotation.JsonNaming
 
-/** An unvalidated version of [AuthRequest]. This should only be used as an entity
- *  class for incoming JSON requests, and as the input of auth request validators.
- *  In any other situation, [AuthRequest] should be used instead. */
+/**
+ * An unvalidated version of [AuthRequest].
+ *
+ * This class should only be used for incoming JSON requests, and as the input of
+ * auth request validators. In any other situation, [AuthRequest] should be used instead.
+ *
+ * @see AuthRequest
+ */
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy::class)
 class UnvalidatedAuthRequest (
     val clientId: String?,

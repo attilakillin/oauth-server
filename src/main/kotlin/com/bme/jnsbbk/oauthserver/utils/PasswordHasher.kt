@@ -6,10 +6,9 @@ import javax.crypto.spec.PBEKeySpec
 
 /** Provides hashing and comparison methods for string passwords. */
 object PasswordHasher {
-    /** Generates a secure random salt. */
+
     private fun generateSalt() = RandomString.generate(16).toByteArray()
 
-    /** Hashes the given [password] with the given [salt] using PBKDF2 with HMAC SHA1. */
     private fun hashWithSalt(password: String, salt: ByteArray): String {
         val spec = PBEKeySpec(password.toCharArray(), salt, 65536, 128)
         val hash = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1")

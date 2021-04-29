@@ -4,6 +4,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
 import org.springframework.context.annotation.Configuration
 
+// TODO Document this properly
+// TODO 0-valued expirations are not implemented properly
+
 @Configuration
 @ConstructorBinding
 @ConfigurationProperties("application.tokens")

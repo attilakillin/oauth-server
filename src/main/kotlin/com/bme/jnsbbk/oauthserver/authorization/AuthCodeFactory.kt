@@ -11,7 +11,13 @@ import java.time.Instant
 class AuthCodeFactory (
     val tokenConfig: TokenConfig
 ) {
-    /** Creates an authorization code with the given [value] and from the given [request]. */
+    /**
+     * Creates an authorization code with the given [value] and from the given [request].
+     *
+     * Timestamps are generated based on the application configuration.
+     *
+     * @see TokenConfig
+     */
     fun fromRequest(value: String, request: AuthRequest): AuthCode {
         val now = Instant.now()
         val notBefore = now.plusSeconds(tokenConfig.authorizationCode.notBeforeOffset)

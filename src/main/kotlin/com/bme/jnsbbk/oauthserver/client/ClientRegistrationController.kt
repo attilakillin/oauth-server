@@ -5,6 +5,7 @@ import com.bme.jnsbbk.oauthserver.client.entities.UnvalidatedClient
 import com.bme.jnsbbk.oauthserver.client.validators.ClientValidator
 import com.bme.jnsbbk.oauthserver.exceptions.badRequest
 import com.bme.jnsbbk.oauthserver.exceptions.unauthorized
+import com.bme.jnsbbk.oauthserver.exceptions.ApiException
 import com.bme.jnsbbk.oauthserver.utils.getOrNull
 import com.bme.jnsbbk.oauthserver.utils.getServerBaseUrl
 import org.springframework.http.ResponseEntity
@@ -17,7 +18,11 @@ class ClientRegistrationController (
     private val clientRepository: ClientRepository
 ) {
 
-    /** Parses and saves a new client registration. Returns with the saved value. */
+    /**
+     * Parses and saves a new client registration.
+     *
+     * Throws an [ApiException] if the requested registration is invalid.
+     */
     @PostMapping
     fun registerClient(@RequestBody requested: UnvalidatedClient): ResponseEntity<Client> {
         val client = clientValidator.validateNewOrElse(requested) {
@@ -28,7 +33,12 @@ class ClientRegistrationController (
         return ResponseEntity.ok(client.withRegistrationUri())
     }
 
-    /** Given the right authentication, returns everything stored about the client with the given [id]. */
+    /**
+     * Returns every stored information about a given client.
+     *
+     * Given the right authentication, returns everything stored about the client
+     * with the given [id]. Throws an [ApiException] if authentication fails.
+     */
     @GetMapping("/{id}")
     fun getClient(@RequestHeader("Authorization") header: String?,
                   @PathVariable id: String): ResponseEntity<Client> {
@@ -36,7 +46,12 @@ class ClientRegistrationController (
         return ResponseEntity.ok(client.withRegistrationUri())
     }
 
-    /** Given the right authentication, deletes the client with the given [id]. */
+    /**
+     * Deletes the given client.
+     *
+     * Given the right authentication, deletes the client with the given [id], or
+     * throws an [ApiException] if authentication fails.
+     */
     @DeleteMapping("/{id}")
     fun deleteClient(@RequestHeader("Authorization") header: String?,
                      @PathVariable id: String): ResponseEntity<String> {
@@ -45,7 +60,12 @@ class ClientRegistrationController (
         return ResponseEntity.noContent().build()
     }
 
-    /** Given the right authentication, updates the client with the given [id] and the [requested] values. */
+    /**
+     * Updates the information of the given client.
+     *
+     * Given the right authentication, updates the client with the [requested] values.
+     * Throws an [ApiException] if authentication fails, or the request is invalid.
+     */
     @PutMapping("/{id}")
     fun updateClient(@RequestHeader("Authorization") header: String?,
                      @PathVariable id: String,
@@ -59,8 +79,12 @@ class ClientRegistrationController (
         return ResponseEntity.ok(newClient.withRegistrationUri())
     }
 
-    /** Processes the given authentication credentials. Returns a valid client if the
-     *  credentials match the expected values, or throws an UnauthorizedException otherwise. */
+    private fun Client.withRegistrationUri(): Client {
+        this.extraData["registration_client_uri"] = getServerBaseUrl() + "/register/$id"
+        return this
+    }
+
+    /** Validates the authentication [header] for the given client [id]. */
     private fun validClientOrUnauthorized(header: String?, id: String): Client {
         val token = header?.removePrefix("Bearer ")
         if (token != header) {
@@ -70,11 +94,5 @@ class ClientRegistrationController (
         }
 
         unauthorized()
-    }
-
-    /** Extension function, appends the registration client URI to the client's extra data. */
-    private fun Client.withRegistrationUri(): Client {
-        this.extraData["registration_client_uri"] = getServerBaseUrl() + "/register/$id"
-        return this
     }
 }

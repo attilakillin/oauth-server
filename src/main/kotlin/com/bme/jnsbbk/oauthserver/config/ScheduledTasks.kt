@@ -12,7 +12,15 @@ class ScheduledTasks (
     val authCodeRepository: AuthCodeRepository,
     val tokenRepository: TokenRepository
 ) {
-
+    /**
+     * Regularly removes expired entities from multiple repositories.
+     *
+     * Both authorization codes and OAuth tokens usually have expiration times.
+     * To prevent the buildup of expired, otherwise unused entries in their
+     * database tables, expired tokens are removed each time this function is called.
+     *
+     * @see SchedulingConfig
+     */
     @Transactional
     @Scheduled(cron = "#{schedulingConfig.deleteExpiredEntities}")
     fun removeExpiredEntries() {

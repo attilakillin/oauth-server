@@ -6,7 +6,12 @@ import java.util.*
 /** Provides a Kotlin-idiomatic wrapper for getting a value from an [Optional]. */
 fun <T> Optional<T>.getOrNull(): T? = if (isPresent) get() else null
 
-/** Provides an easy access for the base URL of the server deployment. */
+/**
+ * Provides an easy access for the base URL of the server deployment.
+ *
+ * This function can throw an exception if used outside a Spring component
+ * (since there is no current context to query the path from).
+ */
 fun getServerBaseUrl() = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString()
 
 /** Provides an easy to read wrapper for multiple null checks. */

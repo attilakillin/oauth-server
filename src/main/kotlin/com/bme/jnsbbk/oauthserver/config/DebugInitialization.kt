@@ -16,9 +16,14 @@ import org.springframework.web.client.RestTemplate
 import org.springframework.web.client.postForEntity
 import org.springframework.web.util.UriComponentsBuilder
 
-/** A post-initialization class that creates default instances of entity classes to help debugging.
+/**
+ * A post-initialization class that creates default instances of entity classes to aid debugging.
  *
- *  Only executes one time, and only if the default-instances property is enabled in the application config. */
+ * Only executes once, and only if the default-instances property is enabled in the application
+ * configuration.
+ *
+ * @see DebugConfig
+ */
 @Component
 class DebugInitialization (
     private val debugConfig: DebugConfig
@@ -27,8 +32,13 @@ class DebugInitialization (
     private var executed = false
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    /** This method calls everything that should be run after the Spring initialization.
-     *  Automatically called after the environment is initialized. */
+    /**
+     * Automatically called after the environment is initialized.
+     *
+     * Creates a default client and a default user instance that can be used during testing.
+     * Prints relevant information for both entities, as well as a well-formed authorization
+     * link to the standard output.
+     */
     @EventListener(ContextRefreshedEvent::class)
     fun onRefreshEvent() {
         if (debugConfig.defaultInstances && !executed) {
@@ -39,8 +49,6 @@ class DebugInitialization (
         }
     }
 
-    /** Creates and posts a default client implementation to the server, and prints the returned data
-     *  along with an automatically generated authorization link to aid testing and debugging. */
     private fun createDefaultClient() {
         val template = RestTemplate()
         val url = "$serverUrl/register"
@@ -79,8 +87,6 @@ class DebugInitialization (
         println("\n  " + builder.toUriString() + "\n")
     }
 
-    /** Creates and posts a default user implementation to the server and prints the credentials used
-     *  to aid testing and debugging. */
     private fun createDefaultUser() {
         val email = "admin@admin.hu"
         val password = "12345678"

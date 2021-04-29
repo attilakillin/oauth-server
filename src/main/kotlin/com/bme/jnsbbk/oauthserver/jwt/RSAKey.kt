@@ -11,16 +11,17 @@ import javax.persistence.Entity
 import javax.persistence.Id
 import javax.persistence.Lob
 
-/** Entity class representing a public-private RSA key pair.
- *  Each key pair has an associated string [id] used for identification. */
+/**
+ * Entity class representing a public-private RSA key pair.
+ *
+ * Each key pair has an associated string [id] used for identification.
+ */
 @Entity
 class RSAKey (
     @Id val id: String,
     @Lob private val encodedPublic: ByteArray,
     @Lob private val encodedPrivate: ByteArray
 ) {
-    companion object
-
     val public: PublicKey
         get() = KeyFactory.getInstance("RSA")
                 .generatePublic(X509EncodedKeySpec(encodedPublic))
@@ -28,6 +29,8 @@ class RSAKey (
     val private: PrivateKey
         get() = KeyFactory.getInstance("RSA")
                 .generatePrivate(PKCS8EncodedKeySpec(encodedPrivate))
+
+    companion object
 }
 
 /** Creates a new [RSAKey] with the given [id]. */

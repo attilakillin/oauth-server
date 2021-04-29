@@ -12,15 +12,18 @@ import io.jsonwebtoken.Jwts
 import org.springframework.stereotype.Service
 import java.util.*
 
-/** Token JWT service class, encompassing every function that's strictly
- *  necessary for access & refresh token-related JSON Web Token creation. */
+/**
+ * JWT handler class for every [Token] related function.
+ *
+ * Handles JWT creation and validation for access and refresh tokens. These tokens are
+ * signed with a private RSA key, and can be validated with the respective public key.
+ */
 @Service
 class TokenJwtHandler (
     private val rsaKeyRepository: RSAKeyRepository,
     private val clientRepository: ClientRepository
 ) {
-    /** Creates a signed JWT token from the specified [token].
-     *  Returns the final, compact version of the JWT as a [String]. */
+    /** Creates a signed JWT token from the specified [token]. */
     fun createSigned(token: Token): String {
         val client = getClientById(token.clientId)
         return Jwts.builder()
@@ -30,18 +33,13 @@ class TokenJwtHandler (
             .compact()
     }
 
-    /** Returns an [RSAKey] with the specified [id]. If an instance with this [id] existed
-     *  before, the function returns that, otherwise it creates and saves a new instance. */
     private fun getKeyById(id: String): RSAKey =
         rsaKeyRepository.findById(id).getOrNull() ?: rsaKeyRepository.save(RSAKey.newWithId(id))
 
-    /** Returns the client with the supplied [id], or throws
-     *  a [BadRequestException] if no such client exists. */
+
     private fun getClientById(id: String): Client =
         clientRepository.findById(id).getOrNull() ?: badRequest("invalid_client")
 
-    /** Extension function. Allows setting every relevant claim from the
-     *  supplied [token] and [client]. Behaves like other builder functions. */
     private fun JwtBuilder.setInfo(token: Token, client: Client): JwtBuilder {
         setIssuer(getServerBaseUrl())
         setSubject(token.userId)

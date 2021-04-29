@@ -16,23 +16,6 @@ class TokenFactory (
     val tokenConfig: TokenConfig,
     val jwtHandler: TokenJwtHandler
 ) {
-    /** Creates a token with the specified parameters. Used to reduce code duplication below. */
-    private fun fromTemplate(value: String, code: AuthCode,
-                             times: TokenConfig.LifetimeConfig, type: TokenType): Token {
-        val now = Instant.now()
-        val notBefore = now.plusSeconds(times.notBeforeOffset)
-        return Token(
-            value = value,
-            type = type,
-            clientId = code.clientId,
-            userId = code.userId,
-            scope = code.scope,
-            issuedAt = now,
-            notBefore = notBefore,
-            expiresAt = notBefore.plusSeconds(times.lifetime)
-        )
-    }
-
     /** Creates an access token with the given [value] and from the given [code]. */
     fun accessFromCode(value: String, code: AuthCode) =
         fromTemplate(value, code, tokenConfig.accessToken, TokenType.ACCESS)
@@ -67,6 +50,22 @@ class TokenFactory (
             tokenType = "Bearer",
             expiresIn = Duration.between(Instant.now(), access.expiresAt).seconds,
             scope = access.scope
+        )
+    }
+
+    private fun fromTemplate(value: String, code: AuthCode,
+                             times: TokenConfig.LifetimeConfig, type: TokenType): Token {
+        val now = Instant.now()
+        val notBefore = now.plusSeconds(times.notBeforeOffset)
+        return Token(
+            value = value,
+            type = type,
+            clientId = code.clientId,
+            userId = code.userId,
+            scope = code.scope,
+            issuedAt = now,
+            notBefore = notBefore,
+            expiresAt = notBefore.plusSeconds(times.lifetime)
         )
     }
 }

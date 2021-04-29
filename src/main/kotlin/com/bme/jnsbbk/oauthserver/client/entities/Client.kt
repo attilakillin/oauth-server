@@ -9,7 +9,17 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import java.time.Instant
 import javax.persistence.*
 
-/** An entity class representing an OAuth client. This is the validated equivalent of [UnvalidatedClient]. */
+/**
+ * An entity class representing an OAuth client.
+ *
+ * This class represents a valid instance of an OAuth client, with all its properties.
+ * Most properties are lateinit, as the client instance is created gradually during
+ * validation.
+ *
+ * Less important properties are stored in the [extraData] string map.
+ *
+ * @see UnvalidatedClient
+ */
 @Entity
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 class Client (
@@ -39,9 +49,6 @@ class Client (
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "client_extra_data")
     val extraData = mutableMapOf<String, String>()
-
-    @JsonAnySetter
-    fun putExtraData(key: String, value: String) = extraData.put(key, value)
 
     @JsonAnyGetter
     fun getAllExtra() = extraData

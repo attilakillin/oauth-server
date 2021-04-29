@@ -15,9 +15,15 @@ class UserAuthenticationController (
     private val jwtHandler: UserJwtHandler
 ) {
 
+    /** Sends the user login form for login requests. */
     @GetMapping("/login")
     fun serveRequest(): String = "user_login_form"
 
+    /**
+     * Parses the data sent from login forms.
+     *
+     * Validates the credentials of the user, and returns a JWT representing this validation.
+     */
     @PostMapping("/login")
     @ResponseBody
     fun handleLogin(@RequestParam email: String,
@@ -32,6 +38,7 @@ class UserAuthenticationController (
         return ResponseEntity.ok(jwtHandler.createSigned(user))
     }
 
+    /** Validates previously issued JWTs that represent a user. */
     @PostMapping("/validate")
     fun handleAuthValidation(@RequestParam userToken: String): ResponseEntity<Unit> {
         return if (jwtHandler.isUserTokenValid(userToken))

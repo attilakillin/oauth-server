@@ -6,11 +6,16 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 
-/** An unvalidated version of [Client]. This should only be used as an entity class
- *  for incoming JSON requests, and as the input of client validators.
- *  In any other situation, [Client] should be used instead. */
+/**
+ * An unvalidated version of [Client].
+ *
+ * This class should only be used for incoming JSON requests, and as the input of
+ * client validators. In any other situation, [Client] should be used instead.
+ *
+ * @see Client
+ */
 class UnvalidatedClient (
-    @JsonProperty("client_id")     val id: String?,
+    @JsonProperty("client_id") val id: String?,
     @JsonProperty("client_secret") var secret: String?,
     val redirectUris: Set<String>?,
     var tokenEndpointAuthMethod: String?,

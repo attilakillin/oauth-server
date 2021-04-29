@@ -8,24 +8,34 @@ import org.springframework.stereotype.Service
 @Service
 interface AuthValidator {
 
-    /** Validates sensitive information. The expected return value of this method is null.
-     *  If the method returns something else, the resource owner must not be redirected to
-     *  the client redirect URI!
+    /**
+     * Validates sensitive information.
      *
-     *  Validated fields are updated in the [request] object. */
+     * The expected return value of this method is null. If the method returns something else,
+     * the resource owner must not be redirected to the client redirect URI!
+     *
+     * The validated fields in the [request] object are updated in place.
+     */
     fun validateSensitiveOrError(request: UnvalidatedAuthRequest): String?
 
-    /** Validates additional information. The method requires that the [validateSensitiveOrError]
-     *  method be called before this, otherwise it can throw exceptions.
+    /**
+     * Validates additional, non-sensitive information.
      *
-     *  The expected return value of this method is null. If a string is returned, the resource
-     *  owner can safely be redirected to the client redirect URI (with an error).
+     * The expected return value of this method is null. If the method returns something else,
+     * the resource owner can safely be redirected to the client redirect URI (with an error).
      *
-     *  Validated fields are updated in the [request] object. */
+     * Users must call the [validateSensitiveOrError] function before this. Implementations
+     * should do some basic checks to ensure this, before doing additional validations.
+     *
+     * The validated fields in the [request] object are updated in place.
+     */
     fun validateAdditionalOrError(request: UnvalidatedAuthRequest): String?
 
-    /** Converts the [request] object into a validated [AuthRequest].
-     *  Throws an exception if any of the (otherwise required) fields are null.
-     *  To avoid these exceptions, always call the two validation methods before calling this. */
+    /**
+     * Converts the [request] object into a validated [AuthRequest].
+     *
+     * Throws an exception if any of the (otherwise required) fields are null.
+     * Users must always call the two other validation functions before calling this.
+     */
     fun convertToValidRequest(request: UnvalidatedAuthRequest): AuthRequest
 }
