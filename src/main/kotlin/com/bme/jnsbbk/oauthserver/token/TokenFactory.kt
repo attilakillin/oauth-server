@@ -39,8 +39,8 @@ class TokenFactory (
         }
 
         return TokenResponse(
-            accessToken = jwtHandler.createSigned(access),
-            refreshToken = refresh.value, // TODO This should be a JWT token too (JTI field should be implemented)
+            accessToken = jwtHandler.createSignedAccess(access),
+            refreshToken = refresh.value,
             tokenType = "Bearer",
             expiresIn = expiresIn,
             scope = access.scope

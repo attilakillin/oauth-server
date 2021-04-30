@@ -22,8 +22,8 @@ class TokenJwtHandler (
     private val rsaKeyRepository: RSAKeyRepository,
     private val clientRepository: ClientRepository
 ) {
-    /** Creates a signed JWT token from the specified [token]. */
-    fun createSigned(token: Token): String {
+    /** Creates a signed JWT token from the specified access [token]. */
+    fun createSignedAccess(token: Token): String {
         val client = getClientById(token.clientId)
         return Jwts.builder()
             .setHeader(mapOf("typ" to "JWT", "alg" to RSAKey.algorithm))
@@ -42,6 +42,7 @@ class TokenJwtHandler (
         setIssuer(getServerBaseUrl())
         setSubject(token.userId)
         setAudience(client.id)
+        setId(token.value)
         setIssuedAt(Date.from(token.issuedAt))
         if (token.expiresAt != null) setExpiration(Date.from(token.expiresAt))
         return this
