@@ -12,7 +12,7 @@ import java.time.Instant
 interface TokenRepository : JpaRepository<Token, String> {
 
     @Modifying
-    @Query("DELETE FROM Token token WHERE token.expiresAt < :time")
+    @Query("DELETE FROM Token token WHERE token.expiresAt IS NOT NULL AND token.expiresAt < :time")
     fun removeTokensThatExpireBefore(time: Instant): Int
 
     fun findFirstByValueAndType(value: String, type: TokenType): Token?

@@ -11,6 +11,6 @@ import java.time.Instant
 interface AuthCodeRepository : JpaRepository<AuthCode, String> {
 
     @Modifying
-    @Query("DELETE FROM AuthCode code WHERE code.expiresAt < :time")
+    @Query("DELETE FROM AuthCode code WHERE code.expiresAt IS NOT NULL AND code.expiresAt < :time")
     fun removeCodesThatExpireBefore(time: Instant): Int
 }

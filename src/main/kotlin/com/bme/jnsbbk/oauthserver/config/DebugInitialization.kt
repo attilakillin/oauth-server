@@ -22,11 +22,11 @@ import org.springframework.web.util.UriComponentsBuilder
  * Only executes once, and only if the default-instances property is enabled in the application
  * configuration.
  *
- * @see DebugConfig
+ * @see AppConfig
  */
 @Component
 class DebugInitialization (
-    private val debugConfig: DebugConfig
+    private val appConfig: AppConfig
 ) {
     private val serverUrl = "http://localhost:8080"
     private var executed = false
@@ -41,7 +41,7 @@ class DebugInitialization (
      */
     @EventListener(ContextRefreshedEvent::class)
     fun onRefreshEvent() {
-        if (debugConfig.defaultInstances && !executed) {
+        if (appConfig.debug.createDefaultInstances && !executed) {
             executed = true
             logger.info("Default entity instancing enabled, creating default entities...")
             createDefaultClient()
@@ -100,7 +100,7 @@ class DebugInitialization (
         params.add("email", email)
         params.add("password", password)
         val entity = HttpEntity<MultiValueMap<String, String>>(params, headers)
-        val response = template.postForEntity<Unit>(url, entity)
+        val response = template.postForEntity<String>(url, entity)
 
         if (response.statusCode != HttpStatus.OK) {
             logger.warn("Error creating default user instance: POST returned with status ${response.statusCodeValue}!")

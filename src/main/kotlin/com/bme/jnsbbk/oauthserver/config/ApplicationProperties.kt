@@ -4,46 +4,40 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
 import org.springframework.context.annotation.Configuration
 
-// TODO Document this properly
-// TODO 0-valued expirations are not implemented properly
-
 @Configuration
 @ConstructorBinding
-@ConfigurationProperties("application.tokens")
-data class TokenConfig (
-    var authorizationCode: LifetimeConfig = LifetimeConfig(),
-    var accessToken: LifetimeConfig = LifetimeConfig(),
-    var refreshToken: LifetimeConfig = LifetimeConfig()
+@ConfigurationProperties("application")
+data class AppConfig (
+    var tokens: Tokens = Tokens(),
+    var scheduling: Scheduling = Scheduling(),
+    var users: Users = Users(),
+    var debug: Debug = Debug()
 ) {
-    data class LifetimeConfig (
-        /** How long after issuing does the token become valid? In seconds. */
-        val notBeforeOffset: Long = 0,
-        /** How long does the token live? In seconds, counting from the notBefore timestamp. */
-        val lifetime: Long = 0
+    data class Tokens (
+        var authCode: Lifespan = Lifespan(),
+        var accessToken: Lifespan = Lifespan(),
+        var refreshToken: Lifespan = Lifespan()
+    ) {
+        data class Lifespan (
+            /** The offset of notBefore compared to issuedAt, in seconds. */
+            val notBeforeOffset: Long = 0,
+            /** The lifespan of a token, in seconds. 0 means it never expires. */
+            val lifespan: Long = 0
+        )
+    }
+
+    data class Scheduling (
+        /** 6-digit cron string: how often should expired entities be deleted from databases? */
+        val deleteExpiredEntities: String = "0 0 0 * * ?"
+    )
+
+    data class Users (
+        /** The lifespan of a user authentication token. 0 means it never expires. */
+        val authTokenLifespan: Long = 0
+    )
+
+    data class Debug (
+        /** Whether to create default entity instances or not. */
+        val createDefaultInstances: Boolean = false
     )
 }
-
-@Configuration
-@ConstructorBinding
-@ConfigurationProperties("application.scheduling")
-data class SchedulingConfig (
-    /** How often should the application check for expired entities
-     *  and delete them from repositories? Use 6-digit cron syntax. */
-    var deleteExpiredEntities: String = "0 0 0 * * ?"
-)
-
-@Configuration
-@ConstructorBinding
-@ConfigurationProperties("application.debug")
-data class DebugConfig (
-    /** Whether default entity instances should be generated or not. */
-    var defaultInstances: Boolean = false
-)
-
-@Configuration
-@ConstructorBinding
-@ConfigurationProperties("application.users")
-data class UserConfig (
-    /** How long does the user authentication token live after user login? */
-    var tokenLifetime: Long = 300
-)

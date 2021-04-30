@@ -1,7 +1,7 @@
 package com.bme.jnsbbk.oauthserver.token
 
 import com.bme.jnsbbk.oauthserver.authorization.entities.AuthCode
-import com.bme.jnsbbk.oauthserver.config.TokenConfig
+import com.bme.jnsbbk.oauthserver.config.AppConfig
 import com.bme.jnsbbk.oauthserver.jwt.TokenJwtHandler
 import com.bme.jnsbbk.oauthserver.token.entities.Token
 import com.bme.jnsbbk.oauthserver.token.entities.TokenResponse
@@ -13,59 +13,67 @@ import java.time.Instant
 /** Factory class to create tokens from specific templates. */
 @Service
 class TokenFactory (
-    val tokenConfig: TokenConfig,
-    val jwtHandler: TokenJwtHandler
+    val jwtHandler: TokenJwtHandler,
+    val appConfig: AppConfig
 ) {
     /** Creates an access token with the given [value] and from the given [code]. */
     fun accessFromCode(value: String, code: AuthCode) =
-        fromTemplate(value, code, tokenConfig.accessToken, TokenType.ACCESS)
+        fromTemplate(value, code.getData(), appConfig.tokens.accessToken, TokenType.ACCESS)
 
     /** Creates a refresh token with the given [value] and from the given [code]. */
     fun refreshFromCode(value: String, code: AuthCode) =
-        fromTemplate(value, code, tokenConfig.refreshToken, TokenType.REFRESH)
+        fromTemplate(value, code.getData(), appConfig.tokens.refreshToken, TokenType.REFRESH)
 
     /** Creates an access token with the given [value] and from the given [refresh] token. */
     fun accessFromRefresh(value: String, refresh: Token): Token {
         require(refresh.type == TokenType.REFRESH)
-
-        val now = Instant.now()
-        val notBefore = now.plusSeconds(tokenConfig.accessToken.notBeforeOffset)
-        return Token(
-            value = value,
-            type = TokenType.ACCESS,
-            clientId = refresh.clientId,
-            userId = refresh.userId,
-            scope = refresh.scope,
-            issuedAt = now,
-            notBefore = notBefore,
-            expiresAt = notBefore.plusSeconds(tokenConfig.accessToken.lifetime)
-        )
+        return fromTemplate(value, refresh.getData(), appConfig.tokens.accessToken, TokenType.ACCESS)
     }
 
     /** Creates a JWT token response from the given [access] and [refresh] tokens. */
     fun responseJWTFromTokens(access: Token, refresh: Token): TokenResponse {
+        val expiresIn = if (access.expiresAt == null) {
+            null
+        } else {
+            Duration.between(Instant.now(), access.expiresAt).seconds
+        }
+
         return TokenResponse(
             accessToken = jwtHandler.createSigned(access),
             refreshToken = refresh.value, // TODO This should be a JWT token too (JTI field should be implemented)
             tokenType = "Bearer",
-            expiresIn = Duration.between(Instant.now(), access.expiresAt).seconds,
+            expiresIn = expiresIn,
             scope = access.scope
         )
     }
 
-    private fun fromTemplate(value: String, code: AuthCode,
-                             times: TokenConfig.LifetimeConfig, type: TokenType): Token {
+    /** Template function that can create a token from many different sources. */
+    private fun fromTemplate(value: String, data: CommonData,
+                             times: AppConfig.Tokens.Lifespan, type: TokenType): Token {
         val now = Instant.now()
         val notBefore = now.plusSeconds(times.notBeforeOffset)
+        val expiresAt = if (times.lifespan == 0L) null else now.plusSeconds(times.lifespan)
+
         return Token(
             value = value,
             type = type,
-            clientId = code.clientId,
-            userId = code.userId,
-            scope = code.scope,
+            clientId = data.clientId,
+            userId = data.userId,
+            scope = data.scope,
             issuedAt = now,
             notBefore = notBefore,
-            expiresAt = notBefore.plusSeconds(times.lifetime)
+            expiresAt = expiresAt
         )
     }
+
+    /* Because Tokens and AuthCodes are not related in any way, extension functions
+     * and a new class is used to get the data needed in the fromTemplate() function. */
+    private data class CommonData (
+        val clientId: String,
+        val userId: String,
+        val scope: Set<String>
+    )
+
+    private fun AuthCode.getData() = CommonData(clientId, userId, scope)
+    private fun Token.getData() = CommonData(clientId, userId, scope)
 }

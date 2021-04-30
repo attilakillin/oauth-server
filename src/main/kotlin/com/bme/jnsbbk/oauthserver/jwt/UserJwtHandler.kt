@@ -1,6 +1,6 @@
 package com.bme.jnsbbk.oauthserver.jwt
 
-import com.bme.jnsbbk.oauthserver.config.UserConfig
+import com.bme.jnsbbk.oauthserver.config.AppConfig
 import com.bme.jnsbbk.oauthserver.users.entities.User
 import com.bme.jnsbbk.oauthserver.users.UserRepository
 import com.bme.jnsbbk.oauthserver.utils.getServerBaseUrl
@@ -29,7 +29,7 @@ import javax.crypto.spec.SecretKeySpec
 @Service
 class UserJwtHandler (
     val userRepository: UserRepository,
-    val userConfig: UserConfig
+    val appConfig: AppConfig
 ) {
     private val signatureKey: Key
     private val keyAlgorithm = SignatureAlgorithm.HS256
@@ -41,12 +41,19 @@ class UserJwtHandler (
 
     /** Creates a signed JWT token representing the [user]. */
     fun createSigned(user: User): String {
+        val lifespan = appConfig.users.authTokenLifespan
+        val expiration = if (lifespan == 0L) {
+            null
+        } else {
+            Date.from(Instant.now().plusSeconds(lifespan))
+        }
+
         return Jwts.builder()
             .setHeader(mapOf("typ" to "JWT", "alg" to keyAlgorithm.jcaName))
             .setIssuer(getServerBaseUrl())
             .setSubject(user.id)
             .setIssuedAt(Date.from(Instant.now()))
-            .setExpiration(Date.from(Instant.now().plusSeconds(userConfig.tokenLifetime)))
+            .setExpiration(expiration)
             .signWith(signatureKey)
             .compact()
     }
@@ -58,7 +65,7 @@ class UserJwtHandler (
         return claims.issuer == getServerBaseUrl()
                 && userRepository.existsById(claims.subject)
                 && claims.issuedAt.before(Date.from(Instant.now()))
-                && claims.expiration.after(Date.from(Instant.now()))
+                && claims.expiration?.after(Date.from(Instant.now())) ?: true
     }
 
     /** Returns the user ID stored in the token, or null, if the token is invalid. */

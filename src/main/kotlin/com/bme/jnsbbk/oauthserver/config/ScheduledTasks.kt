@@ -19,10 +19,10 @@ class ScheduledTasks (
      * To prevent the buildup of expired, otherwise unused entries in their
      * database tables, expired tokens are removed each time this function is called.
      *
-     * @see SchedulingConfig
+     * @see AppConfig
      */
     @Transactional
-    @Scheduled(cron = "#{schedulingConfig.deleteExpiredEntities}")
+    @Scheduled(cron = "#{appConfig.scheduling.deleteExpiredEntities}")
     fun removeExpiredEntries() {
         val now = Instant.now()
         authCodeRepository.removeCodesThatExpireBefore(now)

@@ -11,6 +11,8 @@ import javax.persistence.Id
  *
  * Contains a unique value, the IDs of the client and the user,
  * the authorized scope, as well as different validity timestamps.
+ *
+ * If the [expiresAt] field is null, the code never expires.
  */
 @Entity
 data class AuthCode (
@@ -20,11 +22,14 @@ data class AuthCode (
     val scope: Set<String>,
     val issuedAt: Instant,
     val notBefore: Instant,
-    val expiresAt: Instant
+    val expiresAt: Instant?
 )
+
+/** Checks whether the authorization code has expired or not. */
+fun AuthCode.isExpired() = expiresAt?.isAfter(Instant.now()) ?: false
 
 /** Checks whether the authorization code is currently valid or not judging by the timestamps. */
 fun AuthCode.isTimestampValid(): Boolean {
     val now = Instant.now()
-    return issuedAt.isBefore(now) && notBefore.isBefore(now) && expiresAt.isAfter(now)
+    return issuedAt.isBefore(now) && notBefore.isBefore(now) && !isExpired()
 }

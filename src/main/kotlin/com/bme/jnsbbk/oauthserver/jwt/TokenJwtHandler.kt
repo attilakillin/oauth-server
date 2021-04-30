@@ -2,7 +2,6 @@ package com.bme.jnsbbk.oauthserver.jwt
 
 import com.bme.jnsbbk.oauthserver.client.entities.Client
 import com.bme.jnsbbk.oauthserver.client.ClientRepository
-import com.bme.jnsbbk.oauthserver.exceptions.BadRequestException
 import com.bme.jnsbbk.oauthserver.exceptions.badRequest
 import com.bme.jnsbbk.oauthserver.token.entities.Token
 import com.bme.jnsbbk.oauthserver.utils.getOrNull
@@ -36,7 +35,6 @@ class TokenJwtHandler (
     private fun getKeyById(id: String): RSAKey =
         rsaKeyRepository.findById(id).getOrNull() ?: rsaKeyRepository.save(RSAKey.newWithId(id))
 
-
     private fun getClientById(id: String): Client =
         clientRepository.findById(id).getOrNull() ?: badRequest("invalid_client")
 
@@ -45,7 +43,7 @@ class TokenJwtHandler (
         setSubject(token.userId)
         setAudience(client.id)
         setIssuedAt(Date.from(token.issuedAt))
-        setExpiration(Date.from(token.expiresAt))
+        if (token.expiresAt != null) setExpiration(Date.from(token.expiresAt))
         return this
     }
 }
