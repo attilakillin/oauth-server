@@ -26,7 +26,7 @@ data class AuthCode (
 )
 
 /** Checks whether the authorization code has expired or not. */
-fun AuthCode.isExpired() = expiresAt?.isAfter(Instant.now()) ?: false
+fun AuthCode.isExpired() = expiresAt?.isBefore(Instant.now()) ?: false
 
 /** Checks whether the authorization code is currently valid or not judging by the timestamps. */
 fun AuthCode.isTimestampValid(): Boolean {

@@ -22,9 +22,11 @@ class BasicClientAuthenticator : ClientAuthenticator {
         var secret: String? = null
 
         if (authHeader != null && authHeader.startsWith("Basic ")) {
-            val content = Base64.getUrlDecoder().decode(authHeader.removePrefix("Basic ")).toString()
+            val content = Base64.getUrlDecoder()
+                .decode(authHeader.removePrefix("Basic "))
+                .toString(Charsets.UTF_8)
             id = content.substringBefore(':')
-            secret = content.substringAfter(':')
+            if (':' in content) secret = content.substringAfter(':')
         }
 
         if ("client_id" in params.keys) {
