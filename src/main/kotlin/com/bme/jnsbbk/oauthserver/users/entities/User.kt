@@ -12,7 +12,7 @@ import javax.persistence.Id
  * Passwords must only be stored as hashed, preferably salted, encoded strings.
  */
 @Entity
-data class User (
+data class User(
     @Id val id: String,
     @Column(unique = true)
     val email: String,

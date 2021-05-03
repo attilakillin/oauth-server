@@ -22,7 +22,7 @@ import javax.persistence.*
  */
 @Entity
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-class Client (
+class Client(
     @JsonProperty("client_id") @Id val id: String,
 ) {
     @JsonProperty("client_secret")

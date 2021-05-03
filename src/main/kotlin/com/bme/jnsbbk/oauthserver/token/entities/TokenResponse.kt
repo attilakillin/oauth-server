@@ -12,7 +12,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize
  * If the [expiresIn] field is null, it's a hint to the client that the token never expires.
  */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-data class TokenResponse (
+data class TokenResponse(
     val accessToken: String,
     val refreshToken: String?,
     val tokenType: String,

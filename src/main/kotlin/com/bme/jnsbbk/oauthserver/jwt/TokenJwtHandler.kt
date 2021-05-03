@@ -1,7 +1,7 @@
 package com.bme.jnsbbk.oauthserver.jwt
 
-import com.bme.jnsbbk.oauthserver.client.entities.Client
 import com.bme.jnsbbk.oauthserver.client.ClientRepository
+import com.bme.jnsbbk.oauthserver.client.entities.Client
 import com.bme.jnsbbk.oauthserver.exceptions.badRequest
 import com.bme.jnsbbk.oauthserver.token.entities.Token
 import com.bme.jnsbbk.oauthserver.utils.getOrNull
@@ -18,7 +18,7 @@ import java.util.*
  * signed with a private RSA key, and can be validated with the respective public key.
  */
 @Service
-class TokenJwtHandler (
+class TokenJwtHandler(
     private val rsaKeyRepository: RSAKeyRepository,
     private val clientRepository: ClientRepository
 ) {

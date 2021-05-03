@@ -8,7 +8,7 @@ package com.bme.jnsbbk.oauthserver.authorization.entities
  *
  * @see UnvalidatedAuthRequest
  */
-data class AuthRequest (
+data class AuthRequest(
     val clientId: String,
     val redirectUri: String,
     val responseType: String,

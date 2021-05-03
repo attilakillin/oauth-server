@@ -3,9 +3,9 @@ package com.bme.jnsbbk.oauthserver.client
 import com.bme.jnsbbk.oauthserver.client.entities.Client
 import com.bme.jnsbbk.oauthserver.client.entities.UnvalidatedClient
 import com.bme.jnsbbk.oauthserver.client.validators.ClientValidator
+import com.bme.jnsbbk.oauthserver.exceptions.ApiException
 import com.bme.jnsbbk.oauthserver.exceptions.badRequest
 import com.bme.jnsbbk.oauthserver.exceptions.unauthorized
-import com.bme.jnsbbk.oauthserver.exceptions.ApiException
 import com.bme.jnsbbk.oauthserver.utils.getOrNull
 import com.bme.jnsbbk.oauthserver.utils.getServerBaseUrl
 import org.springframework.http.ResponseEntity
@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/register")
-class ClientRegistrationController (
+class ClientRegistrationController(
     private val clientValidator: ClientValidator,
     private val clientRepository: ClientRepository
 ) {
@@ -40,8 +40,10 @@ class ClientRegistrationController (
      * with the given [id]. Throws an [ApiException] if authentication fails.
      */
     @GetMapping("/{id}")
-    fun getClient(@RequestHeader("Authorization") header: String?,
-                  @PathVariable id: String): ResponseEntity<Client> {
+    fun getClient(
+        @RequestHeader("Authorization") header: String?,
+        @PathVariable id: String
+    ): ResponseEntity<Client> {
         val client = validClientOrUnauthorized(header, id)
         return ResponseEntity.ok(client.withRegistrationUri())
     }
@@ -53,8 +55,10 @@ class ClientRegistrationController (
      * throws an [ApiException] if authentication fails.
      */
     @DeleteMapping("/{id}")
-    fun deleteClient(@RequestHeader("Authorization") header: String?,
-                     @PathVariable id: String): ResponseEntity<String> {
+    fun deleteClient(
+        @RequestHeader("Authorization") header: String?,
+        @PathVariable id: String
+    ): ResponseEntity<String> {
         val client = validClientOrUnauthorized(header, id)
         clientRepository.delete(client)
         return ResponseEntity.noContent().build()
@@ -67,9 +71,11 @@ class ClientRegistrationController (
      * Throws an [ApiException] if authentication fails, or the request is invalid.
      */
     @PutMapping("/{id}")
-    fun updateClient(@RequestHeader("Authorization") header: String?,
-                     @PathVariable id: String,
-                     @RequestBody requested: UnvalidatedClient): ResponseEntity<Client> {
+    fun updateClient(
+        @RequestHeader("Authorization") header: String?,
+        @PathVariable id: String,
+        @RequestBody requested: UnvalidatedClient
+    ): ResponseEntity<Client> {
         val oldClient = validClientOrUnauthorized(header, id)
         val newClient = clientValidator.validateUpdateOrElse(requested, oldClient) {
             badRequest("invalid_client_metadata")

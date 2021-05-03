@@ -1,8 +1,8 @@
 package com.bme.jnsbbk.oauthserver.jwt
 
 import com.bme.jnsbbk.oauthserver.config.AppConfig
-import com.bme.jnsbbk.oauthserver.users.entities.User
 import com.bme.jnsbbk.oauthserver.users.UserRepository
+import com.bme.jnsbbk.oauthserver.users.entities.User
 import com.bme.jnsbbk.oauthserver.utils.getServerBaseUrl
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.JwtException
@@ -27,7 +27,7 @@ import javax.crypto.spec.SecretKeySpec
  * every token previously issued.
  */
 @Service
-class UserJwtHandler (
+class UserJwtHandler(
     val userRepository: UserRepository,
     val appConfig: AppConfig
 ) {
@@ -62,10 +62,10 @@ class UserJwtHandler (
     fun isUserTokenValid(token: String): Boolean {
         val claims = parseClaimsOrNull(token) ?: return false
 
-        return claims.issuer == getServerBaseUrl()
-                && userRepository.existsById(claims.subject)
-                && claims.issuedAt.before(Date.from(Instant.now()))
-                && claims.expiration?.after(Date.from(Instant.now())) ?: true
+        return claims.issuer == getServerBaseUrl() &&
+            userRepository.existsById(claims.subject) &&
+            claims.issuedAt.before(Date.from(Instant.now())) &&
+            claims.expiration?.after(Date.from(Instant.now())) ?: true
     }
 
     /** Returns the user ID stored in the token, or null, if the token is invalid. */

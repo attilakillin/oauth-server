@@ -1,7 +1,7 @@
 package com.bme.jnsbbk.oauthserver.client.validators
 
-import com.bme.jnsbbk.oauthserver.client.entities.Client
 import com.bme.jnsbbk.oauthserver.client.ClientRepository
+import com.bme.jnsbbk.oauthserver.client.entities.Client
 import com.bme.jnsbbk.oauthserver.client.entities.UnvalidatedClient
 import com.bme.jnsbbk.oauthserver.utils.*
 import org.springframework.beans.factory.annotation.Autowired

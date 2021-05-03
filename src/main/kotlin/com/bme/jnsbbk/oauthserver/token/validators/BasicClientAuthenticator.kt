@@ -1,7 +1,7 @@
 package com.bme.jnsbbk.oauthserver.token.validators
 
-import com.bme.jnsbbk.oauthserver.client.entities.Client
 import com.bme.jnsbbk.oauthserver.client.ClientRepository
+import com.bme.jnsbbk.oauthserver.client.entities.Client
 import com.bme.jnsbbk.oauthserver.utils.getOrNull
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service

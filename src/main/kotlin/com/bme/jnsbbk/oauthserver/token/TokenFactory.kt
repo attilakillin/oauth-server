@@ -12,7 +12,7 @@ import java.time.Instant
 
 /** Factory class to create tokens from specific templates. */
 @Service
-class TokenFactory (
+class TokenFactory(
     val jwtHandler: TokenJwtHandler,
     val appConfig: AppConfig
 ) {
@@ -48,8 +48,12 @@ class TokenFactory (
     }
 
     /** Template function that can create a token from many different sources. */
-    private fun fromTemplate(value: String, data: CommonData,
-                             times: AppConfig.Tokens.Lifespan, type: TokenType): Token {
+    private fun fromTemplate(
+        value: String,
+        data: CommonData,
+        times: AppConfig.Tokens.Lifespan,
+        type: TokenType
+    ): Token {
         val now = Instant.now()
         val notBefore = now.plusSeconds(times.notBeforeOffset)
         val expiresAt = if (times.lifespan == 0L) null else now.plusSeconds(times.lifespan)
@@ -68,7 +72,7 @@ class TokenFactory (
 
     /* Because Tokens and AuthCodes are not related in any way, extension functions
      * and a new class is used to get the data needed in the fromTemplate() function. */
-    private data class CommonData (
+    private data class CommonData(
         val clientId: String,
         val userId: String,
         val scope: Set<String>

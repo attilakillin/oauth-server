@@ -8,7 +8,7 @@ import java.time.Instant
 import javax.transaction.Transactional
 
 @Component
-class ScheduledTasks (
+class ScheduledTasks(
     val authCodeRepository: AuthCodeRepository,
     val tokenRepository: TokenRepository
 ) {

@@ -11,5 +11,5 @@ import org.springframework.scheduling.annotation.EnableScheduling
 class OAuthServerApplication
 
 fun main(args: Array<String>) {
-	runApplication<OAuthServerApplication>(*args)
+    runApplication<OAuthServerApplication>(*args)
 }

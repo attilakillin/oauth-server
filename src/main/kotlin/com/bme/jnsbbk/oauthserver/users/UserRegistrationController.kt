@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*
 
 @Controller
 @RequestMapping("/user/register")
-class UserRegistrationController (
+class UserRegistrationController(
     private val userValidator: UserValidator,
     private val userRepository: UserRepository,
     private val jwtHandler: UserJwtHandler
@@ -30,8 +30,10 @@ class UserRegistrationController (
      */
     @PostMapping
     @ResponseBody
-    fun handleRegistration(@RequestParam email: String,
-                           @RequestParam password: String): ResponseEntity<String> {
+    fun handleRegistration(
+        @RequestParam email: String,
+        @RequestParam password: String
+    ): ResponseEntity<String> {
         if (!userValidator.isRegistrationValid(email, password)) {
             badRequest("Credentials failed server-side validation. Please enter valid information!")
         }
@@ -46,5 +48,4 @@ class UserRegistrationController (
         userRepository.save(user)
         return ResponseEntity.ok(jwtHandler.createSigned(user))
     }
-
 }

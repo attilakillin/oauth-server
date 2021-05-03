@@ -17,18 +17,18 @@ import javax.persistence.Lob
  * Each key pair has an associated string [id] used for identification.
  */
 @Entity
-class RSAKey (
+class RSAKey(
     @Id val id: String,
     @Lob private val encodedPublic: ByteArray,
     @Lob private val encodedPrivate: ByteArray
 ) {
     val public: PublicKey
         get() = KeyFactory.getInstance("RSA")
-                .generatePublic(X509EncodedKeySpec(encodedPublic))
+            .generatePublic(X509EncodedKeySpec(encodedPublic))
 
     val private: PrivateKey
         get() = KeyFactory.getInstance("RSA")
-                .generatePrivate(PKCS8EncodedKeySpec(encodedPrivate))
+            .generatePrivate(PKCS8EncodedKeySpec(encodedPrivate))
 
     companion object
 }

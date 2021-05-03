@@ -33,8 +33,10 @@ class TokenController(
      */
     @PostMapping
     @ResponseBody
-    fun issueToken(@RequestHeader("Authorization") header: String?,
-                   @RequestParam params: Map<String, String>): TokenResponse {
+    fun issueToken(
+        @RequestHeader("Authorization") header: String?,
+        @RequestParam params: Map<String, String>
+    ): TokenResponse {
         val client = clientAuthenticator.validClientOrNull(header, params)
             ?: unauthorized("invalid_client")
 

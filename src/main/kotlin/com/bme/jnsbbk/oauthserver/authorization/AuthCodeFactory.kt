@@ -8,9 +8,7 @@ import java.time.Instant
 
 /** Factory class to create authorization codes from specific templates. */
 @Service
-class AuthCodeFactory (
-    val appConfig: AppConfig
-) {
+class AuthCodeFactory(val appConfig: AppConfig) {
     /**
      * Creates an authorization code with the given [value] and from the given [request].
      *

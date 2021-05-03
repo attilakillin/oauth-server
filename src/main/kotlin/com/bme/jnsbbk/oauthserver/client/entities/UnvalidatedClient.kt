@@ -14,7 +14,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
  *
  * @see Client
  */
-class UnvalidatedClient (
+class UnvalidatedClient(
     @JsonProperty("client_id") val id: String?,
     @JsonProperty("client_secret") var secret: String?,
     val redirectUris: Set<String>?,

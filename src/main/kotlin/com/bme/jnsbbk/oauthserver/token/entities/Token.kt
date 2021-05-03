@@ -14,7 +14,7 @@ import javax.persistence.Id
  * If the [expiresAt] field is null, the token never expires.
  */
 @Entity
-data class Token (
+data class Token(
     @Id val value: String,
     val type: TokenType,
     val clientId: String,

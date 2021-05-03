@@ -11,8 +11,9 @@ object PasswordHasher {
 
     private fun hashWithSalt(password: String, salt: ByteArray): String {
         val spec = PBEKeySpec(password.toCharArray(), salt, 65536, 128)
-        val hash = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1")
-                                   .generateSecret(spec).encoded
+        val hash = SecretKeyFactory
+            .getInstance("PBKDF2WithHmacSHA1")
+            .generateSecret(spec).encoded
         spec.clearPassword()
 
         val encoder = Base64.getUrlEncoder().withoutPadding()

@@ -15,7 +15,7 @@ import javax.persistence.Id
  * If the [expiresAt] field is null, the code never expires.
  */
 @Entity
-data class AuthCode (
+data class AuthCode(
     @Id val value: String,
     val clientId: String,
     val userId: String,

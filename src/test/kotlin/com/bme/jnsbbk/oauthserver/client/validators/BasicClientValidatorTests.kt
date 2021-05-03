@@ -44,8 +44,7 @@ class BasicClientValidatorTests {
 
     @Test
     fun validateNewOrElse_failsOnEmptyClient() {
-        val client = UnvalidatedClient(null, null, null,
-            null, null, null, null)
+        val client = UnvalidatedClient(null, null, null, null, null, null, null)
         assertThrows<ValidationException> { validator.validateNewOrElse(client, ::onError) }
     }
 
@@ -90,16 +89,30 @@ class BasicClientValidatorTests {
     fun validateNewOrElse_disallowsSetSeparators() {
         val badScope = mutableSetOf("text" + StringSetConverter.SEPARATOR)
         badScope.addAll(newClient.scope!!)
-        val client = UnvalidatedClient(null, null, newClient.redirectUris!!,
-            null, null, null, badScope)
+        val client = UnvalidatedClient(
+            id = null,
+            secret = null,
+            redirectUris = newClient.redirectUris!!,
+            tokenEndpointAuthMethod = null,
+            grantTypes = null,
+            responseTypes = null,
+            scope = badScope
+        )
         assertThrows<ValidationException> { validator.validateNewOrElse(client, ::onError) }
     }
 
     @Test
     fun validateUpdateOrElse_validatesItself() {
         val client = validator.validateNewOrElse(newClient, ::onError)
-        val update = UnvalidatedClient(client.id, client.secret, client.redirectUris,
-            client.tokenEndpointAuthMethod, client.grantTypes, client.responseTypes, client.scope)
+        val update = UnvalidatedClient(
+            client.id,
+            client.secret,
+            client.redirectUris,
+            client.tokenEndpointAuthMethod,
+            client.grantTypes,
+            client.responseTypes,
+            client.scope
+        )
         assertDoesNotThrow { validator.validateUpdateOrElse(update, client, ::onError) }
     }
 
@@ -107,8 +120,15 @@ class BasicClientValidatorTests {
     fun validateUpdateOrElse_doesNotValidateDifferent() {
         val client1 = validator.validateNewOrElse(newClient, ::onError)
         val client2 = validator.validateNewOrElse(newClient, ::onError)
-        val update = UnvalidatedClient(client1.id, client1.secret, client1.redirectUris,
-            client1.tokenEndpointAuthMethod, client1.grantTypes, client1.responseTypes, client1.scope)
+        val update = UnvalidatedClient(
+            client1.id,
+            client1.secret,
+            client1.redirectUris,
+            client1.tokenEndpointAuthMethod,
+            client1.grantTypes,
+            client1.responseTypes,
+            client1.scope
+        )
         assertThrows<ValidationException> { validator.validateUpdateOrElse(update, client2, ::onError) }
     }
 }

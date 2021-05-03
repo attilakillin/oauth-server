@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*
 
 @Controller
 @RequestMapping("/user")
-class UserAuthenticationController (
+class UserAuthenticationController(
     private val userRepository: UserRepository,
     private val jwtHandler: UserJwtHandler
 ) {
@@ -26,8 +26,10 @@ class UserAuthenticationController (
      */
     @PostMapping("/login")
     @ResponseBody
-    fun handleLogin(@RequestParam email: String,
-                    @RequestParam password: String): ResponseEntity<String> {
+    fun handleLogin(
+        @RequestParam email: String,
+        @RequestParam password: String
+    ): ResponseEntity<String> {
         val user = userRepository.findByEmail(email)
             ?: badRequest("Invalid credentials!")
 

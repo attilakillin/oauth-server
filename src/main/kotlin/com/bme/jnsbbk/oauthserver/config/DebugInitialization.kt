@@ -25,9 +25,7 @@ import org.springframework.web.util.UriComponentsBuilder
  * @see AppConfig
  */
 @Component
-class DebugInitialization (
-    private val appConfig: AppConfig
-) {
+class DebugInitialization(private val appConfig: AppConfig) {
     private val serverUrl = "http://localhost:8080"
     private var executed = false
     private val logger = LoggerFactory.getLogger(this::class.java)
@@ -55,15 +53,18 @@ class DebugInitialization (
         val headers = HttpHeaders()
         headers.contentType = MediaType.APPLICATION_JSON
 
-        val entity = HttpEntity<String>("""
-            {
-              "client_name": "Test client",
-              "redirect_uris": ["http://localhost:8081/callback"],
-              "client_uri": "http://localhost:8081",
-              "grant_types": ["authorization_code"],
-              "scope": "alfa beta gamma delta"
-            }
-        """.trimIndent(), headers)
+        val entity = HttpEntity<String>(
+            """
+                {
+                    "client_name": "Test client",
+                    "redirect_uris": ["http://localhost:8081/callback"],
+                    "client_uri": "http://localhost:8081",
+                    "grant_types": ["authorization_code"],
+                    "scope": "alfa beta gamma delta"
+                }
+            """.trimIndent(),
+            headers
+        )
 
         val response = template.postForEntity<String>(url, entity)
         if (response.statusCode != HttpStatus.OK) {

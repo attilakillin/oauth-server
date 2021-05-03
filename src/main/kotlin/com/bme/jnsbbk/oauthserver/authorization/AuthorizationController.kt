@@ -18,7 +18,7 @@ import org.springframework.web.util.UriComponentsBuilder
 
 @Controller
 @RequestMapping("/authorize")
-class AuthorizationController (
+class AuthorizationController(
     private val authValidator: AuthValidator,
     private val clientRepository: ClientRepository,
     private val authCodeRepository: AuthCodeRepository,
@@ -68,7 +68,7 @@ class AuthorizationController (
             ?: return errorPageWithReason(model, "User authentication failed!")
 
         if (params["approve"] == null)
-            return redirectWithError(request.redirectUri,"access_denied")
+            return redirectWithError(request.redirectUri, "access_denied")
 
         val scope = getScopeFrom(params)
         scope.forEach {
@@ -107,10 +107,12 @@ class AuthorizationController (
     }
 
     private fun getScopeFrom(params: Map<String, String>): Set<String> {
-        return params.asSequence()
-                     .filter { it.key.startsWith("scope_") }.distinct()
-                     .map { it.key.removePrefix("scope_") }
-                     .toSet()
+        return params
+            .asSequence()
+            .filter { it.key.startsWith("scope_") }
+            .distinct()
+            .map { it.key.removePrefix("scope_") }
+            .toSet()
     }
 
     /** Handles responses to valid authorization code requests. */
@@ -118,7 +120,7 @@ class AuthorizationController (
         val code = RandomString.generateUntil(16) { !authCodeRepository.existsById(it) }
         authCodeRepository.save(authCodeFactory.fromRequest(code, request))
 
-        return "redirect:" + buildURL(request.redirectUri,
-            mapOf("code" to code, "state" to request.state))
+        return "redirect:" +
+            buildURL(request.redirectUri, mapOf("code" to code, "state" to request.state))
     }
 }
