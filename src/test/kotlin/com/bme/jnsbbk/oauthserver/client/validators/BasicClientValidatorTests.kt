@@ -10,6 +10,7 @@ import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.extension.ExtendWith
 import java.time.Instant
 import java.util.*
@@ -52,33 +53,33 @@ class BasicClientValidatorTests {
     @Test
     fun validateNewOrElse_retainsValues() {
         val client = validator.validateNewOrElse(newClient, ::onError)
-        assert(client.redirectUris == newClient.redirectUris)
-        assert(client.scope == newClient.scope)
+        assertEquals(newClient.redirectUris, client.redirectUris)
+        assertEquals(newClient.scope, client.scope)
         extraData.forEach { (key, value) ->
-            assert(client.extraData[key] == value)
+            assertEquals(value, client.extraData[key])
         }
     }
 
     @Test
     fun validateNewOrElse_createsDefaults() {
         val client = validator.validateNewOrElse(newClient, ::onError)
-        assert(client.id.isNotEmpty())
-        assert(!client.secret.isNullOrEmpty())
-        assert(client.tokenEndpointAuthMethod.isNotEmpty())
-        assert(client.grantTypes.isNotEmpty())
-        assert(client.responseTypes.isNotEmpty())
-        assert(client.idIssuedAt.isBefore(Instant.now()))
+        assertTrue(client.id.isNotEmpty())
+        assertFalse(client.secret.isNullOrEmpty())
+        assertTrue(client.tokenEndpointAuthMethod.isNotEmpty())
+        assertTrue(client.grantTypes.isNotEmpty())
+        assertTrue(client.responseTypes.isNotEmpty())
+        assertTrue(client.idIssuedAt.isBefore(Instant.now()))
     }
 
     @Test
     fun validateNewOrElse_createsSensibleDefaults() {
         val client = validator.validateNewOrElse(newClient, ::onError)
-        assert(client.id.length >= 8)
-        assert(client.secret?.let { it.length > 16 } ?: false)
-        assert(client.tokenEndpointAuthMethod == "client_secret_basic")
-        assert("authorization_code" in client.grantTypes)
-        assert("code" in client.responseTypes)
-        assert(client.idIssuedAt.isBefore(Instant.now()))
+        assertTrue(client.id.length >= 8)
+        assertTrue(client.secret?.let { it.length > 16 } ?: false)
+        assertTrue(client.tokenEndpointAuthMethod == "client_secret_basic")
+        assertTrue("authorization_code" in client.grantTypes)
+        assertTrue("code" in client.responseTypes)
+        assertTrue(client.idIssuedAt.isBefore(Instant.now()))
     }
 
     @Test

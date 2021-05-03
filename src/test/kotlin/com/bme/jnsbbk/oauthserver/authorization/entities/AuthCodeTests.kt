@@ -1,33 +1,34 @@
 package com.bme.jnsbbk.oauthserver.authorization.entities
 
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.time.Instant
 
 class AuthCodeTests {
-    private val delay: Long = 86400
+    private val delay: Long = 86400 // Set this to a sufficiently large value
 
-    private fun createCodeWithTimes(issuedAt: Instant, notBefore: Instant, expiresAt: Instant?) =
-        AuthCode("", "", "", setOf(), issuedAt, notBefore, expiresAt)
+    private fun createCodeWithTimes(iat: Instant, nbe: Instant, eat: Instant?) =
+        AuthCode("", "", "", setOf(), iat, nbe, eat)
 
     @Test
     fun isExpired_isFalseForNull() {
         val now = Instant.now()
         val code = createCodeWithTimes(now, now, null)
-        assert(!code.isExpired())
+        assertFalse(code.isExpired())
     }
 
     @Test
     fun isExpired_isFalseForNonExpired() {
         val now = Instant.now()
         val code = createCodeWithTimes(now, now, now.plusSeconds(delay))
-        assert(!code.isExpired())
+        assertFalse(code.isExpired())
     }
 
     @Test
     fun isExpired_isTrueForExpired() {
         val now = Instant.now()
         val code = createCodeWithTimes(now, now, now.minusSeconds(delay))
-        assert(code.isExpired())
+        assertTrue(code.isExpired())
     }
 
     @Test
@@ -44,9 +45,9 @@ class AuthCodeTests {
                 expiredAts.forEach { eat ->
                     val eatValid = eat == null || eat.isAfter(now)
 
-                    val expected = iatValid && nbeValid && eatValid
                     val code = createCodeWithTimes(iat, nbe, eat)
-                    assert(code.isTimestampValid() == expected)
+                    val expected = iatValid && nbeValid && eatValid
+                    assertEquals(expected, code.isTimestampValid())
                 }
             }
         }

@@ -1,33 +1,34 @@
 package com.bme.jnsbbk.oauthserver.token.entities
 
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.time.Instant
 
 class TokenTests {
-    private val delay: Long = 86400
+    private val delay: Long = 86400 // Set this to a sufficiently large value
 
-    private fun createTokenWithTimes(issuedAt: Instant, notBefore: Instant, expiresAt: Instant?) =
-        Token("", TokenType.ACCESS, "", "", setOf(), issuedAt, notBefore, expiresAt)
+    private fun createTokenWithTimes(iat: Instant, nbe: Instant, eat: Instant?) =
+        Token("", TokenType.ACCESS, "", "", setOf(), iat, nbe, eat)
 
     @Test
     fun isExpired_isFalseForNull() {
         val now = Instant.now()
         val token = createTokenWithTimes(now, now, null)
-        assert(!token.isExpired())
+        assertFalse(token.isExpired())
     }
 
     @Test
     fun isExpired_isFalseForNonExpired() {
         val now = Instant.now()
         val token = createTokenWithTimes(now, now, now.plusSeconds(delay))
-        assert(!token.isExpired())
+        assertFalse(token.isExpired())
     }
 
     @Test
     fun isExpired_isTrueForExpired() {
         val now = Instant.now()
         val token = createTokenWithTimes(now, now, now.minusSeconds(delay))
-        assert(token.isExpired())
+        assertTrue(token.isExpired())
     }
 
     @Test
@@ -44,9 +45,9 @@ class TokenTests {
                 expiredAts.forEach { eat ->
                     val eatValid = eat == null || eat.isAfter(now)
 
-                    val expected = iatValid && nbeValid && eatValid
                     val token = createTokenWithTimes(iat, nbe, eat)
-                    assert(token.isTimestampValid() == expected)
+                    val expected = iatValid && nbeValid && eatValid
+                    assertEquals(expected, token.isTimestampValid())
                 }
             }
         }

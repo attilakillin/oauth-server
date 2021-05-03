@@ -7,6 +7,8 @@ import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -34,54 +36,59 @@ class BasicClientAuthenticatorTests {
 
     @Test
     fun validClientOrNull_nullWhenNoAuthentication() {
-        assert(authenticator.validClientOrNull(null, mapOf()) == null)
+        assertNull(authenticator.validClientOrNull(null, mapOf()))
     }
 
     @Test
     fun validClientOrNull_acceptsHeader() {
         every { repository.findById(id) } returns Optional.of(client)
+
         val header = "Basic " + encodeString("$id:$secret")
-        assert(authenticator.validClientOrNull(header, mapOf()) == client)
+        assertEquals(client, authenticator.validClientOrNull(header, mapOf()))
     }
 
     @Test
     fun validClientOrNull_nullWhenNoIdInHeader() {
         every { repository.findById(any()) } returns Optional.empty()
+
         val header = "Basic " + encodeString(":$secret")
-        assert(authenticator.validClientOrNull(header, mapOf()) == null)
+        assertNull(authenticator.validClientOrNull(header, mapOf()))
     }
 
     @Test
     fun validClientOrNull_nullWhenNoSecretInHeader() {
         every { repository.findById(id) } returns Optional.of(client)
+
         val header = "Basic " + encodeString(id)
-        assert(authenticator.validClientOrNull(header, mapOf()) == null)
+        assertNull(authenticator.validClientOrNull(header, mapOf()))
     }
 
     @Test
     fun validClientOrNull_acceptsBody() {
         every { repository.findById(id) } returns Optional.of(client)
+
         val body = mapOf("client_id" to id, "client_secret" to secret)
-        assert(authenticator.validClientOrNull(null, body) == client)
+        assertEquals(client, authenticator.validClientOrNull(null, body))
     }
 
     @Test
     fun validClientOrNull_nullWhenNoIdInBody() {
         val body = mapOf("client_secret" to secret)
-        assert(authenticator.validClientOrNull(null, body) == null)
+        assertNull(authenticator.validClientOrNull(null, body))
     }
 
     @Test
     fun validClientOrNull_nullWhenNoSecretInBody() {
         every { repository.findById(id) } returns Optional.of(client)
+
         val body = mapOf("client_id" to id)
-        assert(authenticator.validClientOrNull(null, body) == null)
+        assertNull(authenticator.validClientOrNull(null, body))
     }
 
     @Test
     fun validClientOrNull_nullWhenCredentialsInBoth() {
         val header = "Basic " + encodeString("$id:$secret")
         val body = mapOf("client_id" to id, "client_secret" to secret)
-        assert(authenticator.validClientOrNull(header, body) == null)
+        assertNull(authenticator.validClientOrNull(header, body))
     }
 }
