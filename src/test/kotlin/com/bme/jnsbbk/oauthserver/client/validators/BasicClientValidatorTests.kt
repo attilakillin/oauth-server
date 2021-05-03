@@ -5,25 +5,19 @@ import com.bme.jnsbbk.oauthserver.client.ClientRepository
 import com.bme.jnsbbk.oauthserver.client.entities.UnvalidatedClient
 import com.bme.jnsbbk.oauthserver.onError
 import com.bme.jnsbbk.oauthserver.utils.StringSetConverter
+import io.mockk.every
+import io.mockk.impl.annotations.InjectMockKs
+import io.mockk.impl.annotations.MockK
+import io.mockk.junit5.MockKExtension
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.InjectMocks
-import org.mockito.Mock
-import org.mockito.MockitoAnnotations
-import org.mockito.junit.jupiter.MockitoExtension
 import java.time.Instant
+import java.util.*
 
-@ExtendWith(MockitoExtension::class)
+@ExtendWith(MockKExtension::class)
 class BasicClientValidatorTests {
-    @Mock private lateinit var repository: ClientRepository
-    @InjectMocks private val validator = BasicClientValidator()
-
-    companion object {
-        @BeforeAll
-        fun initialize() {
-            MockitoAnnotations.initMocks(this)
-        }
-    }
+    @MockK private lateinit var repository: ClientRepository
+    @InjectMockKs private var validator = BasicClientValidator()
 
     private lateinit var newClient: UnvalidatedClient
     private val extraData = mapOf("test" to "thing", "data" to "another thing")
@@ -40,6 +34,8 @@ class BasicClientValidatorTests {
             scope = setOf("alpha", "beta", "gamma", "delta")
         )
         newClient.extraData.putAll(extraData)
+
+        every { repository.existsById(any()) } returns false
     }
 
     @Test

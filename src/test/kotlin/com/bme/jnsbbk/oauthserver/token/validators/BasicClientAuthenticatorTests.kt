@@ -3,29 +3,19 @@ package com.bme.jnsbbk.oauthserver.token.validators
 import com.bme.jnsbbk.oauthserver.client.ClientRepository
 import com.bme.jnsbbk.oauthserver.client.entities.Client
 import com.bme.jnsbbk.oauthserver.utils.RandomString
-import org.junit.jupiter.api.BeforeAll
+import io.mockk.every
+import io.mockk.impl.annotations.InjectMockKs
+import io.mockk.impl.annotations.MockK
+import io.mockk.junit5.MockKExtension
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.InjectMocks
-import org.mockito.Mock
-import org.mockito.MockitoAnnotations
-import org.mockito.junit.jupiter.MockitoExtension
-import org.mockito.kotlin.any
-import org.mockito.kotlin.whenever
 import java.util.*
 
-@ExtendWith(MockitoExtension::class)
+@ExtendWith(MockKExtension::class)
 class BasicClientAuthenticatorTests {
-    @Mock private lateinit var repository: ClientRepository
-    @InjectMocks private val authenticator = BasicClientAuthenticator()
-
-    companion object {
-        @BeforeAll
-        fun initialize() {
-            MockitoAnnotations.initMocks(this)
-        }
-    }
+    @MockK private lateinit var repository: ClientRepository
+    @InjectMockKs private var authenticator = BasicClientAuthenticator()
 
     private lateinit var id: String
     private lateinit var secret: String
@@ -49,28 +39,28 @@ class BasicClientAuthenticatorTests {
 
     @Test
     fun validClientOrNull_acceptsHeader() {
-        whenever(repository.findById(id)).thenReturn(Optional.of(client))
+        every { repository.findById(id) } returns Optional.of(client)
         val header = "Basic " + encodeString("$id:$secret")
         assert(authenticator.validClientOrNull(header, mapOf()) == client)
     }
 
     @Test
     fun validClientOrNull_nullWhenNoIdInHeader() {
-        whenever(repository.findById(any())).thenReturn(Optional.empty())
+        every { repository.findById(any()) } returns Optional.empty()
         val header = "Basic " + encodeString(":$secret")
         assert(authenticator.validClientOrNull(header, mapOf()) == null)
     }
 
     @Test
     fun validClientOrNull_nullWhenNoSecretInHeader() {
-        whenever(repository.findById(id)).thenReturn(Optional.of(client))
+        every { repository.findById(id) } returns Optional.of(client)
         val header = "Basic " + encodeString(id)
         assert(authenticator.validClientOrNull(header, mapOf()) == null)
     }
 
     @Test
     fun validClientOrNull_acceptsBody() {
-        whenever(repository.findById(id)).thenReturn(Optional.of(client))
+        every { repository.findById(id) } returns Optional.of(client)
         val body = mapOf("client_id" to id, "client_secret" to secret)
         assert(authenticator.validClientOrNull(null, body) == client)
     }
@@ -83,7 +73,7 @@ class BasicClientAuthenticatorTests {
 
     @Test
     fun validClientOrNull_nullWhenNoSecretInBody() {
-        whenever(repository.findById(id)).thenReturn(Optional.of(client))
+        every { repository.findById(id) } returns Optional.of(client)
         val body = mapOf("client_id" to id)
         assert(authenticator.validClientOrNull(null, body) == null)
     }

@@ -4,27 +4,18 @@ import com.bme.jnsbbk.oauthserver.authorization.entities.UnvalidatedAuthRequest
 import com.bme.jnsbbk.oauthserver.client.ClientRepository
 import com.bme.jnsbbk.oauthserver.client.entities.Client
 import com.bme.jnsbbk.oauthserver.utils.RandomString
+import io.mockk.every
+import io.mockk.impl.annotations.InjectMockKs
+import io.mockk.impl.annotations.MockK
+import io.mockk.junit5.MockKExtension
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.InjectMocks
-import org.mockito.Mock
-import org.mockito.MockitoAnnotations
-import org.mockito.junit.jupiter.MockitoExtension
-import org.mockito.kotlin.any
-import org.mockito.kotlin.whenever
 import java.util.*
 
-@ExtendWith(MockitoExtension::class)
+@ExtendWith(MockKExtension::class)
 class BasicAuthValidatorTests {
-    @Mock private lateinit var repository: ClientRepository
-    @InjectMocks private val validator = BasicAuthValidator()
-
-    companion object {
-        @BeforeAll
-        fun initialize() {
-            MockitoAnnotations.initMocks(this)
-        }
-    }
+    @MockK private lateinit var repository: ClientRepository
+    @InjectMockKs private var validator = BasicAuthValidator()
 
     private lateinit var client: Client
     private lateinit var request: UnvalidatedAuthRequest
@@ -45,7 +36,7 @@ class BasicAuthValidatorTests {
 
     @Test
     fun validateSensitiveOrError_acceptsValidRequest() {
-        whenever(repository.findById(any())).thenReturn(Optional.of(client))
+        every { repository.findById(any()) } returns Optional.of(client)
         request = UnvalidatedAuthRequest(
             clientId = client.id,
             redirectUri = client.redirectUris.first(),
@@ -58,7 +49,7 @@ class BasicAuthValidatorTests {
 
     @Test
     fun validateSensitiveOrError_failsOnInvalidClient() {
-        whenever(repository.findById(any())).thenReturn(Optional.empty())
+        every { repository.findById(any()) } returns Optional.empty()
         request = UnvalidatedAuthRequest(
             clientId = client.id,
             redirectUri = client.redirectUris.first(),
@@ -71,7 +62,7 @@ class BasicAuthValidatorTests {
 
     @Test
     fun validateSensitiveOrError_failsOnInvalidRedirectUri() {
-        whenever(repository.findById(any())).thenReturn(Optional.of(client))
+        every { repository.findById(any()) } returns Optional.of(client)
         request = UnvalidatedAuthRequest(
             clientId = client.id,
             redirectUri = "malicious url",
@@ -84,7 +75,7 @@ class BasicAuthValidatorTests {
 
     @Test
     fun validateSensitiveOrError_acceptsEmptyRedirectUri_ifClientOnlyHasOne() {
-        whenever(repository.findById(any())).thenReturn(Optional.of(client))
+        every { repository.findById(any()) } returns Optional.of(client)
         request = UnvalidatedAuthRequest(
             clientId = client.id,
             redirectUri = null,
@@ -98,7 +89,7 @@ class BasicAuthValidatorTests {
     @Test
     fun validateSensitiveOrError_failsOnEmptyRedirectUri_ifClientHasMultiple() {
         client.redirectUris = setOf("http://localhost:8082/callback", "http://localhost:8083/callback")
-        whenever(repository.findById(any())).thenReturn(Optional.of(client))
+        every { repository.findById(any()) } returns Optional.of(client)
         request = UnvalidatedAuthRequest(
             clientId = client.id,
             redirectUri = null,
@@ -111,7 +102,7 @@ class BasicAuthValidatorTests {
 
     @Test
     fun validateSensitiveOrError_fixesEmptyRedirectUri() {
-        whenever(repository.findById(any())).thenReturn(Optional.of(client))
+        every { repository.findById(any()) } returns Optional.of(client)
         request = UnvalidatedAuthRequest(
             clientId = client.id,
             redirectUri = null,
@@ -131,14 +122,14 @@ class BasicAuthValidatorTests {
 
     @Test
     fun validateAdditionalOrError_throwsOnInvalidClient() {
-        whenever(repository.findById(any())).thenReturn(Optional.empty())
+        every { repository.findById(any()) } returns Optional.empty()
         request = UnvalidatedAuthRequest("invalid", null, null, null, null)
         assertThrows<Exception> { validator.validateAdditionalOrError(request) }
     }
 
     @Test
     fun validateAdditionalOrError_failsOnInvalidResponseType() {
-        whenever(repository.findById(any())).thenReturn(Optional.of(client))
+        every { repository.findById(any()) } returns Optional.of(client)
         request = UnvalidatedAuthRequest(
             clientId = client.id,
             redirectUri = client.redirectUris.first(),
@@ -151,7 +142,7 @@ class BasicAuthValidatorTests {
 
     @Test
     fun validateAdditionalOrError_failsOnInvalidScope() {
-        whenever(repository.findById(any())).thenReturn(Optional.of(client))
+        every { repository.findById(any()) } returns Optional.of(client)
         request = UnvalidatedAuthRequest(
             clientId = client.id,
             redirectUri = client.redirectUris.first(),
@@ -164,7 +155,7 @@ class BasicAuthValidatorTests {
 
     @Test
     fun validateAdditionalOrError_acceptsValidRequest() {
-        whenever(repository.findById(any())).thenReturn(Optional.of(client))
+        every { repository.findById(any()) } returns Optional.of(client)
         request = UnvalidatedAuthRequest(
             clientId = client.id,
             redirectUri = client.redirectUris.first(),
@@ -177,7 +168,7 @@ class BasicAuthValidatorTests {
 
     @Test
     fun validateAdditionalOrError_fixesEmptyScope() {
-        whenever(repository.findById(any())).thenReturn(Optional.of(client))
+        every { repository.findById(any()) } returns Optional.of(client)
         request = UnvalidatedAuthRequest(
             clientId = client.id,
             redirectUri = client.redirectUris.first(),
@@ -191,7 +182,7 @@ class BasicAuthValidatorTests {
 
     @Test
     fun convertToValidRequest_acceptsRequestAfterValidation() {
-        whenever(repository.findById(any())).thenReturn(Optional.of(client))
+        every { repository.findById(any()) } returns Optional.of(client)
         request = UnvalidatedAuthRequest(
             clientId = client.id,
             redirectUri = null,

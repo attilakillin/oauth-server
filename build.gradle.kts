@@ -38,8 +38,8 @@ dependencies {
     implementation("com.h2database:h2")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("org.mockito:mockito-core:2.28.2")
-    testImplementation("org.mockito.kotlin:mockito-kotlin:3.1.0")
+    testImplementation("io.mockk:mockk:1.11.0")
+    //testImplementation("com.ninja-squad:springmockk:3.0.1")
 }
 
 tasks.withType<KotlinCompile> {
