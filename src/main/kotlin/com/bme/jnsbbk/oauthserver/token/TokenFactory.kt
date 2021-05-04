@@ -31,7 +31,7 @@ class TokenFactory(
     }
 
     /** Creates a JWT token response from the given [access] and [refresh] tokens. */
-    fun responseJWTFromTokens(access: Token, refresh: Token): TokenResponse {
+    fun responseJwtFromTokens(access: Token, refresh: Token): TokenResponse {
         val expiresIn = if (access.expiresAt == null) {
             null
         } else {
@@ -56,7 +56,7 @@ class TokenFactory(
     ): Token {
         val now = Instant.now()
         val notBefore = now.plusSeconds(times.notBeforeOffset)
-        val expiresAt = if (times.lifespan == 0L) null else now.plusSeconds(times.lifespan)
+        val expiresAt = if (times.lifespan == 0L) null else notBefore.plusSeconds(times.lifespan)
 
         return Token(
             value = value,

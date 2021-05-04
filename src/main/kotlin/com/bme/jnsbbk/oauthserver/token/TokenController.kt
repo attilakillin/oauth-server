@@ -63,7 +63,7 @@ class TokenController(
         tokenRepository.save(accessToken)
         tokenRepository.save(refreshToken)
 
-        return tokenFactory.responseJWTFromTokens(accessToken, refreshToken)
+        return tokenFactory.responseJwtFromTokens(accessToken, refreshToken)
     }
 
     private fun handleRefreshToken(client: Client, refreshValue: String?): TokenResponse {
@@ -84,6 +84,6 @@ class TokenController(
         val access = tokenFactory.accessFromRefresh(RandomString.generate(), refresh)
         tokenRepository.save(access)
 
-        return tokenFactory.responseJWTFromTokens(access, refresh)
+        return tokenFactory.responseJwtFromTokens(access, refresh)
     }
 }

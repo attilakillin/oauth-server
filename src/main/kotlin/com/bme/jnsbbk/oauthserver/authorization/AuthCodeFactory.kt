@@ -20,7 +20,7 @@ class AuthCodeFactory(val appConfig: AppConfig) {
         val now = Instant.now()
         val notBefore = now.plusSeconds(appConfig.tokens.authCode.notBeforeOffset)
         val lifespan = appConfig.tokens.authCode.lifespan
-        val expiresAt = if (lifespan == 0L) null else now.plusSeconds(lifespan)
+        val expiresAt = if (lifespan == 0L) null else notBefore.plusSeconds(lifespan)
 
         return AuthCode(
             value = value,
