@@ -14,7 +14,7 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming
  * @see AuthRequest
  */
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy::class)
-class UnvalidatedAuthRequest(
+data class UnvalidatedAuthRequest(
     val clientId: String?,
     var redirectUri: String?,
     val responseType: String?,

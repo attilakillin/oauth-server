@@ -2,6 +2,7 @@ package com.bme.jnsbbk.oauthserver.client.validators
 
 import com.bme.jnsbbk.oauthserver.ValidationException
 import com.bme.jnsbbk.oauthserver.client.ClientRepository
+import com.bme.jnsbbk.oauthserver.client.entities.Client
 import com.bme.jnsbbk.oauthserver.client.entities.UnvalidatedClient
 import com.bme.jnsbbk.oauthserver.onError
 import com.bme.jnsbbk.oauthserver.utils.StringSetConverter
@@ -13,19 +14,18 @@ import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.extension.ExtendWith
 import java.time.Instant
-import java.util.*
 
 @ExtendWith(MockKExtension::class)
 class BasicClientValidatorTests {
     @MockK private lateinit var repository: ClientRepository
     @InjectMockKs private var validator = BasicClientValidator()
 
-    private lateinit var newClient: UnvalidatedClient
+    private lateinit var requested: UnvalidatedClient
     private val extraData = mapOf("test" to "thing", "data" to "another thing")
 
     @BeforeEach
     fun createSampleClient() {
-        newClient = UnvalidatedClient(
+        requested = UnvalidatedClient(
             id = null,
             secret = null,
             redirectUris = setOf("http://localhost:8082/callback"),
@@ -34,7 +34,7 @@ class BasicClientValidatorTests {
             responseTypes = null,
             scope = setOf("alpha", "beta", "gamma", "delta")
         )
-        newClient.extraData.putAll(extraData)
+        requested.extraData.putAll(extraData)
 
         every { repository.existsById(any()) } returns false
     }
@@ -47,14 +47,14 @@ class BasicClientValidatorTests {
 
     @Test
     fun validateNewOrElse_validatesSampleClient() {
-        assertDoesNotThrow { validator.validateNewOrElse(newClient, ::onError) }
+        assertDoesNotThrow { validator.validateNewOrElse(requested, ::onError) }
     }
 
     @Test
     fun validateNewOrElse_retainsValues() {
-        val client = validator.validateNewOrElse(newClient, ::onError)
-        assertEquals(newClient.redirectUris, client.redirectUris)
-        assertEquals(newClient.scope, client.scope)
+        val client = validator.validateNewOrElse(requested, ::onError)
+        assertEquals(requested.redirectUris, client.redirectUris)
+        assertEquals(requested.scope, client.scope)
         extraData.forEach { (key, value) ->
             assertEquals(value, client.extraData[key])
         }
@@ -62,7 +62,7 @@ class BasicClientValidatorTests {
 
     @Test
     fun validateNewOrElse_createsDefaults() {
-        val client = validator.validateNewOrElse(newClient, ::onError)
+        val client = validator.validateNewOrElse(requested, ::onError)
         assertTrue(client.id.isNotEmpty())
         assertFalse(client.secret.isNullOrEmpty())
         assertTrue(client.tokenEndpointAuthMethod.isNotEmpty())
@@ -73,7 +73,7 @@ class BasicClientValidatorTests {
 
     @Test
     fun validateNewOrElse_createsSensibleDefaults() {
-        val client = validator.validateNewOrElse(newClient, ::onError)
+        val client = validator.validateNewOrElse(requested, ::onError)
         assertTrue(client.id.length >= 8)
         assertTrue(client.secret?.let { it.length > 16 } ?: false)
         assertTrue(client.tokenEndpointAuthMethod == "client_secret_basic")
@@ -85,11 +85,11 @@ class BasicClientValidatorTests {
     @Test
     fun validateNewOrElse_disallowsSetSeparators() {
         val badScope = mutableSetOf("text" + StringSetConverter.SEPARATOR)
-        badScope.addAll(newClient.scope!!)
+        badScope.addAll(requested.scope!!)
         val client = UnvalidatedClient(
             id = null,
             secret = null,
-            redirectUris = newClient.redirectUris!!,
+            redirectUris = requested.redirectUris!!,
             tokenEndpointAuthMethod = null,
             grantTypes = null,
             responseTypes = null,
@@ -100,32 +100,26 @@ class BasicClientValidatorTests {
 
     @Test
     fun validateUpdateOrElse_validatesItself() {
-        val client = validator.validateNewOrElse(newClient, ::onError)
-        val update = UnvalidatedClient(
-            client.id,
-            client.secret,
-            client.redirectUris,
-            client.tokenEndpointAuthMethod,
-            client.grantTypes,
-            client.responseTypes,
-            client.scope
-        )
+        val client = validator.validateNewOrElse(requested, ::onError)
+        val update = unvalidatedFromClient(client)
         assertDoesNotThrow { validator.validateUpdateOrElse(update, client, ::onError) }
     }
 
     @Test
     fun validateUpdateOrElse_doesNotValidateDifferent() {
-        val client1 = validator.validateNewOrElse(newClient, ::onError)
-        val client2 = validator.validateNewOrElse(newClient, ::onError)
-        val update = UnvalidatedClient(
-            client1.id,
-            client1.secret,
-            client1.redirectUris,
-            client1.tokenEndpointAuthMethod,
-            client1.grantTypes,
-            client1.responseTypes,
-            client1.scope
-        )
+        val client1 = validator.validateNewOrElse(requested, ::onError)
+        val client2 = validator.validateNewOrElse(requested, ::onError)
+        val update = unvalidatedFromClient(client1)
         assertThrows<ValidationException> { validator.validateUpdateOrElse(update, client2, ::onError) }
     }
+
+    private fun unvalidatedFromClient(client: Client) = UnvalidatedClient(
+        client.id,
+        client.secret,
+        client.redirectUris,
+        client.tokenEndpointAuthMethod,
+        client.grantTypes,
+        client.responseTypes,
+        client.scope
+    )
 }

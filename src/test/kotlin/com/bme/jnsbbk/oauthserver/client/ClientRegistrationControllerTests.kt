@@ -56,9 +56,11 @@ class ClientRegistrationControllerTests {
         every { clientRepository.save(any()) } answers { firstArg() }
 
         mockMvc
-            .perform(post("/register")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("""{"client_name": "Test client"}"""))
+            .perform(
+                post("/register")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("""{"client_name": "Test client"}""")
+            )
             .andExpect(status().isOk)
             .andExpect(content().string(containsString(client.id)))
     }
@@ -66,22 +68,29 @@ class ClientRegistrationControllerTests {
     @Test
     fun getUpdateDelete_allReturn401OnAccessTokenMismatch() {
         every { clientRepository.findById(client.id) } returns Optional.of(client)
+        val invalidValue = "Bearer invalid_access_token"
 
         mockMvc
-            .perform(get("/register/${client.id}")
-                .header("Authorization", "Bearer invalid_access_token"))
+            .perform(
+                get("/register/${client.id}")
+                    .header("Authorization", invalidValue)
+            )
             .andExpect(status().isUnauthorized)
 
         mockMvc
-            .perform(put("/register/${client.id}")
-                .header("Authorization", "Bearer invalid_access_token")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("""{"client_name": "Test client"}"""))
+            .perform(
+                put("/register/${client.id}")
+                    .header("Authorization", invalidValue)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("""{"client_name": "Test client"}""")
+            )
             .andExpect(status().isUnauthorized)
 
         mockMvc
-            .perform(delete("/register/${client.id}")
-                .header("Authorization", "Bearer invalid_access_token"))
+            .perform(
+                delete("/register/${client.id}")
+                    .header("Authorization", invalidValue)
+            )
             .andExpect(status().isUnauthorized)
     }
 
@@ -96,9 +105,11 @@ class ClientRegistrationControllerTests {
             .andExpect(status().isUnauthorized)
 
         mockMvc
-            .perform(put("/register/clientIdThatIsInvalid")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("""{"client_name": "Test client"}"""))
+            .perform(
+                put("/register/clientIdThatIsInvalid")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("""{"client_name": "Test client"}""")
+            )
             .andExpect(status().isUnauthorized)
 
         mockMvc
@@ -113,9 +124,11 @@ class ClientRegistrationControllerTests {
             .andExpect(status().isUnauthorized)
 
         mockMvc
-            .perform(put("/register/${client.id}")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("""{"client_name": "Test client"}"""))
+            .perform(
+                put("/register/${client.id}")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("""{"client_name": "Test client"}""")
+            )
             .andExpect(status().isUnauthorized)
 
         mockMvc
@@ -128,8 +141,10 @@ class ClientRegistrationControllerTests {
         every { clientRepository.findById(client.id) } returns Optional.of(client)
 
         mockMvc
-            .perform(get("/register/${client.id}")
-                .header("Authorization", "Bearer ${client.registrationAccessToken}"))
+            .perform(
+                get("/register/${client.id}")
+                    .header("Authorization", "Bearer ${client.registrationAccessToken}")
+            )
             .andExpect(status().isOk)
             .andExpect(content().string(containsString(client.id)))
     }
@@ -140,8 +155,10 @@ class ClientRegistrationControllerTests {
         every { clientRepository.delete(any()) } returns Unit
 
         mockMvc
-            .perform(delete("/register/${client.id}")
-                .header("Authorization", "Bearer ${client.registrationAccessToken}"))
+            .perform(
+                delete("/register/${client.id}")
+                    .header("Authorization", "Bearer ${client.registrationAccessToken}")
+            )
             .andExpect(status().isNoContent)
 
         verify(exactly = 1) { clientRepository.delete(any()) }
@@ -155,10 +172,12 @@ class ClientRegistrationControllerTests {
         }
 
         mockMvc
-            .perform(put("/register/${client.id}")
-                .header("Authorization", "Bearer ${client.registrationAccessToken}")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("""{"client_name": "Test client"}"""))
+            .perform(
+                put("/register/${client.id}")
+                    .header("Authorization", "Bearer ${client.registrationAccessToken}")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("""{"client_name": "Test client"}""")
+            )
             .andExpect(status().isBadRequest)
     }
 
@@ -169,10 +188,12 @@ class ClientRegistrationControllerTests {
         every { clientValidator.validateUpdateOrElse(any(), any(), any()) } returns client
 
         mockMvc
-            .perform(put("/register/${client.id}")
-                .header("Authorization", "Bearer ${client.registrationAccessToken}")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("""{"client_name": "Test client"}"""))
+            .perform(
+                put("/register/${client.id}")
+                    .header("Authorization", "Bearer ${client.registrationAccessToken}")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("""{"client_name": "Test client"}""")
+            )
             .andExpect(status().isOk)
             .andExpect(content().string(containsString(client.id)))
     }

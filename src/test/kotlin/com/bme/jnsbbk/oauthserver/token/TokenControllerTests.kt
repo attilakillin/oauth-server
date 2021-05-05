@@ -57,8 +57,7 @@ class TokenControllerTests {
         every { clientAuthenticator.validClientOrNull(any(), any()) } returns client
 
         mockMvc
-            .perform(post("/token")
-                .param("grant_type", "something_invalid"))
+            .perform(post("/token").param("grant_type", "something_invalid"))
             .andExpect(status().isBadRequest)
     }
 
@@ -67,8 +66,7 @@ class TokenControllerTests {
         every { clientAuthenticator.validClientOrNull(any(), any()) } returns client
 
         mockMvc
-            .perform(post("/token")
-                .param("grant_type", "authorization_code"))
+            .perform(post("/token").param("grant_type", "authorization_code"))
             .andExpect(status().isBadRequest)
     }
 
@@ -78,9 +76,11 @@ class TokenControllerTests {
         every { authCodeRepository.findById(any()) } returns Optional.empty()
 
         mockMvc
-            .perform(post("/token")
-                .param("grant_type", "authorization_code")
-                .param("code", "something_invalid"))
+            .perform(
+                post("/token")
+                    .param("grant_type", "authorization_code")
+                    .param("code", "something_invalid")
+            )
             .andExpect(status().isBadRequest)
     }
 
@@ -101,9 +101,11 @@ class TokenControllerTests {
         every { authCodeRepository.delete(any()) } just runs
 
         mockMvc
-            .perform(post("/token")
-                .param("grant_type", "authorization_code")
-                .param("code", invalidCode.value))
+            .perform(
+                post("/token")
+                    .param("grant_type", "authorization_code")
+                    .param("code", invalidCode.value)
+            )
             .andExpect(status().isBadRequest)
     }
 
@@ -137,24 +139,23 @@ class TokenControllerTests {
         every { tokenFactory.responseJwtFromTokens(any(), any()) } returns response
 
         mockMvc
-            .perform(post("/token")
-                .param("grant_type", "authorization_code")
-                .param("code", code.value))
+            .perform(
+                post("/token")
+                    .param("grant_type", "authorization_code")
+                    .param("code", code.value)
+            )
             .andExpect(status().isOk)
             .andExpect(content().string(containsString(access.value)))
     }
-
 
     @Test
     fun issueToken_handleRefreshToken_badRequestOnNoToken() {
         every { clientAuthenticator.validClientOrNull(any(), any()) } returns client
 
         mockMvc
-            .perform(post("/token")
-                .param("grant_type", "refresh_token"))
+            .perform(post("/token").param("grant_type", "refresh_token"))
             .andExpect(status().isBadRequest)
     }
-
 
     @Test
     fun issueToken_handleRefreshToken_badRequestOnInvalidToken() {
@@ -162,12 +163,13 @@ class TokenControllerTests {
         every { tokenRepository.findRefreshById(any()) } returns null
 
         mockMvc
-            .perform(post("/token")
-                .param("grant_type", "refresh_token")
-                .param("refresh_token", "something_invalid"))
+            .perform(
+                post("/token")
+                    .param("grant_type", "refresh_token")
+                    .param("refresh_token", "something_invalid")
+            )
             .andExpect(status().isBadRequest)
     }
-
 
     @Test
     fun issueToken_handleRefreshToken_badRequestOnWrongToken() {
@@ -187,9 +189,11 @@ class TokenControllerTests {
         every { tokenRepository.delete(any()) } just runs
 
         mockMvc
-            .perform(post("/token")
-                .param("grant_type", "refresh_token")
-                .param("refresh_token", invalidToken.value))
+            .perform(
+                post("/token")
+                    .param("grant_type", "refresh_token")
+                    .param("refresh_token", invalidToken.value)
+            )
             .andExpect(status().isBadRequest)
     }
 
@@ -221,9 +225,11 @@ class TokenControllerTests {
         every { tokenFactory.responseJwtFromTokens(any(), any()) } returns response
 
         mockMvc
-            .perform(post("/token")
-                .param("grant_type", "refresh_token")
-                .param("refresh_token", refresh.value))
+            .perform(
+                post("/token")
+                    .param("grant_type", "refresh_token")
+                    .param("refresh_token", refresh.value)
+            )
             .andExpect(status().isOk)
             .andExpect(content().string(containsString(access.value)))
     }

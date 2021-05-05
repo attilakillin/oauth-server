@@ -1,5 +1,6 @@
 package com.bme.jnsbbk.oauthserver.token.entities
 
+import com.bme.jnsbbk.oauthserver.forManyTimestampCombinations
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.time.Instant
@@ -33,23 +34,9 @@ class TokenTests {
 
     @Test
     fun isTimestampValid_checkAllCombinations() {
-        val now = Instant.now()
-        val issuedAts = listOf(now.minusSeconds(delay), now.plusSeconds(delay))
-        val notBefores = listOf(now.minusSeconds(delay), now.plusSeconds(delay))
-        val expiredAts = listOf(now.minusSeconds(delay), now.plusSeconds(delay), null)
-
-        issuedAts.forEach { iat ->
-            val iatValid = iat.isBefore(now)
-            notBefores.forEach { nbe ->
-                val nbeValid = nbe.isBefore(now)
-                expiredAts.forEach { eat ->
-                    val eatValid = eat == null || eat.isAfter(now)
-
-                    val token = createTokenWithTimes(iat, nbe, eat)
-                    val expected = iatValid && nbeValid && eatValid
-                    assertEquals(expected, token.isTimestampValid())
-                }
-            }
+        forManyTimestampCombinations(delay) { iat, nbe, eat, expected ->
+            val token = createTokenWithTimes(iat, nbe, eat)
+            assertEquals(expected, token.isTimestampValid())
         }
     }
 }
