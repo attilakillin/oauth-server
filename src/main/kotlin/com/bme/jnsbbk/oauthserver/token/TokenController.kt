@@ -48,14 +48,14 @@ class TokenController(
     }
 
     private fun handleAuthCode(client: Client, codeValue: String?): TokenResponse {
-        if (codeValue == null) badRequest("invalid_grant")
+        val message = "invalid_grant"
+        if (codeValue == null) badRequest(message)
 
-        val code = authCodeRepository.findById(codeValue).getOrNull()
-            ?: badRequest("invalid_grant")
+        val code = authCodeRepository.findById(codeValue).getOrNull() ?: badRequest(message)
 
         authCodeRepository.delete(code)
 
-        if (code.clientId != client.id || !code.isTimestampValid()) badRequest("invalid_grant")
+        if (code.clientId != client.id || !code.isTimestampValid()) badRequest(message)
 
         val accessToken = tokenFactory.accessFromCode(RandomString.generate(), code)
         val refreshToken = tokenFactory.refreshFromCode(RandomString.generate(), code)
@@ -71,8 +71,7 @@ class TokenController(
 
         if (refreshValue == null) badRequest(message)
 
-        val refresh = tokenRepository.findRefreshById(refreshValue)
-            ?: badRequest(message)
+        val refresh = tokenRepository.findRefreshById(refreshValue) ?: badRequest(message)
 
         if (refresh.clientId != client.id || refresh.isExpired()) {
             tokenRepository.delete(refresh)
