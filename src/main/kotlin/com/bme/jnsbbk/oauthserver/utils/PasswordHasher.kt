@@ -26,6 +26,7 @@ object PasswordHasher {
     /** Checks if the given [password] has the same hash as the given [hash].
      *  The [hash] value should contain the salt used at creation. */
     fun matchesHash(password: String, hash: String): Boolean {
+        if (':' !in hash) return false
         val salt = Base64.getUrlDecoder().decode(hash.substringBefore(':'))
         return hashWithSalt(password, salt) == hash
     }
