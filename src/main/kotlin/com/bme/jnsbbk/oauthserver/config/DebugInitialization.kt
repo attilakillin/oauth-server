@@ -77,7 +77,7 @@ class DebugInitialization(private val appConfig: AppConfig) {
 
         logger.info("Creating sample authorization request link:")
 
-        val builder = UriComponentsBuilder.fromUriString("$serverUrl/authorize")
+        val builder = UriComponentsBuilder.fromUriString("$serverUrl/oauth/authorize")
             .queryParam("client_id", result["client_id"].toString().trim('"'))
             .queryParam("scope", result["scope"].toString().trim('"').replace(' ', '+'))
             .queryParam("redirect_uri", result["redirect_uris"][0].toString().trim('"'))

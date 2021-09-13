@@ -1,0 +1,1 @@
+INSERT INTO Resource_Server VALUES ('test_server', 'http://localhost:8081/callback', 'alpha beta gamma delta');

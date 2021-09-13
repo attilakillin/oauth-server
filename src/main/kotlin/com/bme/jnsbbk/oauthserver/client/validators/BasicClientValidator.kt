@@ -60,7 +60,6 @@ class BasicClientValidator : ClientValidator {
 
     private fun UnvalidatedClient.failsBasicChecks() = anyTrue(
         redirectUris.isNullOrEmpty(),
-        redirectUris?.any { reServerRepository.findByUrl(it) == null } ?: false,
         scope.isNullOrEmpty(),
         tokenEndpointAuthMethod != null && tokenEndpointAuthMethod !in Accepted.authMethods,
         grantTypes?.any { it !in Accepted.grantPairs.keys } ?: false,
