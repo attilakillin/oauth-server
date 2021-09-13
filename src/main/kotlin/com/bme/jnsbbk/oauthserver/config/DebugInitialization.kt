@@ -49,7 +49,7 @@ class DebugInitialization(private val appConfig: AppConfig) {
 
     private fun createDefaultClient() {
         val template = RestTemplate()
-        val url = "$serverUrl/register"
+        val url = "$serverUrl/oauth/clients"
         val headers = HttpHeaders()
         headers.contentType = MediaType.APPLICATION_JSON
 

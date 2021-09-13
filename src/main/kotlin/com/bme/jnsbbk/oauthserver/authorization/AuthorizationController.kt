@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.util.UriComponentsBuilder
 
 @Controller
-@RequestMapping("/authorize")
+@RequestMapping("/oauth/authorize")
 class AuthorizationController(
     private val authValidator: AuthValidator,
     private val clientRepository: ClientRepository,
@@ -59,7 +59,7 @@ class AuthorizationController(
      * If the authorization passes validation, the function redirects the caller to the client,
      * otherwise it either displays an error page in place,or redirects the user to the client.
      */
-    @PostMapping("/approve")
+    @PostMapping
     fun approveAuthorization(@RequestParam params: Map<String, String>, model: Model): String {
         val request = requests.remove(params["reqId"])
             ?: return errorPageWithReason(model, "No matching authorization request!")

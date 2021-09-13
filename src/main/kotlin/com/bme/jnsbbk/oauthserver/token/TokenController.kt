@@ -15,7 +15,7 @@ import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.*
 
 @Controller
-@RequestMapping("/token")
+@RequestMapping("/oauth/token")
 class TokenController(
     private val clientAuthenticator: ClientAuthenticator,
     private val authCodeRepository: AuthCodeRepository,

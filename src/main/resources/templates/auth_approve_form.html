@@ -6,7 +6,7 @@
 </head>
 <body>
     <h1>Approve client '<span th:text="${client_name}" th:remove="tag"></span>'?</h1>
-    <form method="post" action="/authorize/approve">
+    <form method="post" action="/oauth/authorize">
         <p>The client is requesting access to the following:</p>
         <ul>
             <li th:each="item : ${scope}" th:with="id = 'scope_' + ${item}">

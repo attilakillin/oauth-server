@@ -12,7 +12,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("/register")
+@RequestMapping("/oauth/clients")
 class ClientRegistrationController(
     private val clientValidator: ClientValidator,
     private val clientRepository: ClientRepository
