@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Authorize</title>
+</head>
+<body>
+    <h1>Approve client '<span th:text="${client_name}" th:remove="tag"></span>'?</h1>
+    <form method="post" action="/oauth/authorize">
+        <p>The client is requesting access to the following:</p>
+        <ul>
+            <li th:each="item : ${scope}" th:with="id = 'scope_' + ${item}">
+                <input type="checkbox" th:name="${id}" th:id="${id}" checked="checked">
+                <label th:for="${id}" th:text="${item}"></label>
+            </li>
+        </ul>
+        <input type="hidden" name="reqId" th:value="${reqId}">
+        <input type="hidden" name="userToken" id="userTokenInput">
+        <input type="submit" name="approve" value="Approve">
+        <input type="submit" name="deny" value="Deny">
+    </form>
+</body>
+<script th:src="@{/require_authenticated.js}"></script>
+<script>
+    window.addEventListener("load", function () {
+        document.getElementById("userTokenInput").setAttribute("value", userAuthToken)
+    })
+</script>
+</html>
