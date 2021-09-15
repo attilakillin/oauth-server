@@ -1,1 +1,1 @@
-rootProject.name = "oauth-server"
+rootProject.name = "authorization-server"

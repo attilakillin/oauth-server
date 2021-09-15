@@ -1,7 +1,8 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.springframework.boot.gradle.tasks.bundling.BootJar
 
 plugins {
-    id("org.springframework.boot") version "2.4.3"
+    id("org.springframework.boot") version "2.5.4"
     id("io.spring.dependency-management") version "1.0.11.RELEASE"
 
     id("org.jmailen.kotlinter") version "3.4.3"
@@ -13,7 +14,7 @@ plugins {
 }
 
 group = "com.bme.jnsbbk"
-version = "21-05-03"
+version = "21-09-15"
 java.sourceCompatibility = JavaVersion.VERSION_11
 
 repositories {
@@ -49,6 +50,11 @@ tasks.withType<KotlinCompile> {
         freeCompilerArgs = listOf("-Xjsr305=strict", "-Xjvm-default=enable")
         jvmTarget = "11"
     }
+}
+
+tasks.withType<BootJar> {
+    archiveFileName.set(archiveBaseName)
+    destinationDirectory.set(file(project.buildDir))
 }
 
 tasks.withType<Test> {

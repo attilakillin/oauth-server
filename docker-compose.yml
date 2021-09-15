@@ -1,0 +1,11 @@
+version: "3.9"
+services:
+    authorization-server:
+        build:
+            context: .
+            dockerfile: docker/authorization-server.Dockerfile
+            args:
+                jarfile: authorization-server/build/libs/oauth-server-21-05-03.jar
+        image: authorization-server
+        ports:
+            - 8080:8080
