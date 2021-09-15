@@ -53,7 +53,7 @@ tasks.withType<KotlinCompile> {
 }
 
 tasks.withType<BootJar> {
-    archiveFileName.set(archiveBaseName)
+    archiveFileName.set(archiveBaseName.get() + "." + archiveExtension.get())
     destinationDirectory.set(file(project.buildDir))
 }
 

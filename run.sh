@@ -1,4 +1,7 @@
 #!/bin/bash
 
-authorization-server/gradlew bootJar
+pushd authorization-server
+./gradlew bootJar
+popd
+
 docker-compose up --build
