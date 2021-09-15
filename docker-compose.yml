@@ -9,3 +9,16 @@ services:
         image: authorization-server
         ports:
             - 8080:8080
+        networks:
+            - internal
+        depends_on:
+            - mysql-db
+    mysql-db:
+        image: mysql:8
+        networks:
+            - internal
+        environment:
+            - MYSQL_DATABASE=authdb
+            - MYSQL_ROOT_PASSWORD=root
+networks:
+    internal:

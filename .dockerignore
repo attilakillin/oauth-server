@@ -1,0 +1,3 @@
+.git
+authorization-server
+!authorization-server/build/authorization-server.jar

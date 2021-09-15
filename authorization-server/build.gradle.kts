@@ -36,7 +36,7 @@ dependencies {
     implementation("io.jsonwebtoken:jjwt-impl:0.11.2")
     implementation("io.jsonwebtoken:jjwt-jackson:0.11.2")
 
-    implementation("com.h2database:h2")
+    implementation("mysql:mysql-connector-java:8.0.26")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test") {
         exclude(module = "mockito-core")
