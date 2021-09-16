@@ -1,0 +1,9 @@
+spring:
+  datasource:
+    hikari:
+      initialization-fail-timeout: 0
+  jackson:
+    property-naming-strategy: SNAKE_CASE
+  jpa:
+    hibernate:
+      ddl-auto: update

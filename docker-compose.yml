@@ -5,6 +5,7 @@ services:
             context: .
             dockerfile: docker/authorization-server.Dockerfile
             args:
+                appconfig: config/authorization-server.yml
                 jarfile: authorization-server/build/authorization-server.jar
         image: authorization-server
         ports:

@@ -7,10 +7,10 @@ plugins {
 
     id("org.jmailen.kotlinter") version "3.4.3"
 
-    kotlin("jvm") version "1.4.30"
-    kotlin("kapt") version "1.4.30"
-    kotlin("plugin.spring") version "1.4.30"
-    kotlin("plugin.jpa") version "1.4.30"
+    kotlin("jvm") version "1.5.30"
+    kotlin("kapt") version "1.5.30"
+    kotlin("plugin.spring") version "1.5.30"
+    kotlin("plugin.jpa") version "1.5.30"
 }
 
 group = "com.bme.jnsbbk"
@@ -41,7 +41,7 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test") {
         exclude(module = "mockito-core")
     }
-    testImplementation("io.mockk:mockk:1.11.0")
+    testImplementation("io.mockk:mockk:1.12.0")
     testImplementation("com.ninja-squad:springmockk:3.0.1")
 }
 
