@@ -1,0 +1,19 @@
+spring:
+  datasource:
+    url: jdbc:mysql://mysql-db:3306/authdb?createDatabaseIfNotExist=true
+    username: root
+    password: root
+application:
+  debug:
+    create-default-instances: true
+  scheduling:
+    delete-expired-entities: 0 0/1 * * * ?
+  tokens:
+    auth-code:
+      lifespan: 60
+    access-token:
+      lifespan: 1800
+    refresh-token:
+      lifespan: 86400
+  users:
+    auth-token-lifespan: 300
