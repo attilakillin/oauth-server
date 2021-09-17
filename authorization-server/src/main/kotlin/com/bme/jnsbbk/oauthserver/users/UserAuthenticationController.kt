@@ -30,10 +30,10 @@ class UserAuthenticationController(
         @RequestParam email: String,
         @RequestParam password: String
     ): ResponseEntity<String> {
-        val user = userRepository.findByEmail(email)
+        val user = userRepository.findByUsername(email)
             ?: badRequest("Invalid credentials!")
 
-        if (!PasswordHasher.matchesHash(password, user.passwordHash)) {
+        if (!PasswordHasher.matchesHash(password, user.password)) {
             badRequest("Invalid credentials!")
         }
 

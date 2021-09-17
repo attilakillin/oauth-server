@@ -6,10 +6,14 @@ import com.bme.jnsbbk.oauthserver.client.validators.BasicClientValidator
 import com.bme.jnsbbk.oauthserver.client.validators.ClientValidator
 import com.bme.jnsbbk.oauthserver.token.validators.BasicClientAuthenticator
 import com.bme.jnsbbk.oauthserver.token.validators.ClientAuthenticator
+import com.bme.jnsbbk.oauthserver.users.UserService
 import com.bme.jnsbbk.oauthserver.users.validators.BasicUserValidator
 import com.bme.jnsbbk.oauthserver.users.validators.UserValidator
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.security.core.userdetails.UserDetailsService
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
+import org.springframework.security.crypto.password.PasswordEncoder
 
 /**
  * Configures beans that can have multiple implementations.
@@ -30,4 +34,10 @@ class BeanConfiguration {
 
     @Bean("userValidator")
     fun getUserValidator(): UserValidator = BasicUserValidator()
+
+    @Bean
+    fun getUserDetailsService(): UserDetailsService = UserService()
+
+    @Bean
+    fun getPasswordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
 }
