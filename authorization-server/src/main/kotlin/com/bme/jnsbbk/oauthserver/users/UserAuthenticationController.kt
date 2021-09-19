@@ -17,14 +17,14 @@ class UserAuthenticationController(
 
     /** Sends the user login form for login requests. */
     @GetMapping("/login")
-    fun serveRequest(): String = "user_login_form"
+    fun serveRequest(): String = "login"
 
     /**
      * Parses the data sent from login forms.
      *
      * Validates the credentials of the user, and returns a JWT representing this validation.
      */
-    @PostMapping("/login")
+    @PostMapping("/loginuwu")
     @ResponseBody
     fun handleLogin(
         @RequestParam email: String,

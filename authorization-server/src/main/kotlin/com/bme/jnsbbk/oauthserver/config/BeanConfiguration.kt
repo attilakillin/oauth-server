@@ -36,8 +36,8 @@ class BeanConfiguration {
     fun getUserValidator(): UserValidator = BasicUserValidator()
 
     @Bean
-    fun getUserDetailsService(): UserDetailsService = UserService()
+    fun userDetailsService(): UserDetailsService = UserService()
 
     @Bean
-    fun getPasswordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
+    fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
 }

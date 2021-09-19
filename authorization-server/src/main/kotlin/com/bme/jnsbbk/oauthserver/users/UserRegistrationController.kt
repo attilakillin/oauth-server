@@ -7,6 +7,7 @@ import com.bme.jnsbbk.oauthserver.users.validators.UserValidator
 import com.bme.jnsbbk.oauthserver.utils.PasswordHasher
 import com.bme.jnsbbk.oauthserver.utils.RandomString
 import org.springframework.http.ResponseEntity
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.*
 
@@ -15,7 +16,8 @@ import org.springframework.web.bind.annotation.*
 class UserRegistrationController(
     private val userValidator: UserValidator,
     private val userRepository: UserRepository,
-    private val jwtHandler: UserJwtHandler
+    private val jwtHandler: UserJwtHandler,
+    private val passwordEncoder: PasswordEncoder
 ) {
 
     /** Sends the registration form for registration request. */
@@ -42,7 +44,7 @@ class UserRegistrationController(
         }
 
         val id = RandomString.generateUntil(16) { !userRepository.existsById(it) }
-        val hash = PasswordHasher.hash(password)
+        val hash = passwordEncoder.encode(password)
         val user = User(id, email, hash)
 
         userRepository.save(user)

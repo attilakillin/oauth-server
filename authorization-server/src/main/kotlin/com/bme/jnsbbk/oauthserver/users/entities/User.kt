@@ -1,6 +1,7 @@
 package com.bme.jnsbbk.oauthserver.users.entities
 
 import org.springframework.security.core.GrantedAuthority
+import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
 import javax.persistence.Column
 import javax.persistence.Entity
@@ -20,7 +21,7 @@ data class User (
     private val username: String,
     private val password: String
 ) : UserDetails {
-    override fun getAuthorities(): MutableCollection<out GrantedAuthority> = mutableListOf()
+    override fun getAuthorities(): MutableCollection<out GrantedAuthority> = mutableListOf(SimpleGrantedAuthority("USER"))
 
     override fun getUsername(): String = username
     override fun getPassword(): String = password

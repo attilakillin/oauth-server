@@ -6,9 +6,9 @@
 </head>
 <body>
     <h1>Log in</h1>
-    <form method="post" id="form_login">
-        <label for="email">Email:</label>
-        <input type="email" name="email" id="email" required pattern="^.+@.+$">
+    <form  th:action="@{/user/login}" method="post" id="form_login">
+        <label for="username">Username:</label>
+        <input type="text" name="username" id="username" required>
         <label for="password">Password</label>
         <input type="password" name="password" id="password" required minlength="8">
         <input type="submit" value="Log in">
@@ -18,7 +18,7 @@
     </div>
 </body>
 <script>
-    document.getElementById('form_login').onsubmit = async function(event) {
+    /*document.getElementById('form_login').onsubmit = async function(event) {
         event.preventDefault();
         const message_p = document.getElementById("message");
         const request = new XMLHttpRequest();
@@ -46,6 +46,6 @@
 
         request.open('POST', '/user/login', true);
         request.send(new URLSearchParams({"email": email, "password": password}));
-    }
+    }*/
 </script>
 </html>
