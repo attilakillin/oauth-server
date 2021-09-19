@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>Register</title>
@@ -7,9 +7,9 @@
 <body>
     <h1>Register</h1>
     <form method="post" id="form_register">
-        <label for="email">Email:</label>
-        <input type="email" name="email" id="email" required pattern="^.+@.+$">
-        <label for="password">Password</label>
+        <label for="username">Username:</label>
+        <input type="text" name="username" id="username" required>
+        <label for="password">Password:</label>
         <input type="password" name="password" id="password" required minlength="8">
         <input type="submit" value="Register">
     </form>
@@ -32,11 +32,11 @@
             }
             document.getElementById("message-div").style.display = "block";
         }
-        const email = document.getElementById("email").value;
+        const username = document.getElementById("username").value;
         const password = document.getElementById("password").value;
 
         request.open('POST', '/user/register', true);
-        request.send(new URLSearchParams({"email": email, "password": password}));
+        request.send(new URLSearchParams({"username": username, "password": password}));
     }
 </script>
 </html>

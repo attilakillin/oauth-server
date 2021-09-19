@@ -6,9 +6,8 @@ import com.bme.jnsbbk.oauthserver.client.validators.BasicClientValidator
 import com.bme.jnsbbk.oauthserver.client.validators.ClientValidator
 import com.bme.jnsbbk.oauthserver.token.validators.BasicClientAuthenticator
 import com.bme.jnsbbk.oauthserver.token.validators.ClientAuthenticator
-import com.bme.jnsbbk.oauthserver.users.UserService
-import com.bme.jnsbbk.oauthserver.users.validators.BasicUserValidator
-import com.bme.jnsbbk.oauthserver.users.validators.UserValidator
+import com.bme.jnsbbk.oauthserver.user.UserRepository
+import com.bme.jnsbbk.oauthserver.user.UserService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.core.userdetails.UserDetailsService
@@ -23,20 +22,17 @@ import org.springframework.security.crypto.password.PasswordEncoder
  */
 @Configuration
 class BeanConfiguration {
-    @Bean("clientValidator")
-    fun getClientValidator(): ClientValidator = BasicClientValidator()
-
-    @Bean("authValidator")
-    fun getAuthValidator(): AuthValidator = BasicAuthValidator()
-
-    @Bean("clientAuthenticator")
-    fun getClientAuthenticator(): ClientAuthenticator = BasicClientAuthenticator()
-
-    @Bean("userValidator")
-    fun getUserValidator(): UserValidator = BasicUserValidator()
+    @Bean
+    fun clientValidator(): ClientValidator = BasicClientValidator()
 
     @Bean
-    fun userDetailsService(): UserDetailsService = UserService()
+    fun authValidator(): AuthValidator = BasicAuthValidator()
+
+    @Bean
+    fun clientAuthenticator(): ClientAuthenticator = BasicClientAuthenticator()
+
+    @Bean
+    fun userDetailsService(userRepository: UserRepository): UserDetailsService = UserService(userRepository)
 
     @Bean
     fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()

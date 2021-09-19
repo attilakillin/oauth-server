@@ -18,7 +18,7 @@ class SecurityConfig(
     override fun configure(http: HttpSecurity) {
         http
             .authorizeRequests()
-                .antMatchers("/oauth/clients", "/user/**").permitAll()
+                .antMatchers("/oauth/clients", "/user/register").permitAll()
                 .anyRequest().authenticated()
                 .and()
             .csrf()

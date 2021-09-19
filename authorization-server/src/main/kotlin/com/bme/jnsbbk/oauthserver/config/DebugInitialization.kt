@@ -89,7 +89,7 @@ class DebugInitialization(private val appConfig: AppConfig) {
     }
 
     private fun createDefaultUser() {
-        val email = "admin@admin.hu"
+        val username = "admin"
         val password = "12345678"
 
         val template = RestTemplate()
@@ -98,7 +98,7 @@ class DebugInitialization(private val appConfig: AppConfig) {
         headers.contentType = MediaType.APPLICATION_FORM_URLENCODED
 
         val params = LinkedMultiValueMap<String, String>()
-        params.add("email", email)
+        params.add("username", username)
         params.add("password", password)
         val entity = HttpEntity<MultiValueMap<String, String>>(params, headers)
         val response = template.postForEntity<String>(url, entity)
@@ -109,6 +109,6 @@ class DebugInitialization(private val appConfig: AppConfig) {
         }
 
         logger.info("Created default user instance, details below:")
-        println("\n  Email: $email, password: $password\n")
+        println("\n  Username: $username, password: $password\n")
     }
 }

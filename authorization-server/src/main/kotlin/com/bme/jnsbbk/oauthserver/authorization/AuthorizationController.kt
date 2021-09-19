@@ -4,7 +4,7 @@ import com.bme.jnsbbk.oauthserver.authorization.entities.AuthRequest
 import com.bme.jnsbbk.oauthserver.authorization.entities.UnvalidatedAuthRequest
 import com.bme.jnsbbk.oauthserver.authorization.validators.AuthValidator
 import com.bme.jnsbbk.oauthserver.client.ClientRepository
-import com.bme.jnsbbk.oauthserver.jwt.UserJwtHandler
+import com.bme.jnsbbk.oauthserver.user.UserRepository
 import com.bme.jnsbbk.oauthserver.utils.RandomString
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.util.UriComponentsBuilder
+import java.security.Principal
 
 @Controller
 @RequestMapping("/oauth/authorize")
@@ -22,8 +23,8 @@ class AuthorizationController(
     private val authValidator: AuthValidator,
     private val clientRepository: ClientRepository,
     private val authCodeRepository: AuthCodeRepository,
-    private val jwtHandler: UserJwtHandler,
-    private val authCodeFactory: AuthCodeFactory
+    private val authCodeFactory: AuthCodeFactory,
+    private val userRepository: UserRepository
 ) {
     private val requests = mutableMapOf<String, AuthRequest>()
 
@@ -60,11 +61,15 @@ class AuthorizationController(
      * otherwise it either displays an error page in place,or redirects the user to the client.
      */
     @PostMapping
-    fun approveAuthorization(@RequestParam params: Map<String, String>, model: Model): String {
+    fun approveAuthorization(
+        @RequestParam params: Map<String, String>,
+        model: Model,
+        principal: Principal
+    ): String {
         val request = requests.remove(params["reqId"])
             ?: return errorPageWithReason(model, "No matching authorization request!")
 
-        request.userId = getUserIdFrom(params["userToken"])
+        request.userId = userRepository.findByUsername(principal.name)?.id
             ?: return errorPageWithReason(model, "User authentication failed!")
 
         if (params["approve"] == null)
@@ -100,11 +105,6 @@ class AuthorizationController(
 
     private fun redirectWithError(redirectUri: String, error: String) =
         "redirect:" + buildURL(redirectUri, mapOf("error" to error))
-
-    private fun getUserIdFrom(token: String?): String? {
-        if (token == null || !jwtHandler.isUserTokenValid(token)) return null
-        return jwtHandler.getUserIdFrom(token)
-    }
 
     private fun getScopeFrom(params: Map<String, String>): Set<String> {
         return params

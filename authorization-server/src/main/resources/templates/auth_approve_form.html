@@ -15,14 +15,8 @@
             </li>
         </ul>
         <input type="hidden" name="reqId" th:value="${reqId}">
-        <input type="hidden" name="userToken" id="userTokenInput">
         <input type="submit" name="approve" value="Approve">
         <input type="submit" name="deny" value="Deny">
     </form>
 </body>
-<script>
-    window.addEventListener("load", function () {
-        document.getElementById("userTokenInput").setAttribute("value", userAuthToken)
-    })
-</script>
 </html>

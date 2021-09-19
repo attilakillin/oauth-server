@@ -1,4 +1,4 @@
-package com.bme.jnsbbk.oauthserver.users.entities
+package com.bme.jnsbbk.oauthserver.user.entities
 
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
@@ -12,7 +12,7 @@ import javax.persistence.Id
  *
  * These users are used as the resource owners of OAuth resources.
  *
- * Passwords must only be stored as hashed, preferably salted, encoded strings.
+ * Passwords must only be stored as hashed, preferably salted strings.
  */
 @Entity
 data class User (

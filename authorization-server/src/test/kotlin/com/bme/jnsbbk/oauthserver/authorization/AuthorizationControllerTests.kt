@@ -4,7 +4,6 @@ import com.bme.jnsbbk.oauthserver.authorization.entities.AuthRequest
 import com.bme.jnsbbk.oauthserver.authorization.validators.AuthValidator
 import com.bme.jnsbbk.oauthserver.client.ClientRepository
 import com.bme.jnsbbk.oauthserver.client.entities.Client
-import com.bme.jnsbbk.oauthserver.jwt.UserJwtHandler
 import com.bme.jnsbbk.oauthserver.utils.RandomString
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
@@ -25,7 +24,6 @@ class AuthorizationControllerTests {
     @MockkBean private lateinit var authValidator: AuthValidator
     @MockkBean private lateinit var clientRepository: ClientRepository
     @MockkBean private lateinit var authCodeRepository: AuthCodeRepository
-    @MockkBean private lateinit var jwtHandler: UserJwtHandler
     @MockkBean private lateinit var authCodeFactory: AuthCodeFactory
 
     @Test

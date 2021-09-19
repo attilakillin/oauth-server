@@ -1,6 +1,6 @@
-package com.bme.jnsbbk.oauthserver.users
+package com.bme.jnsbbk.oauthserver.user
 
-import com.bme.jnsbbk.oauthserver.users.entities.User
+import com.bme.jnsbbk.oauthserver.user.entities.User
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
