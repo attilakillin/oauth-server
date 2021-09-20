@@ -100,10 +100,11 @@ class DebugInitialization(private val appConfig: AppConfig) {
         val params = LinkedMultiValueMap<String, String>()
         params.add("username", username)
         params.add("password", password)
+        params.add("password_confirm", password)
         val entity = HttpEntity<MultiValueMap<String, String>>(params, headers)
         val response = template.postForEntity<String>(url, entity)
 
-        if (response.statusCode != HttpStatus.OK) {
+        if (response.statusCode.isError) {
             logger.warn("Error creating default user instance: POST returned with status ${response.statusCodeValue}!")
             return
         }

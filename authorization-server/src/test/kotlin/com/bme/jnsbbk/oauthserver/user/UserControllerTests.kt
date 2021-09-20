@@ -11,8 +11,8 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
-@WebMvcTest(UserRegistrationController::class)
-class UserRegistrationControllerTests {
+@WebMvcTest(UserController::class)
+class UserControllerTests {
     @Autowired private lateinit var mockMvc: MockMvc
 
     @MockkBean private lateinit var userRepository: UserRepository

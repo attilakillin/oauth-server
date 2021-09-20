@@ -1,42 +1,42 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>Register</title>
-</head>
-<body>
-    <h1>Register</h1>
-    <form method="post" id="form_register">
-        <label for="username">Username:</label>
-        <input type="text" name="username" id="username" required>
-        <label for="password">Password:</label>
-        <input type="password" name="password" id="password" required minlength="8">
-        <input type="submit" value="Register">
-    </form>
-    <div id="message-div" style="display: none">
-        <p id="message"></p>
-    </div>
-</body>
-<script>
-    document.getElementById('form_register').onsubmit = async function(event) {
-        event.preventDefault();
-        const message_p = document.getElementById("message");
-        const request = new XMLHttpRequest();
-        request.onreadystatechange = function () {
-            if (this.readyState !== 4) return;
-            if (request.status !== 200) {
-                const body = JSON.parse(request.response);
-                message_p.textContent = "Registration failed! Reason: " + body.error;
-            } else {
-                message_p.textContent = "Registration successful!";
-            }
-            document.getElementById("message-div").style.display = "block";
-        }
-        const username = document.getElementById("username").value;
-        const password = document.getElementById("password").value;
+<html lang="en" xmlns:th="http://www.thymeleaf.org" class="h-100">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link th:href="@{/css/bootstrap.min.css}" rel="stylesheet">
 
-        request.open('POST', '/user/register', true);
-        request.send(new URLSearchParams({"username": username, "password": password}));
-    }
-</script>
+        <title>Register an account</title>
+    </head>
+    <body class="container h-100">
+        <div class="row h-100 justify-content-center align-items-center">
+            <div class="col-md-6 col-lg-5 m-1 p-3 rounded" style="background: #eeeeee">
+                <form th:action="@{/user/register}" method="post">
+                    <h3 class="text-center">Register an account</h3>
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username:</label>
+                        <input type="text" name="username" id="username" required
+                               class="form-control" th:value="${username}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password:</label>
+                        <input type="password" name="password" id="password" required
+                               minlength="8" class="form-control" th:value="${password}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="password_confirm" class="form-label">Confirm password:</label>
+                        <input type="password" name="password_confirm" id="password_confirm" required
+                               minlength="8" class="form-control" th:value="${password_confirm}">
+                    </div>
+                    <div class="mb-3" th:if="${message != null}">
+                        <p th:text="${message}" class="text-danger"></p>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Register</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+    </body>
 </html>

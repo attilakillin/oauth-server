@@ -51,7 +51,7 @@ class AuthorizationController(
 
         model.addAllAttributes(mapOf("reqId" to reqId, "scope" to validRequest.scope))
         model.addClientAttributes(validRequest.clientId)
-        return "auth_approve_form"
+        return "auth-form"
     }
 
     /**

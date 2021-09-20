@@ -1,17 +1,37 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>Log in</title>
-</head>
-<body>
-    <h1>Log in</h1>
-    <form th:action="@{/user/login}" method="post">
-        <label for="username">Username:</label>
-        <input type="text" name="username" id="username" required>
-        <label for="password">Password:</label>
-        <input type="password" name="password" id="password" required minlength="8">
-        <input type="submit" value="Log in">
-    </form>
-</body>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" class="h-100">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link th:href="@{/css/bootstrap.min.css}" rel="stylesheet">
+
+        <title>Log in to continue</title>
+    </head>
+    <body class="container h-100">
+        <div class="row h-100 justify-content-center align-items-center">
+            <div class="col-md-6 col-lg-5 m-1 p-3 rounded" style="background: #eeeeee">
+                <form th:action="@{/user/login}" method="post">
+                    <h3 class="text-center">Log in to continue</h3>
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username:</label>
+                        <input type="text" name="username" id="username" required
+                               class="form-control" th:value="${username}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password:</label>
+                        <input type="password" name="password" id="password" required
+                               minlength="8" class="form-control" th:value="${password}">
+                    </div>
+                    <div class="mb-3" th:if="${param.error != null}">
+                        <p class="text-danger">The provided credentials are invalid!</p>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Log in</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+    </body>
 </html>

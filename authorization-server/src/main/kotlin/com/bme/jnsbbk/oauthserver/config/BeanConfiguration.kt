@@ -32,8 +32,12 @@ class BeanConfiguration {
     fun clientAuthenticator(): ClientAuthenticator = BasicClientAuthenticator()
 
     @Bean
-    fun userDetailsService(userRepository: UserRepository): UserDetailsService = UserService(userRepository)
+    fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
 
     @Bean
-    fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
+    fun userDetailsService(
+        userRepository: UserRepository,
+        passwordEncoder: PasswordEncoder
+    ): UserDetailsService = UserService(userRepository, passwordEncoder)
+
 }
