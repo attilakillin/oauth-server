@@ -1,7 +1,12 @@
 #!/bin/bash
 
 pushd authorization-server
+
 ./gradlew bootJar
+buildSuccess=$?
+
 popd
 
-docker-compose up --build
+if [ $buildSuccess ]; then
+    docker-compose up --build
+fi
