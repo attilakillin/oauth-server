@@ -5,6 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-interface ReServerRepository : JpaRepository<ResourceServer, String> {
+interface RSRepository : JpaRepository<ResourceServer, String> {
     fun findByUrl(url: String): ResourceServer?
 }

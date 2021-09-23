@@ -19,11 +19,11 @@ class SecurityConfig(
         http
             .authorizeRequests()
                 .antMatchers("/css/**", "/js/**").permitAll()
-                .antMatchers("/oauth/clients", "/user/register").permitAll()
+                .antMatchers("/oauth/clients", "/oauth/resource", "/user/register").permitAll()
                 .anyRequest().authenticated()
                 .and()
             .csrf()
-                .ignoringAntMatchers("/oauth/clients", "/user/register")
+                .ignoringAntMatchers("/oauth/clients", "/oauth/resource", "/user/register")
                 .and()
             .formLogin()
                 .loginPage("/user/login")

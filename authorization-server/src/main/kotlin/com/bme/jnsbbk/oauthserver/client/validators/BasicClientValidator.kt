@@ -3,7 +3,6 @@ package com.bme.jnsbbk.oauthserver.client.validators
 import com.bme.jnsbbk.oauthserver.client.ClientRepository
 import com.bme.jnsbbk.oauthserver.client.entities.Client
 import com.bme.jnsbbk.oauthserver.client.entities.UnvalidatedClient
-import com.bme.jnsbbk.oauthserver.resource.ReServerRepository
 import com.bme.jnsbbk.oauthserver.utils.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -18,7 +17,6 @@ import java.time.Instant
 @Service
 class BasicClientValidator : ClientValidator {
     @Autowired private lateinit var clientRepository: ClientRepository
-    @Autowired private lateinit var reServerRepository: ReServerRepository
 
     private object Accepted {
         val authMethods = arrayOf("none", "client_secret_basic", "client_secret_post")
