@@ -16,14 +16,16 @@ class SecurityConfig(
 ) : WebSecurityConfigurerAdapter() {
 
     override fun configure(http: HttpSecurity) {
+        val excluded = arrayOf("/oauth/clients", "/oauth/resource", "/user/register")
+
         http
             .authorizeRequests()
                 .antMatchers("/css/**", "/js/**").permitAll()
-                .antMatchers("/oauth/clients", "/oauth/resource", "/user/register").permitAll()
+                .antMatchers(*excluded).permitAll()
                 .anyRequest().authenticated()
                 .and()
             .csrf()
-                .ignoringAntMatchers("/oauth/clients", "/oauth/resource", "/user/register")
+                .ignoringAntMatchers(*excluded)
                 .and()
             .formLogin()
                 .loginPage("/user/login")

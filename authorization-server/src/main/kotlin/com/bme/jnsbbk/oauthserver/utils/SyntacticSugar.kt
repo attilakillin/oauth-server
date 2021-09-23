@@ -22,3 +22,13 @@ fun anyTrue(vararg things: Boolean) = things.any { it }
 
 /** Method to find a key of a given [Map] with the given [value]. */
 fun <K, V> Map<K, V>.findKey(value: V) = filterValues { it == value }.keys.first()
+
+/** Decode a string as if it was a HTTP Basic header string with a Base64 encoded 'value:value' pattern. */
+fun String.decodeAsHttpBasic(): Pair<String, String>? {
+    if (!startsWith("Basic ")) return null
+    val content = Base64.getUrlDecoder()
+        .decode(removePrefix("Basic "))
+        .toString(Charsets.UTF_8)
+    if (!content.contains(':')) return null
+    return Pair(content.substringBefore(':'), content.substringAfter(':'))
+}

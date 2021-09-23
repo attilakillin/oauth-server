@@ -3,6 +3,7 @@ package com.bme.jnsbbk.oauthserver.jwt
 import com.bme.jnsbbk.oauthserver.client.ClientRepository
 import com.bme.jnsbbk.oauthserver.client.entities.Client
 import com.bme.jnsbbk.oauthserver.exceptions.badRequest
+import com.bme.jnsbbk.oauthserver.exceptions.BadRequestException
 import com.bme.jnsbbk.oauthserver.token.entities.Token
 import com.bme.jnsbbk.oauthserver.utils.getOrNull
 import com.bme.jnsbbk.oauthserver.utils.getServerBaseUrl
@@ -32,12 +33,15 @@ class TokenJwtHandler(
             .compact()
     }
 
+    /** Returns an RSA key if it exists for the given [id], or creates one if it doesn't. */
     private fun getKeyById(id: String): RSAKey =
         rsaKeyRepository.findById(id).getOrNull() ?: rsaKeyRepository.save(RSAKey.newWithId(id))
 
+    /** Either returns a valid client with the given [id], or throws a [BadRequestException]. */
     private fun getClientById(id: String): Client =
         clientRepository.findById(id).getOrNull() ?: badRequest("invalid_client")
 
+    /** Extension function that sets every necessary claim on the receiver JWT. */
     private fun JwtBuilder.setInfo(token: Token, client: Client): JwtBuilder {
         setIssuer(getServerBaseUrl())
         setSubject(token.userId)

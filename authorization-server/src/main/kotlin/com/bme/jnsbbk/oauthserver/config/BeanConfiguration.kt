@@ -34,5 +34,4 @@ class BeanConfiguration {
         userRepository: UserRepository,
         passwordEncoder: PasswordEncoder
     ): UserDetailsService = UserService(userRepository, passwordEncoder)
-
 }
