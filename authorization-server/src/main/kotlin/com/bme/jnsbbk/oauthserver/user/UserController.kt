@@ -22,8 +22,9 @@ class UserController(
     /**
      * Parses the data sent from registration forms.
      *
-     * Validates the credentials sent by the user and responds either with a HTTP 400 Bad request
-     * or a 200 OK with an authentication token inside.
+     * Validates the credentials sent by the user and either logs the user in and
+     * redirects them to the home page, or, upon unsuccessful registration, resends
+     * the registration page with an error.
      */
     @PostMapping("/register")
     fun handleRegistration(

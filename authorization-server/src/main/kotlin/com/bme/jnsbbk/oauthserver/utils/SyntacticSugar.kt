@@ -7,17 +7,17 @@ import java.util.*
 fun <T> Optional<T>.getOrNull(): T? = if (isPresent) get() else null
 
 /**
- * Provides an easy access for the base URL of the server deployment.
+ * Provides easy access to the base URL of the server.
  *
- * This function can throw an exception if used outside a Spring component
- * (since there is no current context to query the path from).
+ * This function can throw an exception if used outside a Spring component,
+ * since there is no current context to query the path from.
  */
 fun getServerBaseUrl() = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString()
 
-/** Provides an easy to read wrapper for multiple null checks. */
+/** Provides an easy-to-read wrapper for multiple null checks. */
 fun anyNotNull(vararg things: Any?) = things.any { it != null }
 
-/** Provides an easy to read wrapper for multiple truth checks. */
+/** Provides an easy-to-read wrapper for multiple truth checks. */
 fun anyTrue(vararg things: Boolean) = things.any { it }
 
 /** Method to find a key of a given [Map] with the given [value]. */

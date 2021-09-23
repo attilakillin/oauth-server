@@ -4,8 +4,6 @@ import com.bme.jnsbbk.oauthserver.authorization.validators.AuthValidator
 import com.bme.jnsbbk.oauthserver.authorization.validators.BasicAuthValidator
 import com.bme.jnsbbk.oauthserver.client.validators.BasicClientValidator
 import com.bme.jnsbbk.oauthserver.client.validators.ClientValidator
-import com.bme.jnsbbk.oauthserver.token.validators.BasicClientAuthenticator
-import com.bme.jnsbbk.oauthserver.token.validators.ClientAuthenticator
 import com.bme.jnsbbk.oauthserver.user.UserRepository
 import com.bme.jnsbbk.oauthserver.user.UserService
 import org.springframework.context.annotation.Bean
@@ -27,9 +25,6 @@ class BeanConfiguration {
 
     @Bean
     fun authValidator(): AuthValidator = BasicAuthValidator()
-
-    @Bean
-    fun clientAuthenticator(): ClientAuthenticator = BasicClientAuthenticator()
 
     @Bean
     fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()

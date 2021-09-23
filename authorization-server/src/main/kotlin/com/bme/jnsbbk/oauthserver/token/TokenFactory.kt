@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service
 import java.time.Duration
 import java.time.Instant
 
-/** Factory class to create tokens from specific templates. */
 @Service
 class TokenFactory(
     val jwtHandler: TokenJwtHandler,
@@ -47,7 +46,7 @@ class TokenFactory(
         )
     }
 
-    /** Template function that can create a token from many different sources. */
+    /** Template function that can create a token from many sources. */
     private fun fromTemplate(
         value: String,
         data: CommonData,

@@ -14,6 +14,5 @@ class StringSetConverter : AttributeConverter<Set<String>, String> {
     companion object { const val SEPARATOR = ',' }
 
     override fun convertToDatabaseColumn(set: Set<String>) = set.joinToString(SEPARATOR.toString())
-
     override fun convertToEntityAttribute(str: String) = str.split(SEPARATOR).toMutableSet()
 }

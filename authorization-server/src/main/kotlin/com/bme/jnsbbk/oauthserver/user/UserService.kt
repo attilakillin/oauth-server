@@ -19,11 +19,13 @@ class UserService(
             ?: throw UsernameNotFoundException(username)
     }
 
+    /** Returns true or false depending on whether a user with the given username exists or not. */
     fun userExists(username: String): Boolean = userRepository.findByUsername(username) != null
 
-    fun createUser(username: String, password: String): UserDetails {
+    /** Creates and persists a user with the given credentials and roles. */
+    fun createUser(username: String, password: String, roles: Set<String> = setOf("USER")): UserDetails {
         val id = RandomString.generateUntil { !userRepository.existsById(it) }
-        val user = User(id, username, passwordEncoder.encode(password))
+        val user = User(id, username, passwordEncoder.encode(password), roles)
         return userRepository.save(user)
     }
 }

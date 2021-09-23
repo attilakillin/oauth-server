@@ -8,7 +8,6 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize
  * An entity class representing a JSON response for token requests.
  *
  * The token requests of clients are answered with instances of this class.
- *
  * If the [expiresIn] field is null, it's a hint to the client that the token never expires.
  */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
