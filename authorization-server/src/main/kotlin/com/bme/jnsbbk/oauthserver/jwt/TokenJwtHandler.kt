@@ -45,7 +45,7 @@ class TokenJwtHandler(
     private fun JwtBuilder.setInfo(token: Token, client: Client): JwtBuilder {
         setIssuer(getServerBaseUrl())
         setSubject(token.userId)
-        setAudience(client.id)
+        setAudience(client.id) // TODO This is the resource server
         setId(token.value)
         setIssuedAt(Date.from(token.issuedAt))
         if (token.expiresAt != null) setExpiration(Date.from(token.expiresAt))

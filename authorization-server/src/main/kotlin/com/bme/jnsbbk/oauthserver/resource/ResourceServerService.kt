@@ -16,7 +16,8 @@ class ResourceServerService(
     }
 
     /** Authenticate a resource server using HTTP Basic authentication. Returns null if unauthorized. */
-    fun authenticateBasic(authHeader: String): ResourceServer? {
+    fun authenticateBasic(authHeader: String?): ResourceServer? {
+        if (authHeader == null) return null
         val (id, secret) = authHeader.decodeAsHttpBasic() ?: return null
         return authenticate(id, secret)
     }

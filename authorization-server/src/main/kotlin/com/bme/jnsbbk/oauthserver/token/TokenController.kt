@@ -6,11 +6,13 @@ import com.bme.jnsbbk.oauthserver.client.ClientService
 import com.bme.jnsbbk.oauthserver.client.entities.Client
 import com.bme.jnsbbk.oauthserver.exceptions.badRequest
 import com.bme.jnsbbk.oauthserver.exceptions.unauthorized
+import com.bme.jnsbbk.oauthserver.resource.ResourceServerService
 import com.bme.jnsbbk.oauthserver.token.entities.TokenResponse
 import com.bme.jnsbbk.oauthserver.token.entities.isExpired
 import com.bme.jnsbbk.oauthserver.token.entities.isTimestampValid
 import com.bme.jnsbbk.oauthserver.utils.RandomString
 import com.bme.jnsbbk.oauthserver.utils.getOrNull
+import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.*
 
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/oauth/token")
 class TokenController(
     private val clientService: ClientService,
+    private val resourceServerService: ResourceServerService,
     private val authCodeRepository: AuthCodeRepository,
     private val tokenRepository: TokenRepository,
     private val tokenFactory: TokenFactory
@@ -34,7 +37,7 @@ class TokenController(
     @PostMapping
     @ResponseBody
     fun issueToken(
-        @RequestHeader("Authorization") header: String?,
+        @RequestHeader("Authorization") header: String?,  // The credentials of the client
         @RequestParam params: Map<String, String>
     ): TokenResponse {
         val client = clientService.authenticateWithEither(header, params)
@@ -85,5 +88,17 @@ class TokenController(
         tokenRepository.save(access)
 
         return tokenFactory.responseJwtFromTokens(access, refresh)
+    }
+
+    @PostMapping("/introspect")
+    fun introspectToken(
+        @RequestHeader("Authorization") header: String?,  // The credentials of the resource server
+        @RequestParam params: Map<String, String>
+    ): ResponseEntity<Map<String, String>> {
+        val server = resourceServerService.authenticateBasic(header)
+            ?: unauthorized("unknown_resource_server")
+
+        // TODO Implement introspection
+        return ResponseEntity.ok().build()
     }
 }

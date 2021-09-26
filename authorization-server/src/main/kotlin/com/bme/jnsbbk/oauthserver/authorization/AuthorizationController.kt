@@ -2,7 +2,6 @@ package com.bme.jnsbbk.oauthserver.authorization
 
 import com.bme.jnsbbk.oauthserver.authorization.entities.AuthRequest
 import com.bme.jnsbbk.oauthserver.authorization.entities.UnvalidatedAuthRequest
-import com.bme.jnsbbk.oauthserver.authorization.validators.AuthValidator
 import com.bme.jnsbbk.oauthserver.client.ClientRepository
 import com.bme.jnsbbk.oauthserver.user.UserRepository
 import com.bme.jnsbbk.oauthserver.utils.RandomString
@@ -20,7 +19,7 @@ import java.security.Principal
 @Controller
 @RequestMapping("/oauth/authorize")
 class AuthorizationController(
-    private val authValidator: AuthValidator,
+    private val authRequestService: AuthRequestService,
     private val clientRepository: ClientRepository,
     private val authCodeRepository: AuthCodeRepository,
     private val authCodeFactory: AuthCodeFactory,
@@ -38,13 +37,13 @@ class AuthorizationController(
     fun authorizationRequested(@RequestParam params: Map<String, String>, model: Model): String {
         val request = jacksonObjectMapper().convertValue<UnvalidatedAuthRequest>(params)
 
-        authValidator.validateSensitiveOrError(request)?.let { message ->
-            return errorPageWithReason(model, message)
-        }
-        authValidator.validateAdditionalOrError(request)?.let { message ->
-            return redirectWithError(request.redirectUri!!, message)
-        }
-        val validRequest = authValidator.convertToValidRequest(request)
+        val (senValid, senMessage) = authRequestService.isSensitiveInfoValid(request)
+        if (!senValid) return errorPageWithReason(model, senMessage)
+
+        val (addValid, addMessage) = authRequestService.isAdditionalInfoValid(request)
+        if (!addValid) return redirectWithError(request.redirectUri!!, addMessage)
+
+        val validRequest = authRequestService.convertToValidRequest(request)
 
         val reqId = RandomString.generateUntil(8) { it !in requests.keys }
         requests[reqId] = validRequest

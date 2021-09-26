@@ -1,22 +1,21 @@
-package com.bme.jnsbbk.oauthserver.authorization.validators
+package com.bme.jnsbbk.oauthserver.authorization
 
 import com.bme.jnsbbk.oauthserver.authorization.entities.UnvalidatedAuthRequest
 import com.bme.jnsbbk.oauthserver.client.ClientRepository
 import com.bme.jnsbbk.oauthserver.client.entities.Client
 import com.bme.jnsbbk.oauthserver.utils.RandomString
 import io.mockk.every
-import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import org.junit.jupiter.api.*
-import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.extension.ExtendWith
 import java.util.*
 
 @ExtendWith(MockKExtension::class)
-class BasicAuthValidatorTests {
-    @MockK private lateinit var repository: ClientRepository
-    @InjectMockKs private var validator = BasicAuthValidator()
+class AuthRequestServiceTests(
+    @MockK val repository: ClientRepository
+) {
+    private val service = AuthRequestService(repository)
 
     private val client = Client(RandomString.generate())
     init { resetClientData() }
@@ -39,81 +38,67 @@ class BasicAuthValidatorTests {
 
     @Test
     fun validateSensitiveOrError_failsOnEmptyRequest() {
-        assertNotNull(validator.validateSensitiveOrError(nullRequest))
+        Assertions.assertFalse(service.isSensitiveInfoValid(nullRequest).first)
     }
 
     @Test
     fun validateSensitiveOrError_acceptsValidRequest() {
         every { repository.findById(any()) } returns Optional.of(client)
-        assertNull(validator.validateSensitiveOrError(request))
+        Assertions.assertFalse(service.isSensitiveInfoValid(nullRequest).first)
     }
 
     @Test
     fun validateSensitiveOrError_failsOnInvalidClient() {
         every { repository.findById(any()) } returns Optional.empty()
-        assertNotNull(validator.validateSensitiveOrError(request))
+        Assertions.assertFalse(service.isSensitiveInfoValid(request).first)
     }
 
     @Test
     fun validateSensitiveOrError_failsOnInvalidRedirectUri() {
         every { repository.findById(any()) } returns Optional.of(client)
-        assertNotNull(validator.validateSensitiveOrError(request.copy(redirectUri = "malicious url")))
+        Assertions.assertFalse(service.isSensitiveInfoValid(request.copy(redirectUri = "malicious url")).first)
     }
 
     @Test
     fun validateSensitiveOrError_acceptsEmptyRedirectUri_ifClientOnlyHasOne() {
         every { repository.findById(any()) } returns Optional.of(client)
-        assertNull(validator.validateSensitiveOrError(request.copy(redirectUri = null)))
+        Assertions.assertTrue(service.isSensitiveInfoValid(request.copy(redirectUri = null)).first)
     }
 
     @Test
     fun validateSensitiveOrError_failsOnEmptyRedirectUri_ifClientHasMultiple() {
         every { repository.findById(any()) } returns Optional.of(client)
         client.redirectUris = setOf("http://localhost:8082/callback", "http://localhost:8083/callback")
-        assertNotNull(validator.validateSensitiveOrError(request.copy(redirectUri = null)))
-    }
-
-    @Test
-    fun validateSensitiveOrError_fixesEmptyRedirectUri() {
-        every { repository.findById(any()) } returns Optional.of(client)
-        validator.validateSensitiveOrError(request.copy(redirectUri = null))
-        assertEquals(client.redirectUris.first(), request.redirectUri)
+        Assertions.assertFalse(service.isSensitiveInfoValid(request.copy(redirectUri = null)).first)
     }
 
     @Test
     fun validateAdditionalOrError_throwsOnEmptyRequest() {
-        assertThrows<Exception> { validator.validateAdditionalOrError(nullRequest) }
+        assertThrows<Exception> { service.isAdditionalInfoValid(nullRequest) }
     }
 
     @Test
     fun validateAdditionalOrError_throwsOnInvalidClient() {
         every { repository.findById(any()) } returns Optional.empty()
-        assertThrows<Exception> { validator.validateAdditionalOrError(nullRequest.copy(clientId = "invalid")) }
+        assertThrows<Exception> { service.isAdditionalInfoValid(nullRequest.copy(clientId = "invalid")) }
     }
 
     @Test
     fun validateAdditionalOrError_failsOnInvalidResponseType() {
         every { repository.findById(any()) } returns Optional.of(client)
-        assertNotNull(validator.validateAdditionalOrError(request.copy(responseType = "invalid")))
+        Assertions.assertFalse(service.isAdditionalInfoValid(request.copy(responseType = "invalid")).first)
     }
 
     @Test
     fun validateAdditionalOrError_failsOnInvalidScope() {
         every { repository.findById(any()) } returns Optional.of(client)
-        assertNotNull(validator.validateAdditionalOrError(request.copy(scope = setOf("malicious"))))
+        Assertions.assertFalse(service.isAdditionalInfoValid(request.copy(scope = setOf("malicious"))).first)
     }
 
     @Test
     fun validateAdditionalOrError_acceptsValidRequest() {
         every { repository.findById(any()) } returns Optional.of(client)
-        assertNull(validator.validateAdditionalOrError(request))
-    }
-
-    @Test
-    fun validateAdditionalOrError_fixesEmptyScope() {
-        every { repository.findById(any()) } returns Optional.of(client)
-        validator.validateAdditionalOrError(request.copy(scope = null))
-        assertFalse(request.scope.isNullOrEmpty())
+        Assertions.assertTrue(service.isAdditionalInfoValid(request).first)
     }
 
     @Test
@@ -127,8 +112,27 @@ class BasicAuthValidatorTests {
             state = null,
             scope = null
         )
-        validator.validateSensitiveOrError(request)
-        validator.validateAdditionalOrError(request)
-        assertDoesNotThrow { validator.convertToValidRequest(request) }
+        Assertions.assertTrue(service.isSensitiveInfoValid(request).first)
+        Assertions.assertTrue(service.isAdditionalInfoValid(request).first)
+        Assertions.assertDoesNotThrow { service.convertToValidRequest(request) }
+    }
+
+    @Test
+    fun convertToValidRequest_fixesEmptyAttributes() {
+        every { repository.findById(any()) } returns Optional.of(client)
+
+        val request = UnvalidatedAuthRequest(
+            clientId = client.id,
+            redirectUri = null,
+            responseType = client.responseTypes.first(),
+            state = null,
+            scope = null
+        )
+        Assertions.assertTrue(service.isSensitiveInfoValid(request).first)
+        Assertions.assertTrue(service.isAdditionalInfoValid(request).first)
+        val valid = service.convertToValidRequest(request)
+
+        Assertions.assertEquals(client.redirectUris.first(), valid.redirectUri)
+        Assertions.assertEquals(client.scope, valid.scope)
     }
 }

@@ -1,7 +1,6 @@
 package com.bme.jnsbbk.oauthserver.authorization
 
 import com.bme.jnsbbk.oauthserver.authorization.entities.AuthRequest
-import com.bme.jnsbbk.oauthserver.authorization.validators.AuthValidator
 import com.bme.jnsbbk.oauthserver.client.ClientRepository
 import com.bme.jnsbbk.oauthserver.client.entities.Client
 import com.bme.jnsbbk.oauthserver.utils.RandomString
@@ -21,14 +20,14 @@ import java.util.*
 class AuthorizationControllerTests {
     @Autowired private lateinit var mockMvc: MockMvc
 
-    @MockkBean private lateinit var authValidator: AuthValidator
+    @MockkBean private lateinit var authRequestService: AuthRequestService
     @MockkBean private lateinit var clientRepository: ClientRepository
     @MockkBean private lateinit var authCodeRepository: AuthCodeRepository
     @MockkBean private lateinit var authCodeFactory: AuthCodeFactory
 
     @Test
     fun authorizationRequested_showsErrorOnValidatorSensitiveFail() {
-        every { authValidator.validateSensitiveOrError(any()) } returns "Error message"
+        every { authRequestService.isSensitiveInfoValid(any()) } returns Pair(false, "Error message")
 
         mockMvc
             .perform(get("/authorize"))
@@ -41,8 +40,8 @@ class AuthorizationControllerTests {
         val uri = "an_example_uri_string"
         val message = "custom_error_message"
 
-        every { authValidator.validateSensitiveOrError(any()) } returns null
-        every { authValidator.validateAdditionalOrError(any()) } returns message
+        every { authRequestService.isSensitiveInfoValid(any()) } returns Pair(true, "")
+        every { authRequestService.isAdditionalInfoValid(any()) } returns Pair(false, message)
 
         mockMvc
             .perform(get("/authorize").param("redirect_uri", uri))
@@ -63,9 +62,9 @@ class AuthorizationControllerTests {
             state = null
         )
 
-        every { authValidator.validateSensitiveOrError(any()) } returns null
-        every { authValidator.validateAdditionalOrError(any()) } returns null
-        every { authValidator.convertToValidRequest(any()) } returns request
+        every { authRequestService.isSensitiveInfoValid(any()) } returns Pair(true, "")
+        every { authRequestService.isAdditionalInfoValid(any()) } returns Pair(true, "")
+        every { authRequestService.convertToValidRequest(any()) } returns request
         every { clientRepository.findById(client.id) } returns Optional.of(client)
 
         mockMvc
