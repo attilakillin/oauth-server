@@ -1,11 +1,15 @@
 package com.bme.jnsbbk.oauthserver.exceptions
 
+import com.bme.jnsbbk.oauthserver.user.UserService
+import com.ninjasquad.springmockk.MockkBean
 import org.hamcrest.Matchers.containsString
 import org.hamcrest.Matchers.not
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.http.HttpStatus
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Controller
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
@@ -16,9 +20,13 @@ import org.springframework.web.bind.annotation.GetMapping
 private const val urlPrefix = "/test/apiException"
 private const val thrownMessage = "custom_message"
 
+@AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest(ApiExceptionHandlerTestController::class)
 class ApiExceptionHandlerTests {
     @Autowired private lateinit var mockMvc: MockMvc
+
+    @MockkBean private lateinit var passwordEncoder: PasswordEncoder
+    @MockkBean private lateinit var userService: UserService
 
     @Test
     fun exceptionHandling_basicApiException() {

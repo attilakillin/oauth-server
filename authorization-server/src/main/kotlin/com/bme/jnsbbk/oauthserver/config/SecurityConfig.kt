@@ -1,5 +1,7 @@
 package com.bme.jnsbbk.oauthserver.config
 
+import com.bme.jnsbbk.oauthserver.user.UserService
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
@@ -12,7 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder
 @EnableWebSecurity
 class SecurityConfig(
     private val passwordEncoder: PasswordEncoder,
-    private val userDetailsService: UserDetailsService
+    private val userService: UserService
 ) : WebSecurityConfigurerAdapter() {
 
     override fun configure(http: HttpSecurity) {
@@ -40,7 +42,7 @@ class SecurityConfig(
 
     override fun configure(auth: AuthenticationManagerBuilder) {
         auth
-            .userDetailsService(userDetailsService)
+            .userDetailsService(userService)
             .passwordEncoder(passwordEncoder)
     }
 }

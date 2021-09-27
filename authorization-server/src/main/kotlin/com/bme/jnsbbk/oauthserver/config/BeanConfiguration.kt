@@ -24,9 +24,10 @@ class BeanConfiguration {
     @Bean
     fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
 
+    /* TODO Remove when sure that it's unnecessary
     @Bean
     fun userDetailsService(
         userRepository: UserRepository,
         passwordEncoder: PasswordEncoder
-    ): UserDetailsService = UserService(userRepository, passwordEncoder)
+    ): UserDetailsService = UserService(userRepository, passwordEncoder)*/
 }

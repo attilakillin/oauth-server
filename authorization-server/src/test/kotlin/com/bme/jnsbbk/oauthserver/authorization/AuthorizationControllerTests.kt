@@ -4,9 +4,12 @@ import com.bme.jnsbbk.oauthserver.authorization.entities.AuthRequest
 import com.bme.jnsbbk.oauthserver.client.ClientRepository
 import com.bme.jnsbbk.oauthserver.client.entities.Client
 import com.bme.jnsbbk.oauthserver.user.UserRepository
+import com.bme.jnsbbk.oauthserver.user.UserService
 import com.bme.jnsbbk.oauthserver.utils.RandomString
 import com.ninjasquad.springmockk.MockkBean
+import io.mockk.MockK
 import io.mockk.every
+import io.mockk.mockk
 import org.hamcrest.Matchers.containsString
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -17,6 +20,7 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
+import java.security.Principal
 import java.util.*
 
 @AutoConfigureMockMvc(addFilters = false)
@@ -24,15 +28,17 @@ import java.util.*
 class AuthorizationControllerTests {
     @Autowired private lateinit var mockMvc: MockMvc
 
+    /* Initialize required beans */
     @MockkBean private lateinit var authRequestService: AuthRequestService
     @MockkBean private lateinit var clientRepository: ClientRepository
     @MockkBean private lateinit var userRepository: UserRepository
+    @MockkBean private lateinit var userService: UserService
     @MockkBean private lateinit var passwordEncoder: PasswordEncoder
     @MockkBean private lateinit var authCodeRepository: AuthCodeRepository
     @MockkBean private lateinit var authCodeFactory: AuthCodeFactory
 
     @Test
-    fun authorizationRequested_showsErrorOnValidatorSensitiveFail() {
+    fun authorizationRequested_showsErrorOnSensitiveInfoIssue() {
         every { authRequestService.isSensitiveInfoValid(any()) } returns Pair(false, "Error message")
 
         mockMvc
@@ -42,7 +48,7 @@ class AuthorizationControllerTests {
     }
 
     @Test
-    fun authorizationRequested_redirectsOnValidatorAdditionalFail() {
+    fun authorizationRequested_redirectsAdditionalInfoIssue() {
         val uri = "an_example_uri_string"
         val message = "custom_error_message"
 
@@ -82,9 +88,14 @@ class AuthorizationControllerTests {
 
     @Test
     fun approveAuthorization_showsErrorOnInvalidRequest() {
-        // TODO Test fails because no principal is present
+        val principal = mockk<Principal>()
+
+        every { principal.name } returns ""
+
         mockMvc
-            .perform(post("/oauth/authorize").param("reqId", "invalid value"))
+            .perform(post("/oauth/authorize")
+                .param("reqId", "invalid value")
+                .principal(principal))
             .andExpect(status().isOk)
             .andExpect(content().string(containsString("error")))
     }

@@ -2,6 +2,7 @@ package com.bme.jnsbbk.oauthserver.client
 
 import com.bme.jnsbbk.oauthserver.client.entities.Client
 import com.bme.jnsbbk.oauthserver.client.validators.ClientValidator
+import com.bme.jnsbbk.oauthserver.user.UserService
 import com.bme.jnsbbk.oauthserver.utils.RandomString
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
@@ -9,8 +10,10 @@ import io.mockk.verify
 import org.hamcrest.Matchers.containsString
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.http.MediaType
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
@@ -18,12 +21,15 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.Instant
 import java.util.*
 
+@AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest(ClientRegistrationController::class)
 class ClientRegistrationControllerTests {
     @Autowired private lateinit var mockMvc: MockMvc
 
     @MockkBean private lateinit var clientRepository: ClientRepository
     @MockkBean private lateinit var clientValidator: ClientValidator
+    @MockkBean private lateinit var passwordEncoder: PasswordEncoder
+    @MockkBean private lateinit var userService: UserService
 
     private val client = Client(RandomString.generate())
 
@@ -46,7 +52,7 @@ class ClientRegistrationControllerTests {
         }
 
         mockMvc
-            .perform(post("/register"))
+            .perform(post("/oauth/clients"))
             .andExpect(status().isBadRequest)
     }
 
@@ -57,7 +63,7 @@ class ClientRegistrationControllerTests {
 
         mockMvc
             .perform(
-                post("/register")
+                post("/oauth/clients")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("""{"client_name": "Test client"}""")
             )
@@ -72,14 +78,14 @@ class ClientRegistrationControllerTests {
 
         mockMvc
             .perform(
-                get("/register/${client.id}")
+                get("/oauth/clients/${client.id}")
                     .header("Authorization", invalidValue)
             )
             .andExpect(status().isUnauthorized)
 
         mockMvc
             .perform(
-                put("/register/${client.id}")
+                put("/oauth/clients/${client.id}")
                     .header("Authorization", invalidValue)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("""{"client_name": "Test client"}""")
@@ -88,7 +94,7 @@ class ClientRegistrationControllerTests {
 
         mockMvc
             .perform(
-                delete("/register/${client.id}")
+                delete("/oauth/clients/${client.id}")
                     .header("Authorization", invalidValue)
             )
             .andExpect(status().isUnauthorized)
@@ -101,38 +107,38 @@ class ClientRegistrationControllerTests {
         every { clientRepository.findById(client.id) } returns Optional.of(copy)
 
         mockMvc
-            .perform(get("/register/clientIdThatIsInvalid"))
+            .perform(get("/oauth/clients/clientIdThatIsInvalid"))
             .andExpect(status().isUnauthorized)
 
         mockMvc
             .perform(
-                put("/register/clientIdThatIsInvalid")
+                put("/oauth/clients/clientIdThatIsInvalid")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("""{"client_name": "Test client"}""")
             )
             .andExpect(status().isUnauthorized)
 
         mockMvc
-            .perform(delete("/register/clientIdThatIsInvalid"))
+            .perform(delete("/oauth/clients/clientIdThatIsInvalid"))
             .andExpect(status().isUnauthorized)
     }
 
     @Test
     fun getUpdateDelete_allReturn401OnNoAuthHeader() {
         mockMvc
-            .perform(get("/register/${client.id}"))
+            .perform(get("/oauth/clients/${client.id}"))
             .andExpect(status().isUnauthorized)
 
         mockMvc
             .perform(
-                put("/register/${client.id}")
+                put("/oauth/clients/${client.id}")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("""{"client_name": "Test client"}""")
             )
             .andExpect(status().isUnauthorized)
 
         mockMvc
-            .perform(delete("/register/${client.id}"))
+            .perform(delete("/oauth/clients/${client.id}"))
             .andExpect(status().isUnauthorized)
     }
 
@@ -142,7 +148,7 @@ class ClientRegistrationControllerTests {
 
         mockMvc
             .perform(
-                get("/register/${client.id}")
+                get("/oauth/clients/${client.id}")
                     .header("Authorization", "Bearer ${client.registrationAccessToken}")
             )
             .andExpect(status().isOk)
@@ -156,7 +162,7 @@ class ClientRegistrationControllerTests {
 
         mockMvc
             .perform(
-                delete("/register/${client.id}")
+                delete("/oauth/clients/${client.id}")
                     .header("Authorization", "Bearer ${client.registrationAccessToken}")
             )
             .andExpect(status().isNoContent)
@@ -173,7 +179,7 @@ class ClientRegistrationControllerTests {
 
         mockMvc
             .perform(
-                put("/register/${client.id}")
+                put("/oauth/clients/${client.id}")
                     .header("Authorization", "Bearer ${client.registrationAccessToken}")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("""{"client_name": "Test client"}""")
@@ -189,7 +195,7 @@ class ClientRegistrationControllerTests {
 
         mockMvc
             .perform(
-                put("/register/${client.id}")
+                put("/oauth/clients/${client.id}")
                     .header("Authorization", "Bearer ${client.registrationAccessToken}")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("""{"client_name": "Test client"}""")

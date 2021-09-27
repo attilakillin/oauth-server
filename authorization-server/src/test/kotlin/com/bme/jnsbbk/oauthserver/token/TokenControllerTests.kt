@@ -4,9 +4,11 @@ import com.bme.jnsbbk.oauthserver.authorization.AuthCodeRepository
 import com.bme.jnsbbk.oauthserver.authorization.entities.AuthCode
 import com.bme.jnsbbk.oauthserver.client.ClientService
 import com.bme.jnsbbk.oauthserver.client.entities.Client
+import com.bme.jnsbbk.oauthserver.resource.ResourceServerService
 import com.bme.jnsbbk.oauthserver.token.entities.Token
 import com.bme.jnsbbk.oauthserver.token.entities.TokenResponse
 import com.bme.jnsbbk.oauthserver.token.entities.TokenType
+import com.bme.jnsbbk.oauthserver.user.UserService
 import com.bme.jnsbbk.oauthserver.utils.RandomString
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
@@ -15,7 +17,9 @@ import io.mockk.runs
 import org.hamcrest.Matchers.containsString
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
@@ -23,14 +27,18 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.Instant
 import java.util.*
 
+@AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest(TokenController::class)
 class TokenControllerTests {
     @Autowired private lateinit var mockMvc: MockMvc
 
     @MockkBean private lateinit var clientService: ClientService
+    @MockkBean private lateinit var resourceServerService: ResourceServerService
     @MockkBean private lateinit var authCodeRepository: AuthCodeRepository
     @MockkBean private lateinit var tokenRepository: TokenRepository
     @MockkBean private lateinit var tokenFactory: TokenFactory
+    @MockkBean private lateinit var passwordEncoder: PasswordEncoder
+    @MockkBean private lateinit var userService: UserService
 
     private val client = Client(RandomString.generate())
     private val code = AuthCode(
@@ -48,7 +56,7 @@ class TokenControllerTests {
         every { clientService.authenticateWithEither(any(), any()) } returns null
 
         mockMvc
-            .perform(post("/token"))
+            .perform(post("/oauth/token"))
             .andExpect(status().isUnauthorized)
     }
 
@@ -57,7 +65,7 @@ class TokenControllerTests {
         every { clientService.authenticateWithEither(any(), any()) } returns client
 
         mockMvc
-            .perform(post("/token").param("grant_type", "something_invalid"))
+            .perform(post("/oauth/token").param("grant_type", "something_invalid"))
             .andExpect(status().isBadRequest)
     }
 
@@ -66,7 +74,7 @@ class TokenControllerTests {
         every { clientService.authenticateWithEither(any(), any()) } returns client
 
         mockMvc
-            .perform(post("/token").param("grant_type", "authorization_code"))
+            .perform(post("/oauth/token").param("grant_type", "authorization_code"))
             .andExpect(status().isBadRequest)
     }
 
@@ -77,7 +85,7 @@ class TokenControllerTests {
 
         mockMvc
             .perform(
-                post("/token")
+                post("/oauth/token")
                     .param("grant_type", "authorization_code")
                     .param("code", "something_invalid")
             )
@@ -102,7 +110,7 @@ class TokenControllerTests {
 
         mockMvc
             .perform(
-                post("/token")
+                post("/oauth/token")
                     .param("grant_type", "authorization_code")
                     .param("code", invalidCode.value)
             )
@@ -140,7 +148,7 @@ class TokenControllerTests {
 
         mockMvc
             .perform(
-                post("/token")
+                post("/oauth/token")
                     .param("grant_type", "authorization_code")
                     .param("code", code.value)
             )
@@ -153,7 +161,7 @@ class TokenControllerTests {
         every { clientService.authenticateWithEither(any(), any()) } returns client
 
         mockMvc
-            .perform(post("/token").param("grant_type", "refresh_token"))
+            .perform(post("/oauth/token").param("grant_type", "refresh_token"))
             .andExpect(status().isBadRequest)
     }
 
@@ -164,7 +172,7 @@ class TokenControllerTests {
 
         mockMvc
             .perform(
-                post("/token")
+                post("/oauth/token")
                     .param("grant_type", "refresh_token")
                     .param("refresh_token", "something_invalid")
             )
@@ -190,7 +198,7 @@ class TokenControllerTests {
 
         mockMvc
             .perform(
-                post("/token")
+                post("/oauth/token")
                     .param("grant_type", "refresh_token")
                     .param("refresh_token", invalidToken.value)
             )
@@ -226,7 +234,7 @@ class TokenControllerTests {
 
         mockMvc
             .perform(
-                post("/token")
+                post("/oauth/token")
                     .param("grant_type", "refresh_token")
                     .param("refresh_token", refresh.value)
             )
