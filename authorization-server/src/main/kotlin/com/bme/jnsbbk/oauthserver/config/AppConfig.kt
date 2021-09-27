@@ -8,11 +8,22 @@ import org.springframework.context.annotation.Configuration
 @ConstructorBinding
 @ConfigurationProperties("application")
 data class AppConfig(
-    var tokens: Tokens = Tokens(),
+    var resourceServers: ResourceServers = ResourceServers(),
     var scheduling: Scheduling = Scheduling(),
+    var tokens: Tokens = Tokens(),
     var users: Users = Users(),
     var debug: Debug = Debug()
 ) {
+    data class ResourceServers(
+        /** Every URL the server should accept as a valid resource server URL must be listed here. */
+        val urls: List<String> = listOf()
+    )
+
+    data class Scheduling(
+        /** 6-digit cron string: how often should expired entities be deleted from databases? */
+        val deleteExpiredEntities: String = "0 0 0 * * ?"
+    )
+
     data class Tokens(
         var authCode: Lifespan = Lifespan(),
         var accessToken: Lifespan = Lifespan(),
@@ -25,11 +36,6 @@ data class AppConfig(
             val lifespan: Long = 0
         )
     }
-
-    data class Scheduling(
-        /** 6-digit cron string: how often should expired entities be deleted from databases? */
-        val deleteExpiredEntities: String = "0 0 0 * * ?"
-    )
 
     data class Users(
         /** The lifespan of a user authentication token. 0 means it never expires. */

@@ -6,4 +6,4 @@ spring:
     property-naming-strategy: SNAKE_CASE
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create-drop

@@ -2,9 +2,8 @@ package com.bme.jnsbbk.oauthserver.authorization
 
 import com.bme.jnsbbk.oauthserver.authorization.entities.AuthRequest
 import com.bme.jnsbbk.oauthserver.authorization.entities.UnvalidatedAuthRequest
-import com.bme.jnsbbk.oauthserver.authorization.validators.AuthValidator
 import com.bme.jnsbbk.oauthserver.client.ClientRepository
-import com.bme.jnsbbk.oauthserver.jwt.UserJwtHandler
+import com.bme.jnsbbk.oauthserver.user.UserRepository
 import com.bme.jnsbbk.oauthserver.utils.RandomString
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
@@ -15,15 +14,16 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.util.UriComponentsBuilder
+import java.security.Principal
 
 @Controller
 @RequestMapping("/oauth/authorize")
 class AuthorizationController(
-    private val authValidator: AuthValidator,
+    private val authRequestService: AuthRequestService,
     private val clientRepository: ClientRepository,
     private val authCodeRepository: AuthCodeRepository,
-    private val jwtHandler: UserJwtHandler,
-    private val authCodeFactory: AuthCodeFactory
+    private val authCodeFactory: AuthCodeFactory,
+    private val userRepository: UserRepository
 ) {
     private val requests = mutableMapOf<String, AuthRequest>()
 
@@ -37,20 +37,20 @@ class AuthorizationController(
     fun authorizationRequested(@RequestParam params: Map<String, String>, model: Model): String {
         val request = jacksonObjectMapper().convertValue<UnvalidatedAuthRequest>(params)
 
-        authValidator.validateSensitiveOrError(request)?.let { message ->
-            return errorPageWithReason(model, message)
-        }
-        authValidator.validateAdditionalOrError(request)?.let { message ->
-            return redirectWithError(request.redirectUri!!, message)
-        }
-        val validRequest = authValidator.convertToValidRequest(request)
+        val (senValid, senMessage) = authRequestService.isSensitiveInfoValid(request)
+        if (!senValid) return errorPageWithReason(model, senMessage)
+
+        val (addValid, addMessage) = authRequestService.isAdditionalInfoValid(request)
+        if (!addValid) return redirectWithError(request.redirectUri!!, addMessage)
+
+        val validRequest = authRequestService.convertToValidRequest(request)
 
         val reqId = RandomString.generateUntil(8) { it !in requests.keys }
         requests[reqId] = validRequest
 
         model.addAllAttributes(mapOf("reqId" to reqId, "scope" to validRequest.scope))
         model.addClientAttributes(validRequest.clientId)
-        return "auth_approve_form"
+        return "auth-form"
     }
 
     /**
@@ -60,11 +60,15 @@ class AuthorizationController(
      * otherwise it either displays an error page in place,or redirects the user to the client.
      */
     @PostMapping
-    fun approveAuthorization(@RequestParam params: Map<String, String>, model: Model): String {
+    fun approveAuthorization(
+        @RequestParam params: Map<String, String>,
+        model: Model,
+        principal: Principal
+    ): String {
         val request = requests.remove(params["reqId"])
             ?: return errorPageWithReason(model, "No matching authorization request!")
 
-        request.userId = getUserIdFrom(params["userToken"])
+        request.userId = userRepository.findByUsername(principal.name)?.id
             ?: return errorPageWithReason(model, "User authentication failed!")
 
         if (params["approve"] == null)
@@ -100,11 +104,6 @@ class AuthorizationController(
 
     private fun redirectWithError(redirectUri: String, error: String) =
         "redirect:" + buildURL(redirectUri, mapOf("error" to error))
-
-    private fun getUserIdFrom(token: String?): String? {
-        if (token == null || !jwtHandler.isUserTokenValid(token)) return null
-        return jwtHandler.getUserIdFrom(token)
-    }
 
     private fun getScopeFrom(params: Map<String, String>): Set<String> {
         return params

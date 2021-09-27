@@ -2,11 +2,11 @@ package com.bme.jnsbbk.oauthserver.token
 
 import com.bme.jnsbbk.oauthserver.authorization.AuthCodeRepository
 import com.bme.jnsbbk.oauthserver.authorization.entities.AuthCode
+import com.bme.jnsbbk.oauthserver.client.ClientService
 import com.bme.jnsbbk.oauthserver.client.entities.Client
 import com.bme.jnsbbk.oauthserver.token.entities.Token
 import com.bme.jnsbbk.oauthserver.token.entities.TokenResponse
 import com.bme.jnsbbk.oauthserver.token.entities.TokenType
-import com.bme.jnsbbk.oauthserver.token.validators.ClientAuthenticator
 import com.bme.jnsbbk.oauthserver.utils.RandomString
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
@@ -27,7 +27,7 @@ import java.util.*
 class TokenControllerTests {
     @Autowired private lateinit var mockMvc: MockMvc
 
-    @MockkBean private lateinit var clientAuthenticator: ClientAuthenticator
+    @MockkBean private lateinit var clientService: ClientService
     @MockkBean private lateinit var authCodeRepository: AuthCodeRepository
     @MockkBean private lateinit var tokenRepository: TokenRepository
     @MockkBean private lateinit var tokenFactory: TokenFactory
@@ -45,7 +45,7 @@ class TokenControllerTests {
 
     @Test
     fun issueToken_requiresClientAuthentication() {
-        every { clientAuthenticator.validClientOrNull(any(), any()) } returns null
+        every { clientService.authenticateWithEither(any(), any()) } returns null
 
         mockMvc
             .perform(post("/token"))
@@ -54,7 +54,7 @@ class TokenControllerTests {
 
     @Test
     fun issueToken_badRequestOnUnsupportedGrantType() {
-        every { clientAuthenticator.validClientOrNull(any(), any()) } returns client
+        every { clientService.authenticateWithEither(any(), any()) } returns client
 
         mockMvc
             .perform(post("/token").param("grant_type", "something_invalid"))
@@ -63,7 +63,7 @@ class TokenControllerTests {
 
     @Test
     fun issueToken_handleAuthCode_badRequestOnNoCode() {
-        every { clientAuthenticator.validClientOrNull(any(), any()) } returns client
+        every { clientService.authenticateWithEither(any(), any()) } returns client
 
         mockMvc
             .perform(post("/token").param("grant_type", "authorization_code"))
@@ -72,7 +72,7 @@ class TokenControllerTests {
 
     @Test
     fun issueToken_handleAuthCode_badRequestOnInvalidCode() {
-        every { clientAuthenticator.validClientOrNull(any(), any()) } returns client
+        every { clientService.authenticateWithEither(any(), any()) } returns client
         every { authCodeRepository.findById(any()) } returns Optional.empty()
 
         mockMvc
@@ -96,7 +96,7 @@ class TokenControllerTests {
             expiresAt = null
         )
 
-        every { clientAuthenticator.validClientOrNull(any(), any()) } returns client
+        every { clientService.authenticateWithEither(any(), any()) } returns client
         every { authCodeRepository.findById(any()) } returns Optional.of(invalidCode)
         every { authCodeRepository.delete(any()) } just runs
 
@@ -130,7 +130,7 @@ class TokenControllerTests {
             scope = setOf()
         )
 
-        every { clientAuthenticator.validClientOrNull(any(), any()) } returns client
+        every { clientService.authenticateWithEither(any(), any()) } returns client
         every { authCodeRepository.findById(any()) } returns Optional.of(code)
         every { authCodeRepository.delete(any()) } just runs
         every { tokenRepository.save(any()) } answers { firstArg() }
@@ -150,7 +150,7 @@ class TokenControllerTests {
 
     @Test
     fun issueToken_handleRefreshToken_badRequestOnNoToken() {
-        every { clientAuthenticator.validClientOrNull(any(), any()) } returns client
+        every { clientService.authenticateWithEither(any(), any()) } returns client
 
         mockMvc
             .perform(post("/token").param("grant_type", "refresh_token"))
@@ -159,7 +159,7 @@ class TokenControllerTests {
 
     @Test
     fun issueToken_handleRefreshToken_badRequestOnInvalidToken() {
-        every { clientAuthenticator.validClientOrNull(any(), any()) } returns client
+        every { clientService.authenticateWithEither(any(), any()) } returns client
         every { tokenRepository.findRefreshById(any()) } returns null
 
         mockMvc
@@ -184,7 +184,7 @@ class TokenControllerTests {
             expiresAt = null
         )
 
-        every { clientAuthenticator.validClientOrNull(any(), any()) } returns client
+        every { clientService.authenticateWithEither(any(), any()) } returns client
         every { tokenRepository.findRefreshById(any()) } returns invalidToken
         every { tokenRepository.delete(any()) } just runs
 
@@ -218,7 +218,7 @@ class TokenControllerTests {
             scope = setOf()
         )
 
-        every { clientAuthenticator.validClientOrNull(any(), any()) } returns client
+        every { clientService.authenticateWithEither(any(), any()) } returns client
         every { tokenRepository.findRefreshById(any()) } returns refresh
         every { tokenFactory.accessFromRefresh(any(), any()) } returns access
         every { tokenRepository.save(any()) } answers { firstArg() }

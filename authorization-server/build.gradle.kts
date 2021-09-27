@@ -5,7 +5,7 @@ plugins {
     id("org.springframework.boot") version "2.5.4"
     id("io.spring.dependency-management") version "1.0.11.RELEASE"
 
-    id("org.jmailen.kotlinter") version "3.4.3"
+    id("org.jmailen.kotlinter") version "3.6.0"
 
     kotlin("jvm") version "1.5.30"
     kotlin("kapt") version "1.5.30"
@@ -27,6 +27,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-security")
 
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
@@ -38,6 +39,7 @@ dependencies {
 
     implementation("mysql:mysql-connector-java:8.0.26")
 
+    testImplementation("org.springframework.security:spring-security-test")
     testImplementation("org.springframework.boot:spring-boot-starter-test") {
         exclude(module = "mockito-core")
     }
@@ -62,5 +64,6 @@ tasks.withType<Test> {
 }
 
 kotlinter {
+    ignoreFailures = true
     disabledRules = arrayOf("no-wildcard-imports")
 }

@@ -1,15 +1,14 @@
 package com.bme.jnsbbk.oauthserver.config
 
-import com.bme.jnsbbk.oauthserver.authorization.validators.AuthValidator
-import com.bme.jnsbbk.oauthserver.authorization.validators.BasicAuthValidator
 import com.bme.jnsbbk.oauthserver.client.validators.BasicClientValidator
 import com.bme.jnsbbk.oauthserver.client.validators.ClientValidator
-import com.bme.jnsbbk.oauthserver.token.validators.BasicClientAuthenticator
-import com.bme.jnsbbk.oauthserver.token.validators.ClientAuthenticator
-import com.bme.jnsbbk.oauthserver.users.validators.BasicUserValidator
-import com.bme.jnsbbk.oauthserver.users.validators.UserValidator
+import com.bme.jnsbbk.oauthserver.user.UserRepository
+import com.bme.jnsbbk.oauthserver.user.UserService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.security.core.userdetails.UserDetailsService
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
+import org.springframework.security.crypto.password.PasswordEncoder
 
 /**
  * Configures beans that can have multiple implementations.
@@ -19,15 +18,15 @@ import org.springframework.context.annotation.Configuration
  */
 @Configuration
 class BeanConfiguration {
-    @Bean("clientValidator")
-    fun getClientValidator(): ClientValidator = BasicClientValidator()
+    @Bean
+    fun clientValidator(): ClientValidator = BasicClientValidator()
 
-    @Bean("authValidator")
-    fun getAuthValidator(): AuthValidator = BasicAuthValidator()
+    @Bean
+    fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
 
-    @Bean("clientAuthenticator")
-    fun getClientAuthenticator(): ClientAuthenticator = BasicClientAuthenticator()
-
-    @Bean("userValidator")
-    fun getUserValidator(): UserValidator = BasicUserValidator()
+    @Bean
+    fun userDetailsService(
+        userRepository: UserRepository,
+        passwordEncoder: PasswordEncoder
+    ): UserDetailsService = UserService(userRepository, passwordEncoder)
 }

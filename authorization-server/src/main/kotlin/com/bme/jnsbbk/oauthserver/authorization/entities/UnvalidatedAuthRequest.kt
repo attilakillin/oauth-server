@@ -1,7 +1,7 @@
 package com.bme.jnsbbk.oauthserver.authorization.entities
 
 import com.bme.jnsbbk.oauthserver.utils.SpacedSetDeserializer
-import com.fasterxml.jackson.databind.PropertyNamingStrategy
+import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.annotation.JsonNaming
 
@@ -13,7 +13,7 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming
  *
  * @see AuthRequest
  */
-@JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy::class)
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
 data class UnvalidatedAuthRequest(
     val clientId: String?,
     var redirectUri: String?,
