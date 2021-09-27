@@ -25,7 +25,7 @@ class AuthRequestService(
     }
 
     fun isAdditionalInfoValid(request: UnvalidatedAuthRequest): Pair<Boolean, String> {
-        requireNotNull(request.clientId)  // Calling this function without verifying sensitive info may throw an error
+        requireNotNull(request.clientId) // Calling this function without verifying sensitive info may throw an error
         val client = clientRepository.findById(request.clientId).get()
 
         if (request.responseType !in client.responseTypes) return Pair(false, "unsupported_response_type")
@@ -34,7 +34,7 @@ class AuthRequestService(
     }
 
     fun convertToValidRequest(request: UnvalidatedAuthRequest): AuthRequest {
-        requireNotNull(request.clientId)  // Same thing here, only call this after the other two functions
+        requireNotNull(request.clientId) // Same thing here, only call this after the other two functions
         val client = clientRepository.findById(request.clientId).get()
 
         return AuthRequest(

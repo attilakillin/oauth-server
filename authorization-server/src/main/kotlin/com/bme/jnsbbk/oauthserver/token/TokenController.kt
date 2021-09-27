@@ -37,7 +37,7 @@ class TokenController(
     @PostMapping
     @ResponseBody
     fun issueToken(
-        @RequestHeader("Authorization") header: String?,  // The credentials of the client
+        @RequestHeader("Authorization") header: String?, // The credentials of the client
         @RequestParam params: Map<String, String>
     ): TokenResponse {
         val client = clientService.authenticateWithEither(header, params)
@@ -57,7 +57,7 @@ class TokenController(
 
         val code = authCodeRepository.findById(codeValue).getOrNull() ?: badRequest(message)
 
-        authCodeRepository.delete(code)  // The code exists, and was used, so it must be deleted
+        authCodeRepository.delete(code) // The code exists, and was used, so it must be deleted
 
         if (code.clientId != client.id || !code.isTimestampValid()) badRequest(message)
 
@@ -78,7 +78,7 @@ class TokenController(
         val refresh = tokenRepository.findRefreshById(refreshValue) ?: badRequest(message)
 
         if (refresh.clientId != client.id || refresh.isExpired()) {
-            tokenRepository.delete(refresh)  // If the token is expired or compromised, it must be deleted.
+            tokenRepository.delete(refresh) // If the token is expired or compromised, it must be deleted.
             badRequest(message)
         }
 
@@ -92,7 +92,7 @@ class TokenController(
 
     @PostMapping("/introspect")
     fun introspectToken(
-        @RequestHeader("Authorization") header: String?,  // The credentials of the resource server
+        @RequestHeader("Authorization") header: String?, // The credentials of the resource server
         @RequestParam params: Map<String, String>
     ): ResponseEntity<Map<String, String>> {
         val server = resourceServerService.authenticateBasic(header)

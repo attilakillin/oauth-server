@@ -5,7 +5,7 @@ plugins {
     id("org.springframework.boot") version "2.5.4"
     id("io.spring.dependency-management") version "1.0.11.RELEASE"
 
-    id("org.jmailen.kotlinter") version "3.4.3"
+    id("org.jmailen.kotlinter") version "3.6.0"
 
     kotlin("jvm") version "1.5.30"
     kotlin("kapt") version "1.5.30"
@@ -64,5 +64,6 @@ tasks.withType<Test> {
 }
 
 kotlinter {
+    ignoreFailures = true
     disabledRules = arrayOf("no-wildcard-imports")
 }

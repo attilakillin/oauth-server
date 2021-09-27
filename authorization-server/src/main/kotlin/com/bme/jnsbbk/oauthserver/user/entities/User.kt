@@ -17,7 +17,7 @@ import javax.persistence.Id
  * between Spring Security user authentication and usage in this application.
  */
 @Entity
-data class User (
+data class User(
     @Id
     val id: String,
     @Column(unique = true)

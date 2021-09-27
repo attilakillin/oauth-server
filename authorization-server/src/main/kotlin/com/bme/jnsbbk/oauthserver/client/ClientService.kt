@@ -38,7 +38,7 @@ class ClientService(
         val client1 = if (authHeader != null) authenticateBasic(authHeader) else null
         val client2 = authenticateParam(parameters)
         return if (client1 != null) {
-            if (client2 == null) client1 else null  // If both methods were used simultaneously, return null.
+            if (client2 == null) client1 else null // If both methods were used simultaneously, return null.
         } else {
             client2
         }
