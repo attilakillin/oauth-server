@@ -5,7 +5,7 @@ plugins {
     id("org.springframework.boot")
     id("io.spring.dependency-management")
 
-    id("org.jmailen.kotlinter")
+    //id("org.jmailen.kotlinter") version "3.6.0"
 
     kotlin("jvm")
     kotlin("kapt")
@@ -14,7 +14,7 @@ plugins {
 }
 
 group = "com.bme.jnsbbk"
-version = "21-09-15"
+version = "21-09-29"
 java.sourceCompatibility = JavaVersion.VERSION_11
 
 repositories {
@@ -33,9 +33,9 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 
-    implementation("io.jsonwebtoken:jjwt-api:0.11.2")
-    implementation("io.jsonwebtoken:jjwt-impl:0.11.2")
-    implementation("io.jsonwebtoken:jjwt-jackson:0.11.2")
+    //implementation("io.jsonwebtoken:jjwt-api:0.11.2")
+    //implementation("io.jsonwebtoken:jjwt-impl:0.11.2")
+    //implementation("io.jsonwebtoken:jjwt-jackson:0.11.2")
 
     implementation("mysql:mysql-connector-java:8.0.26")
 
@@ -49,7 +49,7 @@ dependencies {
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {
-        freeCompilerArgs = listOf("-Xjsr305=strict", "-Xjvm-default=enable")
+        //freeCompilerArgs = listOf("-Xjsr305=strict", "-Xjvm-default=enable")
         jvmTarget = "11"
     }
 }
@@ -63,7 +63,7 @@ tasks.withType<Test> {
     useJUnitPlatform()
 }
 
-kotlinter {
+/*kotlinter {
     ignoreFailures = true
     disabledRules = arrayOf("no-wildcard-imports")
-}
+}*/

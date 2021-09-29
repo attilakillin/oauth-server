@@ -1,0 +1,7 @@
+spring:
+  datasource:
+    hikari:
+      initialization-fail-timeout: 0
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
