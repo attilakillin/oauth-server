@@ -7,4 +7,7 @@ spring:
     password: root
 application:
   authorization-server:
-    url: 127.0.0.1
+    url: http://authorization-server:8080
+    registration-endpoint: /oauth/resource
+    authentication-endpoint: /oauth/resource/user
+    user-login-endpoint: /user/login

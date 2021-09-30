@@ -8,7 +8,7 @@ application:
     create-default-instances: false
   resource-servers:
     urls:
-      - 172.27.0.1
+      - 172.16.0.0/16
   scheduling:
     delete-expired-entities: 0 0/1 * * * ?
   tokens:

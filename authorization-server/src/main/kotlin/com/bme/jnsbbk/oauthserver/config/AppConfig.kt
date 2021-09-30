@@ -15,7 +15,7 @@ data class AppConfig(
     var debug: Debug = Debug()
 ) {
     data class ResourceServers(
-        /** Every URL the server should accept as a valid resource server URL must be listed here. */
+        /** Every URL (or subnet) the server should accept as a valid resource server URL must be listed here. */
         val urls: List<String> = listOf()
     )
 

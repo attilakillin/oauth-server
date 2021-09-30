@@ -2,20 +2,23 @@ package com.bme.jnsbbk.oauthserver.resource
 
 import com.bme.jnsbbk.oauthserver.config.AppConfig
 import com.bme.jnsbbk.oauthserver.exceptions.badRequest
+import com.bme.jnsbbk.oauthserver.exceptions.unauthorized
 import com.bme.jnsbbk.oauthserver.resource.entities.ResourceServer
 import com.bme.jnsbbk.oauthserver.resource.entities.ResourceServerRequest
 import com.bme.jnsbbk.oauthserver.utils.RandomString
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.Authentication
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.web.util.matcher.IpAddressMatcher
 import org.springframework.stereotype.Controller
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.*
+import java.security.Principal
 import javax.servlet.http.HttpServletRequest
 
 @Controller
 @RequestMapping("/oauth/resource")
 class ResourceServerController(
-    private val resourceServerRepository: ResourceServerRepository,
+    private val resourceServerService: ResourceServerService,
     private val appConfig: AppConfig
 ) {
 
@@ -33,18 +36,42 @@ class ResourceServerController(
         @RequestBody params: ResourceServerRequest,
         request: HttpServletRequest
     ): ResponseEntity<ResourceServer> {
-        if (request.remoteHost !in appConfig.resourceServers.urls) {
-            badRequest("unknown_resource_server_url: " + request.remoteHost)
+        val url = request.remoteHost
+
+        var accepted = false
+        for (allowedUrl in appConfig.resourceServers.urls) {
+            val matcher = IpAddressMatcher(allowedUrl)
+            if (matcher.matches(url)) {
+                accepted = true
+                break
+            }
         }
-        if (resourceServerRepository.findByUrl(request.remoteHost) != null) {
+
+        if (!accepted) {
+            badRequest("unknown_resource_server_url: $url")
+        }
+        if (resourceServerService.resourceServerExists(url)) {
             badRequest("resource_server_already_registered")
         }
 
-        val id = RandomString.generateUntil { !resourceServerRepository.existsById(it) }
-        val secret = RandomString.generate()
-        val rs = ResourceServer(id, secret, request.remoteHost, params.scope)
-
-        resourceServerRepository.save(rs)
+        val rs = resourceServerService.createResourceServer(url, params.scope)
         return ResponseEntity.ok(rs)
+    }
+
+    @GetMapping("/user")
+    fun retrieveCurrentUser(
+        @RequestHeader("Authorization") header: String?,
+        authentication: Authentication?
+    ): ResponseEntity<Map<String, String>> {
+        if (resourceServerService.authenticateBasic(header) == null) {
+            unauthorized("resource_server_unauthorized")
+        }
+
+        if (authentication == null || !authentication.isAuthenticated) {
+            badRequest("user_unauthenticated")
+        }
+
+        val username = (authentication.principal as Principal).name
+        return ResponseEntity.ok(mapOf("username" to username))
     }
 }
