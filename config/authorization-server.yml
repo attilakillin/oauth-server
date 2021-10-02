@@ -1,22 +1,25 @@
+# Data source configuration
 spring:
   datasource:
     url: jdbc:mysql://mysql-db:3306/authdb?createDatabaseIfNotExist=true
     username: root
     password: root
+
+# Settings related to this specific application
 application:
   debug:
-    create-default-instances: false
+    create-default-instances: false          # Whether to create a default client and user or not
   resource-servers:
-    urls:
-      - 172.16.0.0/16
+    urls:                                    # If the URL of a resource server registration request
+      - 172.16.0.0/16                        # is not whitelisted here, the request will be denied.
+    user-token:
+      lifespan: 60                           # The lifespan of user tokens issued to resource servers.
   scheduling:
-    delete-expired-entities: 0 0/1 * * * ?
+    delete-expired-entities: 0 0/1 * * * ?   # Cron string - how often expired tokens are deleted.
   tokens:
-    auth-code:
-      lifespan: 60
+    auth-code:                               # Lifespans of authorization codes,
+      lifespan: 60                           # access tokens and refresh tokens.
     access-token:
       lifespan: 1800
     refresh-token:
       lifespan: 86400
-  users:
-    auth-token-lifespan: 300

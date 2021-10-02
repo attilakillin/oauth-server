@@ -3,22 +3,24 @@ package com.bme.jnsbbk.oauthserver.resource
 import com.bme.jnsbbk.oauthserver.config.AppConfig
 import com.bme.jnsbbk.oauthserver.exceptions.badRequest
 import com.bme.jnsbbk.oauthserver.exceptions.unauthorized
+import com.bme.jnsbbk.oauthserver.jwt.ResourceServerJwtHandler
 import com.bme.jnsbbk.oauthserver.resource.entities.ResourceServer
 import com.bme.jnsbbk.oauthserver.resource.entities.ResourceServerRequest
-import com.bme.jnsbbk.oauthserver.utils.RandomString
+import com.bme.jnsbbk.oauthserver.user.entities.User
 import org.springframework.http.ResponseEntity
-import org.springframework.security.core.Authentication
-import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.web.util.matcher.IpAddressMatcher
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.*
-import java.security.Principal
+import org.springframework.web.util.UriComponentsBuilder
+import java.util.*
 import javax.servlet.http.HttpServletRequest
 
 @Controller
 @RequestMapping("/oauth/resource")
 class ResourceServerController(
     private val resourceServerService: ResourceServerService,
+    private val resourceServerJwtHandler: ResourceServerJwtHandler,
     private val appConfig: AppConfig
 ) {
 
@@ -50,28 +52,61 @@ class ResourceServerController(
         if (!accepted) {
             badRequest("unknown_resource_server_url: $url")
         }
-        if (resourceServerService.resourceServerExists(url)) {
+        if (resourceServerService.serverExistsByUrl(url)) {
             badRequest("resource_server_already_registered")
         }
 
-        val rs = resourceServerService.createResourceServer(url, params.scope)
+        val rs = resourceServerService.createServer(url, params.scope)
         return ResponseEntity.ok(rs)
     }
 
+    /**
+     * When called with a valid resource server ID, redirect the caller to that resource server
+     * with a JWT containing the ID of the currently logged-in user.
+     *
+     * Given a resource server ID and an optional redirect path, create a token that contains the ID
+     * of the current user, and redirect to the URL (and optional path) of the resource server with
+     * the token encoded as a query parameter. The URL is extracted from the resource server DB entity.
+     */
     @GetMapping("/user")
     fun retrieveCurrentUser(
+        @RequestParam("server_id") serverId: String,
+        @RequestParam("redirect_path") redirectPath: String?,
+        @AuthenticationPrincipal user: User
+    ): String {
+        val server = resourceServerService.getServerById(serverId) ?: unauthorized("unknown_resource_server")
+        val redirectUri = "http://${server.url}:8081" + (redirectPath ?: "") // TODO Temporary
+
+        val token = resourceServerJwtHandler.createSigned(serverId, user.id)
+        val encodedToken = Base64.getUrlEncoder().encodeToString(token.toByteArray(Charsets.UTF_8))
+
+        val url = UriComponentsBuilder
+            .fromUriString(redirectUri)
+            .queryParam("token", encodedToken)
+            .toUriString()
+
+        return "redirect:$url"
+    }
+
+    /**
+     * Given a resource server token, and the credentials belonging to that resource server, validate
+     * the token, and respond with the properties of the user contained in said token.
+     *
+     * May respond with 401 if the server or the token is invalid, with 400 if the user doesn't exist,
+     * or with 200 and a JSON body containing the properties of the user.
+     */
+    @PostMapping("/user/validate")
+    @ResponseBody
+    fun validateUserToken(
         @RequestHeader("Authorization") header: String?,
-        authentication: Authentication?
+        @RequestBody token: String
     ): ResponseEntity<Map<String, String>> {
-        if (resourceServerService.authenticateBasic(header) == null) {
-            unauthorized("resource_server_unauthorized")
-        }
+        val server = resourceServerService.authenticateBasic(header) ?: unauthorized("unknown_resource_server")
 
-        if (authentication == null || !authentication.isAuthenticated) {
-            badRequest("user_unauthenticated")
-        }
+        if (!resourceServerJwtHandler.isTokenValid(token, server)) unauthorized("invalid_token")
 
-        val username = (authentication.principal as Principal).name
-        return ResponseEntity.ok(mapOf("username" to username))
+        val user = resourceServerJwtHandler.getUserFrom(token) ?: badRequest("invalid_user")
+
+        return ResponseEntity.ok(mapOf("username" to user.username))
     }
 }

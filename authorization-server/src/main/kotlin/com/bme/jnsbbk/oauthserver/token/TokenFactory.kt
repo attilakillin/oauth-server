@@ -50,7 +50,7 @@ class TokenFactory(
     private fun fromTemplate(
         value: String,
         data: CommonData,
-        times: AppConfig.Tokens.Lifespan,
+        times: AppConfig.Lifespan,
         type: TokenType
     ): Token {
         val now = Instant.now()

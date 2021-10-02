@@ -26,7 +26,7 @@ class UserControllerTests {
 
     @Test
     fun handleRegistration_rejectIfPasswordConfirmationNotValid() {
-        every { userService.userExists(any()) } returns false
+        every { userService.userExistsByUsername(any()) } returns false
 
         mockMvc
             .perform(
@@ -40,7 +40,7 @@ class UserControllerTests {
 
     @Test
     fun handleRegistration_rejectIfUserAlreadyExists() {
-        every { userService.userExists(any()) } returns true
+        every { userService.userExistsByUsername(any()) } returns true
 
         mockMvc
             .perform(

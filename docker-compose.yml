@@ -12,7 +12,8 @@ services:
         ports:
             - "8080:8080"
         networks:
-            - internal
+            internal:
+                ipv4_address: 172.16.1.1
         depends_on:
             - mysql-db
     resource-server:
@@ -27,7 +28,8 @@ services:
         ports:
             - "8081:8081"
         networks:
-            - internal
+            internal:
+                ipv4_address: 172.16.1.2
         depends_on:
             - mysql-db
             - authorization-server

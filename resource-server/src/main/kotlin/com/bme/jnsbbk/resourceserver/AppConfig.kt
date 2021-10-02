@@ -1,4 +1,4 @@
-package com.bme.jnsbbk.resourceserver.config
+package com.bme.jnsbbk.resourceserver
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
@@ -12,14 +12,19 @@ import org.springframework.retry.annotation.EnableRetry
 data class AppConfig(
     var authorizationServer: AuthorizationServer = AuthorizationServer()
 ) {
+    data class Endpoints(
+        /** This endpoint is used for registering the resource server at the authorization server. */
+        val registration: String = "",
+        /** Called to request a user token for the resource server. */
+        val userTokenRequest: String = "",
+        /** Called to validate user tokens. */
+        val userTokenValidation: String = "",
+    )
+
     data class AuthorizationServer(
         /** The resource server will try to connect to an authorization server at this URL. */
         val url: String = "",
-        /** This endpoint is used for registering the resource server at the authorization server. */
-        val registrationEndpoint: String = "",
-        /** This endpoint is used for getting the currently authenticated user. */
-        val authenticationEndpoint: String = "",
-        /** When no user is authenticated, the resource server will redirect callers here. */
-        val userLoginEndpoint: String = ""
+        /** Every required endpoint of the authorization server, as relative paths. */
+        val endpoints: Endpoints = Endpoints()
     )
 }

@@ -1,13 +1,19 @@
-server:
-  port: 8081
+# Data source configuration
 spring:
   datasource:
     url: jdbc:mysql://mysql-db:3306/resourcedb?createDatabaseIfNotExist=true
     username: root
     password: root
+
+# Server configuration
+server:
+  port: 8081
+
+# Settings related to this specific application
 application:
   authorization-server:
-    url: http://authorization-server:8080
-    registration-endpoint: /oauth/resource
-    authentication-endpoint: /oauth/resource/user
-    user-login-endpoint: /user/login
+    url: http://172.16.1.1:8080                            # The resource server will try to connect to this URL
+    endpoints:
+      registration: /oauth/resource                        # ...at this relative path.
+      user-token-request: /oauth/resource/user             # Called to request (and validate respectively) a user
+      user-token-validation: /oauth/resource/user/validate # token containing info about the logged-in user.
