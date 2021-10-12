@@ -1,5 +1,5 @@
 package com.bme.jnsbbk.oauthserver.config
-
+/*
 import com.bme.jnsbbk.oauthserver.utils.RandomString
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.slf4j.LoggerFactory
@@ -113,3 +113,4 @@ class DebugInitialization(private val appConfig: AppConfig) {
         println("\n  Username: $username, password: $password\n")
     }
 }
+*/

@@ -51,6 +51,7 @@ class UserController(
         }
 
         userService.createUser(username, password)
+        request.logout()
         request.login(username, password)
 
         return "redirect:/"

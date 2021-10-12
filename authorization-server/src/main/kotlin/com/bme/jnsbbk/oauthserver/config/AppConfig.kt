@@ -10,8 +10,7 @@ import org.springframework.context.annotation.Configuration
 data class AppConfig(
     var resourceServers: ResourceServers = ResourceServers(),
     var scheduling: Scheduling = Scheduling(),
-    var tokens: Tokens = Tokens(),
-    var debug: Debug = Debug()
+    var tokens: Tokens = Tokens()
 ) {
     data class Lifespan(
         /** The offset of notBefore compared to issuedAt, in seconds. */
@@ -39,10 +38,5 @@ data class AppConfig(
         var accessToken: Lifespan = Lifespan(),
         /** The lifespan of OAuth refresh tokens. */
         var refreshToken: Lifespan = Lifespan()
-    )
-
-    data class Debug(
-        /** Whether to create default entity instances or not. */
-        val createDefaultInstances: Boolean = false
     )
 }

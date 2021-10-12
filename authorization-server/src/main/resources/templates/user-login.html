@@ -25,8 +25,11 @@
                     <div class="mb-3" th:if="${param.error != null}">
                         <p class="text-danger">The provided credentials are invalid!</p>
                     </div>
-                    <div class="d-grid">
+                    <div class="d-grid mb-2">
                         <button type="submit" class="btn btn-primary">Log in</button>
+                    </div>
+                    <div class="text-center">
+                        <a th:href="@{/user/register}">Register</a>
                     </div>
                 </form>
             </div>
