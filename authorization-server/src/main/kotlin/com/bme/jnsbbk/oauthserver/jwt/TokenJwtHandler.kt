@@ -7,9 +7,12 @@ import com.bme.jnsbbk.oauthserver.exceptions.badRequest
 import com.bme.jnsbbk.oauthserver.token.entities.Token
 import com.bme.jnsbbk.oauthserver.utils.getOrNull
 import com.bme.jnsbbk.oauthserver.utils.getServerBaseUrl
+import io.jsonwebtoken.Claims
 import io.jsonwebtoken.JwtBuilder
+import io.jsonwebtoken.JwtException
 import io.jsonwebtoken.Jwts
 import org.springframework.stereotype.Service
+import java.security.Key
 import java.util.*
 
 /**
@@ -33,6 +36,14 @@ class TokenJwtHandler(
             .compact()
     }
 
+    /** Checks whether the given JSON Web Token represents an active token. */
+    fun getValidTokenId(jwt: String): String? {
+        val unvalidatedClaims = Jwts.parserBuilder().build().parseClaimsJws(jwt).body
+        val key = getKeyById(unvalidatedClaims.subject).public
+
+        return parseClaimsOrNull(jwt, key)?.id
+    }
+
     /** Returns an RSA key if it exists for the given [id], or creates one if it doesn't. */
     private fun getKeyById(id: String): RSAKey =
         rsaKeyRepository.findById(id).getOrNull() ?: rsaKeyRepository.save(RSAKey.newWithId(id))
@@ -45,10 +56,21 @@ class TokenJwtHandler(
     private fun JwtBuilder.setInfo(token: Token, client: Client): JwtBuilder {
         setIssuer(getServerBaseUrl())
         setSubject(token.userId)
-        setAudience(client.id) // TODO This is the resource server
+        setAudience(client.id) // TODO This should be the resource server
         setId(token.value)
         setIssuedAt(Date.from(token.issuedAt))
         if (token.expiresAt != null) setExpiration(Date.from(token.expiresAt))
         return this
+    }
+
+    /** Tries to unwrap the given token into a set of JSON Web Token claims. Returns null if it fails. */
+    private fun parseClaimsOrNull(token: String, key: Key): Claims? {
+        return try {
+            Jwts.parserBuilder()
+                .setSigningKey(key).build()
+                .parseClaimsJws(token).body
+        } catch (ex: JwtException) {
+            null
+        }
     }
 }

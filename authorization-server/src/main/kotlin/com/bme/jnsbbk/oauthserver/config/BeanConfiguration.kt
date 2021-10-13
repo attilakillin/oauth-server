@@ -2,11 +2,8 @@ package com.bme.jnsbbk.oauthserver.config
 
 import com.bme.jnsbbk.oauthserver.client.validators.BasicClientValidator
 import com.bme.jnsbbk.oauthserver.client.validators.ClientValidator
-import com.bme.jnsbbk.oauthserver.user.UserRepository
-import com.bme.jnsbbk.oauthserver.user.UserService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 
@@ -23,11 +20,4 @@ class BeanConfiguration {
 
     @Bean
     fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
-
-    /* TODO Remove when sure that it's unnecessary
-    @Bean
-    fun userDetailsService(
-        userRepository: UserRepository,
-        passwordEncoder: PasswordEncoder
-    ): UserDetailsService = UserService(userRepository, passwordEncoder)*/
 }

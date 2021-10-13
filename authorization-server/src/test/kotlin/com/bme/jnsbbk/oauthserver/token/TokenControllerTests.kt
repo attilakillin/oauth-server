@@ -4,6 +4,7 @@ import com.bme.jnsbbk.oauthserver.authorization.AuthCodeRepository
 import com.bme.jnsbbk.oauthserver.authorization.entities.AuthCode
 import com.bme.jnsbbk.oauthserver.client.ClientService
 import com.bme.jnsbbk.oauthserver.client.entities.Client
+import com.bme.jnsbbk.oauthserver.jwt.TokenJwtHandler
 import com.bme.jnsbbk.oauthserver.resource.ResourceServerService
 import com.bme.jnsbbk.oauthserver.token.entities.Token
 import com.bme.jnsbbk.oauthserver.token.entities.TokenResponse
@@ -39,6 +40,7 @@ class TokenControllerTests {
     @MockkBean private lateinit var tokenFactory: TokenFactory
     @MockkBean private lateinit var passwordEncoder: PasswordEncoder
     @MockkBean private lateinit var userService: UserService
+    @MockkBean private lateinit var tokenJwtHandler: TokenJwtHandler
 
     private val client = Client(RandomString.generate())
     private val code = AuthCode(
