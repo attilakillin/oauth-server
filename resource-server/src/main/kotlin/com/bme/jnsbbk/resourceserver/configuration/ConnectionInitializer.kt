@@ -1,4 +1,4 @@
-package com.bme.jnsbbk.resourceserver
+package com.bme.jnsbbk.resourceserver.configuration
 
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.SmartInitializingSingleton
@@ -32,9 +32,9 @@ class ConnectionInitializer(
         val response = RestTemplate().postForObject<ResponseObject>(url, request)
 
         propertyRepository.saveAll(listOf(
-            Property(Key.ID, response.id),
-            Property(Key.SECRET, response.secret),
-            Property(Key.SCOPE, response.scope)
+            Property(Property.Key.ID, response.id),
+            Property(Property.Key.SECRET, response.secret),
+            Property(Property.Key.SCOPE, response.scope)
         ))
 
         val logger = LoggerFactory.getLogger(this::class.java)
