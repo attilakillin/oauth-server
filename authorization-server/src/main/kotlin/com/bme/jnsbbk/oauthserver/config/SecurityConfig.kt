@@ -20,6 +20,8 @@ class SecurityConfig(
             "/oauth/clients",
             "/oauth/resource",
             "/oauth/resource/user/validate",
+            "/oauth/token",
+            "/oauth/token/**",
             "/user/register"
         )
 

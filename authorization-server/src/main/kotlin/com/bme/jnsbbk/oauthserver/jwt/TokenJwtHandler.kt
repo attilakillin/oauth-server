@@ -38,8 +38,9 @@ class TokenJwtHandler(
 
     /** Checks whether the given JSON Web Token represents an active token. */
     fun getValidTokenId(jwt: String): String? {
-        val unvalidatedClaims = Jwts.parserBuilder().build().parseClaimsJws(jwt).body
-        val key = getKeyById(unvalidatedClaims.subject).public
+        val unsecureJwt = jwt.replaceAfterLast('.', "")
+        val unvalidatedClaims = Jwts.parserBuilder().build().parseClaimsJwt(unsecureJwt).body
+        val key = getKeyById(unvalidatedClaims.audience).public
 
         return parseClaimsOrNull(jwt, key)?.id
     }

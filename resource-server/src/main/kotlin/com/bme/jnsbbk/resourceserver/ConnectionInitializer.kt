@@ -1,5 +1,6 @@
 package com.bme.jnsbbk.resourceserver
 
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.SmartInitializingSingleton
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
@@ -25,7 +26,7 @@ class ConnectionInitializer(
     @Retryable(maxAttempts = 5, backoff = Backoff(delay = 3000, multiplier = 1.5))
     override fun afterSingletonsInstantiated() {
         val headers = HttpHeaders().apply { contentType = MediaType.APPLICATION_JSON }
-        val request = HttpEntity(mapOf("scope" to "email avatar address phone_number"), headers) // TODO Don't hardcode this
+        val request = HttpEntity(mapOf("scope" to "alfa beta gamma delta"), headers) // TODO Don't hardcode this
 
         val url = appConfig.authorizationServer.url + appConfig.authorizationServer.endpoints.registration
         val response = RestTemplate().postForObject<ResponseObject>(url, request)
@@ -35,6 +36,10 @@ class ConnectionInitializer(
             Property(Key.SECRET, response.secret),
             Property(Key.SCOPE, response.scope)
         ))
+
+        val logger = LoggerFactory.getLogger(this::class.java)
+        logger.info("Resource server ID:     " + response.id)
+        logger.info("Resource server secret: " + response.secret)
     }
 
     /** Private response object class that enforces type safety. */

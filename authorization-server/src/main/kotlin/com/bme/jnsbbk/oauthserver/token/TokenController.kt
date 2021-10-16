@@ -98,8 +98,10 @@ class TokenController(
     @PostMapping("/introspect")
     fun introspectToken(
         @RequestHeader("Authorization") header: String?, // The credentials of the resource server
-        @RequestParam("token") jwt: String
+        @RequestBody body: Map<String, String>
     ): ResponseEntity<Map<String, String>> {
+        val jwt = body["token"] ?: badRequest("invalid_request_body")
+
         resourceServerService.authenticateBasic(header)
             ?: unauthorized("unknown_resource_server")
 
