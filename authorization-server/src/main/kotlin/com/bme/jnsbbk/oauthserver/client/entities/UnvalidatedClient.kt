@@ -23,7 +23,6 @@ class UnvalidatedClient(
     val responseTypes: Set<String>?,
     @JsonDeserialize(using = SpacedSetDeserializer::class)
     val scope: Set<String>?,
-
 ) {
     @JsonIgnore
     val extraData = mutableMapOf<String, String>()

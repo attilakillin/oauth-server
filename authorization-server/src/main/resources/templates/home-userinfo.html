@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" class="h-100">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link th:href="@{/css/bootstrap.min.css}" rel="stylesheet">
+
+        <title>OAuth Server :: Manage user info</title>
+    </head>
+    <body class="container h-100">
+        <div class="row h-100 justify-content-center align-items-center">
+            <div class="col-md-6 col-lg-5 m-1 p-3 rounded" style="background: #eeeeee">
+                <form th:action="@{/home/userinfo}" method="post">
+                    <h3 class="text-center">Manage stored information</h3>
+                    <div class="text-center">
+                        <p>Modify or delete information stored about you on the server</p>
+                    </div>
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Full name:</label>
+                        <input type="text" name="name" id="name" class="form-control"
+                               th:value="${userinfo?.name}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email:</label>
+                        <input type="text" name="email" id="email" class="form-control"
+                               th:value="${userinfo?.email}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="address" class="form-label">Address:</label>
+                        <input type="text" name="address" id="address" class="form-control"
+                               th:value="${userinfo?.address}">
+                    </div>
+                    <div class="mb-3" th:if="${success}">
+                        <p class="text-success">Information updated!</p>
+                    </div>
+                    <div class="d-grid mb-2">
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+    </body>
+</html>

@@ -12,7 +12,7 @@ fun <T> Optional<T>.getOrNull(): T? = if (isPresent) get() else null
  * This function can throw an exception if used outside a Spring component,
  * since there is no current context to query the path from.
  */
-fun getServerBaseUrl() = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString()
+fun getServerBaseUrl(): String = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString()
 
 /** Provides an easy-to-read wrapper for multiple null checks. */
 fun anyNotNull(vararg things: Any?) = things.any { it != null }

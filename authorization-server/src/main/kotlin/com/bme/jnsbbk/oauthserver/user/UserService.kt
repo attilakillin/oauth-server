@@ -2,7 +2,7 @@ package com.bme.jnsbbk.oauthserver.user
 
 import com.bme.jnsbbk.oauthserver.user.entities.User
 import com.bme.jnsbbk.oauthserver.utils.RandomString
-import com.bme.jnsbbk.oauthserver.utils.getOrNull
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.core.userdetails.UsernameNotFoundException
@@ -27,7 +27,7 @@ class UserService(
     fun userExistsById(id: String): Boolean = userRepository.findById(id).isPresent
 
     /** Returns a user by its ID, or null, if no such user exists. */
-    fun getUserById(id: String): User? = userRepository.findById(id).getOrNull()
+    fun getUserById(id: String): User? = userRepository.findByIdOrNull(id)
 
     /** Creates and persists a user with the given credentials and roles. */
     fun createUser(username: String, password: String, roles: Set<String> = setOf("USER")): UserDetails {
@@ -35,4 +35,6 @@ class UserService(
         val user = User(id, username, passwordEncoder.encode(password), roles)
         return userRepository.save(user)
     }
+
+    fun updateUser(user: User): User = userRepository.save(user)
 }
