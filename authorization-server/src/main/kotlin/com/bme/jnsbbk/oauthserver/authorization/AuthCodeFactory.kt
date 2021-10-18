@@ -27,6 +27,7 @@ class AuthCodeFactory(val appConfig: AppConfig) {
             clientId = request.clientId,
             userId = request.userId,
             scope = request.scope,
+            nonce = request.nonce,
             issuedAt = now,
             notBefore = notBefore,
             expiresAt = expiresAt

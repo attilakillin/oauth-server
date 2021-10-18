@@ -6,6 +6,7 @@ import com.bme.jnsbbk.oauthserver.client.ClientService
 import com.bme.jnsbbk.oauthserver.client.entities.Client
 import com.bme.jnsbbk.oauthserver.exceptions.badRequest
 import com.bme.jnsbbk.oauthserver.exceptions.unauthorized
+import com.bme.jnsbbk.oauthserver.jwt.IdTokenJwtHandler
 import com.bme.jnsbbk.oauthserver.jwt.TokenJwtHandler
 import com.bme.jnsbbk.oauthserver.resource.ResourceServerService
 import com.bme.jnsbbk.oauthserver.token.entities.TokenResponse
@@ -28,6 +29,7 @@ class TokenController(
     private val tokenRepository: TokenRepository,
     private val tokenFactory: TokenFactory,
     private val tokenJwtHandler: TokenJwtHandler,
+    private val idTokenJwtHandler: IdTokenJwtHandler,
     private val userService: UserService
 ) {
 
@@ -72,7 +74,14 @@ class TokenController(
         tokenRepository.save(accessToken)
         tokenRepository.save(refreshToken)
 
-        return tokenFactory.responseJwtFromTokens(accessToken, refreshToken)
+        val response = tokenFactory.responseJwtFromTokens(accessToken, refreshToken)
+
+        val user = userService.getUserById(code.userId)
+        if ("openid" in code.scope && user != null) {
+            response.idToken = idTokenJwtHandler.createSigned(client.id, user, code.nonce)
+        }
+
+        return response
     }
 
     /** Handles responses when the grant type was 'refresh_token'. */

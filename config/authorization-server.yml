@@ -23,6 +23,8 @@ application:
       lifespan: 1800
     refresh-token:
       lifespan: 86400
+    id-token:
+      lifespan: 300
 
 ---
 

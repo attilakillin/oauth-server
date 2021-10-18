@@ -14,7 +14,7 @@ VALUES (
     'code',
     'http://localhost:8082/callback',
     'regaccesstoken',
-    'alfa,beta,gamma,delta',
+    'alfa,beta,gamma,delta,openid',
     '2021-10-16 09:45:00',
     NULL,
     'client_secret_basic'

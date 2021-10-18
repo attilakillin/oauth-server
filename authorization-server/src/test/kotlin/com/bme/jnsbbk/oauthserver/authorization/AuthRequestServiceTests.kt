@@ -20,13 +20,14 @@ class AuthRequestServiceTests(
     private val client = Client(RandomString.generate())
     init { resetClientData() }
 
-    private val nullRequest = UnvalidatedAuthRequest(null, null, null, null, null)
+    private val nullRequest = UnvalidatedAuthRequest(null, null, null, null, null, null)
     private val request = UnvalidatedAuthRequest(
         clientId = client.id,
         redirectUri = client.redirectUris.first(),
         responseType = client.responseTypes.first(),
         state = null,
-        scope = client.scope
+        scope = client.scope,
+        nonce = null
     )
 
     @BeforeEach
@@ -110,7 +111,8 @@ class AuthRequestServiceTests(
             redirectUri = null,
             responseType = client.responseTypes.first(),
             state = null,
-            scope = null
+            scope = null,
+            nonce = null
         )
         Assertions.assertTrue(service.isSensitiveInfoValid(request).first)
         Assertions.assertTrue(service.isAdditionalInfoValid(request).first)
@@ -126,7 +128,8 @@ class AuthRequestServiceTests(
             redirectUri = null,
             responseType = client.responseTypes.first(),
             state = null,
-            scope = null
+            scope = null,
+            nonce = null
         )
         Assertions.assertTrue(service.isSensitiveInfoValid(request).first)
         Assertions.assertTrue(service.isAdditionalInfoValid(request).first)

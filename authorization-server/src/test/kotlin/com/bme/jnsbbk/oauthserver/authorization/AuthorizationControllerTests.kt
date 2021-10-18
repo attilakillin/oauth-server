@@ -71,7 +71,8 @@ class AuthorizationControllerTests {
             redirectUri = "",
             responseType = "",
             scope = setOf("random", "xyz"),
-            state = null
+            state = null,
+            nonce = null
         )
 
         every { authRequestService.isSensitiveInfoValid(any()) } returns Pair(true, "")

@@ -9,7 +9,7 @@ class AuthCodeTests {
     private val delay: Long = 86400 // Set this to a sufficiently large value
 
     private fun createCodeWithTimes(iat: Instant, nbe: Instant, eat: Instant?) =
-        AuthCode("", "", "", setOf(), iat, nbe, eat)
+        AuthCode("", "", "", setOf(), null, iat, nbe, eat)
 
     @Test
     fun isExpired_isFalseForNull() {

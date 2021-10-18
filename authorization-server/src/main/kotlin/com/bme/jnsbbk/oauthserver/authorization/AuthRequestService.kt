@@ -42,7 +42,8 @@ class AuthRequestService(
             redirectUri = request.redirectUri ?: client.redirectUris.first(),
             responseType = request.responseType!!,
             scope = request.scope ?: client.scope,
-            state = request.state
+            state = request.state,
+            nonce = request.nonce
         )
     }
 }

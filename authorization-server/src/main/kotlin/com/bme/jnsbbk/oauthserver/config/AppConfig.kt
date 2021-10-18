@@ -15,7 +15,7 @@ data class AppConfig(
     data class Lifespan(
         /** The offset of notBefore compared to issuedAt, in seconds. */
         val notBeforeOffset: Long = 0,
-        /** The lifespan of a token, in seconds. 0 means it never expires. */
+        /** The lifespan of a token, in seconds. 0 usually means it never expires. */
         val lifespan: Long = 0
     )
 
@@ -37,6 +37,8 @@ data class AppConfig(
         /** The lifespan of OAuth access tokens. */
         var accessToken: Lifespan = Lifespan(),
         /** The lifespan of OAuth refresh tokens. */
-        var refreshToken: Lifespan = Lifespan()
+        var refreshToken: Lifespan = Lifespan(),
+        /** The lifespan of OpenID Connect ID tokens. Must have an expiration time. */
+        var idToken: Lifespan = Lifespan(lifespan = 300)
     )
 }

@@ -4,6 +4,7 @@ import com.bme.jnsbbk.oauthserver.authorization.AuthCodeRepository
 import com.bme.jnsbbk.oauthserver.authorization.entities.AuthCode
 import com.bme.jnsbbk.oauthserver.client.ClientService
 import com.bme.jnsbbk.oauthserver.client.entities.Client
+import com.bme.jnsbbk.oauthserver.jwt.IdTokenJwtHandler
 import com.bme.jnsbbk.oauthserver.jwt.TokenJwtHandler
 import com.bme.jnsbbk.oauthserver.resource.ResourceServerService
 import com.bme.jnsbbk.oauthserver.token.entities.Token
@@ -41,6 +42,7 @@ class TokenControllerTests {
     @MockkBean private lateinit var passwordEncoder: PasswordEncoder
     @MockkBean private lateinit var userService: UserService
     @MockkBean private lateinit var tokenJwtHandler: TokenJwtHandler
+    @MockkBean private lateinit var idTokenJwtHandler: IdTokenJwtHandler
 
     private val client = Client(RandomString.generate())
     private val code = AuthCode(
@@ -48,6 +50,7 @@ class TokenControllerTests {
         clientId = client.id,
         userId = "user id",
         scope = setOf(),
+        nonce = null,
         issuedAt = Instant.now(),
         notBefore = Instant.now(),
         expiresAt = null
@@ -101,6 +104,7 @@ class TokenControllerTests {
             clientId = "invalid client id",
             userId = "user id",
             scope = setOf(),
+            nonce = null,
             issuedAt = Instant.now(),
             notBefore = Instant.now(),
             expiresAt = null
@@ -147,6 +151,7 @@ class TokenControllerTests {
         every { tokenFactory.accessFromCode(any(), any()) } returns access
         every { tokenFactory.refreshFromCode(any(), any()) } returns refresh
         every { tokenFactory.responseJwtFromTokens(any(), any()) } returns response
+        every { userService.getUserById(any()) } returns null
 
         mockMvc
             .perform(

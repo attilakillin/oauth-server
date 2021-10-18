@@ -19,6 +19,7 @@ data class UnvalidatedAuthRequest(
     var redirectUri: String?,
     val responseType: String?,
     val state: String?,
+    val nonce: String?,
     @JsonDeserialize(using = SpacedSetDeserializer::class)
     var scope: Set<String>?
 )
