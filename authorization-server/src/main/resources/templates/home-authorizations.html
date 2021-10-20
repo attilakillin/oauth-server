@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" class="h-100">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link th:href="@{/css/bootstrap.min.css}" rel="stylesheet">
+
+        <title>OAuth Server :: Manage authorized clients</title>
+    </head>
+    <body class="container h-100">
+        <div class="row h-100 justify-content-center align-items-center">
+            <div class="col-lg-10 m-1 p-3 rounded" style="background: #eeeeee">
+                <h3 class="text-center">Manage authorized clients</h3>
+                <div class="text-center">
+                    <p>
+                        Previously issued tokens appear here except for long-expired tokens,
+                        which are periodically removed from the database.
+                    </p>
+                </div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Value</th>
+                            <th scope="col">Client ID</th>
+                            <th scope="col">Scope</th>
+                            <th scope="col">Active?</th>
+                        </tr>
+                    </thead>
+                    <tr th:each="token: ${tokens}">
+                        <td th:text="${token.value}"></td>
+                        <td th:text="${token.clientId}"></td>
+                        <td th:text="${token.scope}"></td>
+                        <td th:text="${(token.active) ? 'Yes' : 'No'}"></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+    </body>
+</html>

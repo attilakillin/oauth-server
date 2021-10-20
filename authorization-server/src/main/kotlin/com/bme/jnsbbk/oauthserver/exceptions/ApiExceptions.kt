@@ -19,3 +19,9 @@ class UnauthorizedException(message: String? = null) : ApiException(HttpStatus.U
 
 /** Throws an [UnauthorizedException] with the specified error [message]. */
 fun unauthorized(message: String? = null): Nothing = throw UnauthorizedException(message)
+
+/** A specific [ApiException] with a HTTP 403 status code. */
+class ForbiddenException(message: String? = null) : ApiException(HttpStatus.FORBIDDEN, message)
+
+/** Throws a [ForbiddenException] with the specified error [message]. */
+fun forbidden(message: String? = null): Nothing = throw ForbiddenException(message)

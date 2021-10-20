@@ -22,7 +22,8 @@ class AuthCodeFactoryTests {
         redirectUri = "redirect uri",
         responseType = "response type",
         scope = setOf("different", "scope", "values"),
-        state = "state"
+        state = "state",
+        nonce = null
     )
 
     init {

@@ -19,4 +19,6 @@ data class TokenResponse(
 
     @JsonSerialize(using = SpacedSetSerializer::class)
     val scope: Set<String>
-)
+) {
+    var idToken: String? = null
+}

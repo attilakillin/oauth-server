@@ -20,6 +20,7 @@ data class AuthCode(
     val clientId: String,
     val userId: String,
     val scope: Set<String>,
+    val nonce: String?,
     val issuedAt: Instant,
     val notBefore: Instant,
     val expiresAt: Instant?

@@ -41,7 +41,7 @@ class UserController(
                 .addAttribute("message", message)
         }
 
-        if (userService.userExists(username)) {
+        if (userService.userExistsByUsername(username)) {
             bindAttributes("This username is taken, please choose another one!")
             return "user-register"
         }
@@ -51,6 +51,7 @@ class UserController(
         }
 
         userService.createUser(username, password)
+        request.logout()
         request.login(username, password)
 
         return "redirect:/"

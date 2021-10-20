@@ -4,9 +4,7 @@ package com.bme.jnsbbk.oauthserver.user.entities
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.Id
+import javax.persistence.*
 
 /**
  * Entity class representing an end user. Passwords must be encoded as a security precaution!
@@ -23,7 +21,11 @@ data class User(
     @Column(unique = true)
     private val username: String,
     private val password: String,
-    private val roles: Set<String> = setOf("USER")
+    private val roles: Set<String> = setOf("USER"),
+
+    @OneToOne(cascade = [CascadeType.ALL])
+    @JoinColumn(name = "info_id", referencedColumnName = "id")
+    var info: UserInfo = UserInfo()
 ) : UserDetails {
     override fun getUsername(): String = username
     override fun getPassword(): String = password

@@ -24,6 +24,6 @@ class ApiExceptionHandler : ResponseEntityExceptionHandler() {
      * specified in the exception.
      */
     @ExceptionHandler(ApiException::class)
-    fun handleException(e: ApiException, request: WebRequest) =
-        ResponseEntity.status(e.status).body(e.message?.let { mapOf("error" to e.message) })
+    fun handleException(e: ApiException, request: WebRequest): ResponseEntity<Map<String, String>?> =
+        ResponseEntity.status(e.status).body(e.message?.let { mapOf("error" to it) })
 }

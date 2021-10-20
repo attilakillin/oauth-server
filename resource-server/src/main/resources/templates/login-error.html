@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" class="h-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link th:href="@{/css/bootstrap.min.css}" rel="stylesheet">
+
+    <title>Authentication failed</title>
+</head>
+<body class="container h-100">
+<div class="row h-100 justify-content-center align-items-center">
+    <div class="col-md-6 col-lg-5 m-1 p-3 rounded" style="background: #eeeeee">
+        <h3 class="text-center mb-3">Authentication failed</h3>
+        <p class="text-center mb-2">Press the button below and try logging in again:</p>
+        <div class="d-grid">
+            <a class="btn btn-primary" th:href="${url}">Authenticate</a>
+        </div>
+    </div>
+</div>
+
+<script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html>

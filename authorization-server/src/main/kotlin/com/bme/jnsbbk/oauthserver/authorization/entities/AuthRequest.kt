@@ -13,7 +13,8 @@ data class AuthRequest(
     val redirectUri: String,
     val responseType: String,
     var scope: Set<String>,
-    val state: String?
+    val state: String?,
+    val nonce: String?
 ) {
     lateinit var userId: String // The user is not yet authenticated at creation
 }

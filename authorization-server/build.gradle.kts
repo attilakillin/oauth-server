@@ -2,15 +2,15 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.springframework.boot.gradle.tasks.bundling.BootJar
 
 plugins {
-    id("org.springframework.boot") version "2.5.4"
-    id("io.spring.dependency-management") version "1.0.11.RELEASE"
+    id("org.springframework.boot")
+    id("io.spring.dependency-management")
 
-    id("org.jmailen.kotlinter") version "3.6.0"
+    id("org.jmailen.kotlinter")
 
-    kotlin("jvm") version "1.5.30"
-    kotlin("kapt") version "1.5.30"
-    kotlin("plugin.spring") version "1.5.30"
-    kotlin("plugin.jpa") version "1.5.30"
+    kotlin("jvm")
+    kotlin("kapt")
+    kotlin("plugin.spring")
+    kotlin("plugin.jpa")
 }
 
 group = "com.bme.jnsbbk"

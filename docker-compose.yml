@@ -3,17 +3,36 @@ services:
     authorization-server:
         build:
             context: .
-            dockerfile: docker/authorization-server.Dockerfile
+            dockerfile: docker/springboot-server.Dockerfile
             args:
                 appconfig: config/authorization-server.yml
                 jarfile: authorization-server/build/authorization-server.jar
+                port: 8080
         image: authorization-server
         ports:
-            - 8080:8080
+            - "8080:8080"
         networks:
-            - internal
+            internal:
+                ipv4_address: 172.16.1.1
         depends_on:
             - mysql-db
+    resource-server:
+        build:
+            context: .
+            dockerfile: docker/springboot-server.Dockerfile
+            args:
+                appconfig: config/resource-server.yml
+                jarfile: resource-server/build/resource-server.jar
+                port: 8081
+        image: resource-server
+        ports:
+            - "8081:8081"
+        networks:
+            internal:
+                ipv4_address: 172.16.1.2
+        depends_on:
+            - mysql-db
+            - authorization-server
     mysql-db:
         image: mysql:8
         networks:
@@ -23,3 +42,7 @@ services:
             - MYSQL_ROOT_PASSWORD=root
 networks:
     internal:
+        ipam:
+            config:
+                - subnet: 172.16.0.0/16
+                  gateway: 172.16.0.1

@@ -5,11 +5,14 @@ import com.bme.jnsbbk.oauthserver.client.entities.Client
 import com.bme.jnsbbk.oauthserver.exceptions.BadRequestException
 import com.bme.jnsbbk.oauthserver.exceptions.badRequest
 import com.bme.jnsbbk.oauthserver.token.entities.Token
-import com.bme.jnsbbk.oauthserver.utils.getOrNull
 import com.bme.jnsbbk.oauthserver.utils.getServerBaseUrl
+import io.jsonwebtoken.Claims
 import io.jsonwebtoken.JwtBuilder
+import io.jsonwebtoken.JwtException
 import io.jsonwebtoken.Jwts
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
+import java.security.Key
 import java.util.*
 
 /**
@@ -33,22 +36,42 @@ class TokenJwtHandler(
             .compact()
     }
 
+    /** Checks whether the given JSON Web Token represents an active token. */
+    fun getValidTokenId(jwt: String): String? {
+        val unsecureJwt = jwt.replaceAfterLast('.', "")
+        val unvalidatedClaims = Jwts.parserBuilder().build().parseClaimsJwt(unsecureJwt).body
+        val key = getKeyById(unvalidatedClaims.audience).public
+
+        return parseClaimsOrNull(jwt, key)?.id
+    }
+
     /** Returns an RSA key if it exists for the given [id], or creates one if it doesn't. */
     private fun getKeyById(id: String): RSAKey =
-        rsaKeyRepository.findById(id).getOrNull() ?: rsaKeyRepository.save(RSAKey.newWithId(id))
+        rsaKeyRepository.findByIdOrNull(id) ?: rsaKeyRepository.save(RSAKey.newWithId(id))
 
     /** Either returns a valid client with the given [id], or throws a [BadRequestException]. */
     private fun getClientById(id: String): Client =
-        clientRepository.findById(id).getOrNull() ?: badRequest("invalid_client")
+        clientRepository.findByIdOrNull(id) ?: badRequest("invalid_client")
 
     /** Extension function that sets every necessary claim on the receiver JWT. */
     private fun JwtBuilder.setInfo(token: Token, client: Client): JwtBuilder {
         setIssuer(getServerBaseUrl())
         setSubject(token.userId)
-        setAudience(client.id) // TODO This is the resource server
+        setAudience(client.id) // TODO This should be the resource server
         setId(token.value)
         setIssuedAt(Date.from(token.issuedAt))
         if (token.expiresAt != null) setExpiration(Date.from(token.expiresAt))
         return this
+    }
+
+    /** Tries to unwrap the given token into a set of JSON Web Token claims. Returns null if it fails. */
+    private fun parseClaimsOrNull(token: String, key: Key): Claims? {
+        return try {
+            Jwts.parserBuilder()
+                .setSigningKey(key).build()
+                .parseClaimsJws(token).body
+        } catch (ex: JwtException) {
+            null
+        }
     }
 }

@@ -6,12 +6,16 @@ import com.bme.jnsbbk.oauthserver.client.ClientService
 import com.bme.jnsbbk.oauthserver.client.entities.Client
 import com.bme.jnsbbk.oauthserver.exceptions.badRequest
 import com.bme.jnsbbk.oauthserver.exceptions.unauthorized
+import com.bme.jnsbbk.oauthserver.jwt.IdTokenJwtHandler
+import com.bme.jnsbbk.oauthserver.jwt.TokenJwtHandler
 import com.bme.jnsbbk.oauthserver.resource.ResourceServerService
 import com.bme.jnsbbk.oauthserver.token.entities.TokenResponse
 import com.bme.jnsbbk.oauthserver.token.entities.isExpired
 import com.bme.jnsbbk.oauthserver.token.entities.isTimestampValid
+import com.bme.jnsbbk.oauthserver.user.UserService
 import com.bme.jnsbbk.oauthserver.utils.RandomString
 import com.bme.jnsbbk.oauthserver.utils.getOrNull
+import com.bme.jnsbbk.oauthserver.utils.getServerBaseUrl
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.*
@@ -23,7 +27,10 @@ class TokenController(
     private val resourceServerService: ResourceServerService,
     private val authCodeRepository: AuthCodeRepository,
     private val tokenRepository: TokenRepository,
-    private val tokenFactory: TokenFactory
+    private val tokenFactory: TokenFactory,
+    private val tokenJwtHandler: TokenJwtHandler,
+    private val idTokenJwtHandler: IdTokenJwtHandler,
+    private val userService: UserService
 ) {
 
     /**
@@ -67,7 +74,14 @@ class TokenController(
         tokenRepository.save(accessToken)
         tokenRepository.save(refreshToken)
 
-        return tokenFactory.responseJwtFromTokens(accessToken, refreshToken)
+        val response = tokenFactory.responseJwtFromTokens(accessToken, refreshToken)
+
+        val user = userService.getUserById(code.userId)
+        if ("openid" in code.scope && user != null) {
+            response.idToken = idTokenJwtHandler.createSigned(client.id, user, code.nonce)
+        }
+
+        return response
     }
 
     /** Handles responses when the grant type was 'refresh_token'. */
@@ -93,12 +107,29 @@ class TokenController(
     @PostMapping("/introspect")
     fun introspectToken(
         @RequestHeader("Authorization") header: String?, // The credentials of the resource server
-        @RequestParam params: Map<String, String>
+        @RequestBody body: Map<String, String>
     ): ResponseEntity<Map<String, String>> {
-        val server = resourceServerService.authenticateBasic(header)
+        val jwt = body["token"] ?: badRequest("invalid_request_body")
+
+        resourceServerService.authenticateBasic(header)
             ?: unauthorized("unknown_resource_server")
 
-        // TODO Implement introspection
-        return ResponseEntity.ok().build()
+        val responseOnFail = ResponseEntity.ok(mapOf("active" to "false"))
+
+        val id = tokenJwtHandler.getValidTokenId(jwt) ?: return responseOnFail
+        val token = tokenRepository.findAccessById(id) ?: return responseOnFail
+        if (!token.isTimestampValid()) return responseOnFail
+        val user = userService.getUserById(token.userId) ?: return responseOnFail
+
+        val response = mapOf(
+            "active" to "true",
+            "iss" to getServerBaseUrl(),
+            "sub" to user.id,
+            "scope" to token.scope.joinToString(" "),
+            "client_id" to token.clientId,
+            "username" to user.username
+        )
+
+        return ResponseEntity.ok(response)
     }
 }

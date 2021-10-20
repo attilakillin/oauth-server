@@ -27,6 +27,7 @@ class TokenFactoryTests {
         clientId = RandomString.generate(),
         userId = "user id",
         scope = setOf("different", "scope", "values"),
+        nonce = null,
         issuedAt = Instant.now(),
         notBefore = Instant.now(),
         expiresAt = null
