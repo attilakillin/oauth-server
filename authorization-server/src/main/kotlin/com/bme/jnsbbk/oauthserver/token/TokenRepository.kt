@@ -17,6 +17,8 @@ interface TokenRepository : JpaRepository<Token, String> {
 
     fun findFirstByValueAndType(value: String, type: TokenType): Token?
 
+    fun findAllByUserId(userId: String): List<Token>
+
     @JvmDefault // With this annotation, JPA won't try to map the function to a query.
     fun findAccessById(value: String): Token? = findFirstByValueAndType(value, TokenType.ACCESS)
     @JvmDefault

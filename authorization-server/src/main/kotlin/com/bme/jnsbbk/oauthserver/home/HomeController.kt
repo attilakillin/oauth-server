@@ -1,5 +1,7 @@
 package com.bme.jnsbbk.oauthserver.home
 
+import com.bme.jnsbbk.oauthserver.token.TokenRepository
+import com.bme.jnsbbk.oauthserver.token.entities.isTimestampValid
 import com.bme.jnsbbk.oauthserver.user.UserService
 import com.bme.jnsbbk.oauthserver.user.entities.User
 import com.bme.jnsbbk.oauthserver.user.entities.UserInfo
@@ -13,27 +15,22 @@ import org.springframework.web.bind.annotation.RequestParam
 
 @Controller
 class HomeController(
-    private val userService: UserService
+    private val userService: UserService,
+    private val tokenRepository: TokenRepository
 ) {
 
     @GetMapping("/")
     fun redirectToHome(): String = "redirect:/home"
 
     @GetMapping("/home")
-    fun getHomeRoot(
-        @AuthenticationPrincipal principal: User,
-        model: Model
-    ): String {
-        model.addAttribute("username", principal.username)
+    fun getHomeRoot(@AuthenticationPrincipal user: User, model: Model): String {
+        model.addAttribute("username", user.username)
         return "home-root"
     }
 
     @GetMapping("/home/userinfo")
-    fun getUserInfo(
-        @AuthenticationPrincipal principal: User,
-        model: Model
-    ): String {
-        model.addAttribute("userinfo", principal.info)
+    fun getUserInfo(@AuthenticationPrincipal user: User, model: Model): String {
+        model.addAttribute("userinfo", user.info)
         return "home-userinfo"
     }
 
@@ -42,14 +39,30 @@ class HomeController(
         @RequestParam("name") name: String?,
         @RequestParam("email") email: String?,
         @RequestParam("address") address: String?,
-        @AuthenticationPrincipal principal: User,
+        @AuthenticationPrincipal user: User,
         model: Model
     ): String {
-        principal.info = UserInfo.fromNullable(name, email, address)
-        userService.updateUser(principal)
+        user.info = UserInfo.fromNullable(name, email, address)
+        userService.updateUser(user)
 
-        model.addAttribute("userinfo", principal.info)
+        model.addAttribute("userinfo", user.info)
         model.addAttribute("success", true)
         return "home-userinfo"
+    }
+
+    @GetMapping("/home/authorizations")
+    fun getAuthorizations(@AuthenticationPrincipal principal: User, model: Model): String {
+        val tokens = tokenRepository.findAllByUserId(principal.id)
+        val data = tokens.map {
+            object {
+                val value = it.value
+                val clientId = it.clientId
+                val scope = it.scope.joinToString(" ")
+                val active = it.isTimestampValid()
+            }
+        }
+        model.addAttribute("tokens", data)
+
+        return "home-authorizations"
     }
 }
