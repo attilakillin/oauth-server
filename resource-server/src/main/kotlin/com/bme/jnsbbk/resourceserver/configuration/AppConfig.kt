@@ -10,7 +10,9 @@ import org.springframework.retry.annotation.EnableRetry
 @ConstructorBinding
 @ConfigurationProperties("application")
 data class AppConfig(
-    var authorizationServer: AuthorizationServer = AuthorizationServer()
+    var authorizationServer: AuthorizationServer = AuthorizationServer(),
+    /** A list of scopes that are accepted by the resource server. */
+    var scope: List<String> = listOf()
 ) {
     data class Endpoints(
         /** This endpoint is used for registering the resource server at the authorization server. */

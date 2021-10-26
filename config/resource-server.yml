@@ -17,3 +17,7 @@ application:
       registration: /oauth/resource                        # ...at this relative path.
       user-token-request: /oauth/resource/user             # Called to request (and validate respectively) a user
       user-token-validation: /oauth/resource/user/validate # token containing info about the logged-in user.
+  scope:                                                   # These scopes will be registered with the
+    - read                                                 # authorization server upon startup.
+    - edit
+    - delete

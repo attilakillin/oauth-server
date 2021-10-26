@@ -2,6 +2,7 @@ package com.bme.jnsbbk.resourceserver.configuration
 
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.SmartInitializingSingleton
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
@@ -26,7 +27,11 @@ class ConnectionInitializer(
     @Retryable(maxAttempts = 5, backoff = Backoff(delay = 3000, multiplier = 1.5))
     override fun afterSingletonsInstantiated() {
         val headers = HttpHeaders().apply { contentType = MediaType.APPLICATION_JSON }
-        val request = HttpEntity(mapOf("scope" to "alfa beta gamma delta"), headers) // TODO Don't hardcode this
+        val request = HttpEntity(mapOf(
+            "id" to propertyRepository.findByIdOrNull(Property.Key.ID)?.value,
+            "secret" to propertyRepository.findByIdOrNull(Property.Key.SECRET)?.value,
+            "scope" to appConfig.scope.joinToString(" ")
+        ), headers)
 
         val url = appConfig.authorizationServer.url + appConfig.authorizationServer.endpoints.registration
         val response = RestTemplate().postForObject<ResponseObject>(url, request)
