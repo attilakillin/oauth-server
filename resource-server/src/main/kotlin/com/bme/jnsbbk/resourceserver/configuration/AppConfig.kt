@@ -21,6 +21,8 @@ data class AppConfig(
         val userTokenRequest: String = "",
         /** Called to validate user tokens. */
         val userTokenValidation: String = "",
+        /** Called to introspect tokens received from OAuth clients. */
+        val tokenIntrospection: String = ""
     )
 
     data class AuthorizationServer(
