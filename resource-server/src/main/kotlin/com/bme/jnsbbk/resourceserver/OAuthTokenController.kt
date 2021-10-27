@@ -12,6 +12,7 @@ import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.client.RestTemplate
@@ -26,17 +27,43 @@ class OAuthTokenController(
 ) {
 
     @GetMapping
-    fun handleRequest(@RequestParam token: String?): ResponseEntity<UserData> {
-        if (token == null) return ResponseEntity.badRequest().build()
+    fun handleQuery(@RequestParam token: String?): ResponseEntity<Map<String, String?>> {
+        if (token == null)
+            return ResponseEntity.status(400).body(mapOf("error" to "no_token"))
 
         val response = introspectToken(token)
-        if (response == null || response.active == "false") return ResponseEntity.status(401).build()
+        if (response == null || response.active == "false")
+            return ResponseEntity.status(401).body(mapOf("error" to "invalid_token"))
 
-        val userData = userDataRepository.findByIdOrNull(response.username)
+        val user = userDataRepository.findByIdOrNull(response.username)
 
-        // TODO Scope validation
+        val scope = response.scope.split(" ")
+        if ("read" !in scope)
+            return ResponseEntity.status(401).body(mapOf("error" to "invalid_scope"))
 
-        return ResponseEntity.ok(userData)
+        return ResponseEntity.ok(mapOf("username" to response.username, "notes" to user?.notes))
+    }
+
+    @PostMapping
+    fun handleUpdate(
+        @RequestParam token: String?,
+        @RequestParam notes: String?
+    ): ResponseEntity<Map<String, String?>> {
+        if (token == null || notes == null)
+            return ResponseEntity.status(400).body(mapOf("error" to "no_token_or_notes"))
+
+        val response = introspectToken(token)
+        if (response == null || response.active == "false")
+            return ResponseEntity.status(401).body(mapOf("error" to "invalid_token"))
+
+        val scope = response.scope.split(" ")
+        if ("write" !in scope)
+            return ResponseEntity.status(401).body(mapOf("error" to "invalid_scope"))
+
+        val userData = UserData(response.username, notes)
+        userDataRepository.save(userData)
+
+        return ResponseEntity.status(204).build()
     }
 
     private data class IntrospectResponse(
