@@ -52,6 +52,14 @@ class ResourceServerController(
         if (!accepted) {
             badRequest("unknown_resource_server_url: $url")
         }
+
+        if (params.id != null && params.secret != null) {
+            val saved = resourceServerService.getServerById(params.id)
+            if (saved != null && saved.secret == params.secret && saved.scope == params.scope) {
+                return ResponseEntity.ok(saved)
+            }
+        }
+
         if (resourceServerService.serverExistsByUrl(url)) {
             badRequest("resource_server_already_registered")
         }

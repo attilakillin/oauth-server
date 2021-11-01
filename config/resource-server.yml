@@ -15,5 +15,9 @@ application:
     url: http://172.16.1.1:8080                            # The resource server will try to connect to this URL
     endpoints:
       registration: /oauth/resource                        # ...at this relative path.
+      token-introspection: /oauth/token/introspect         # Called to verify tokens received from clients.
       user-token-request: /oauth/resource/user             # Called to request (and validate respectively) a user
       user-token-validation: /oauth/resource/user/validate # token containing info about the logged-in user.
+  scope:                                                   # These scopes will be registered with the
+    - read                                                 # authorization server upon startup.
+    - write

@@ -6,6 +6,5 @@ import javax.persistence.Id
 @Entity
 data class UserData(
     @Id val username: String,
-    val email: String?,
-    val address: String?
+    val notes: String = ""
 )

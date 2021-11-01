@@ -12,14 +12,13 @@
     <div class="col-md-11 col-lg-10 m-1 p-3 rounded" style="background: #eeeeee">
         <form th:action="@{/}" method="post">
             <h3 class="text-center" th:text="${'Welcome, ' + user.username + '!'}"></h3>
+
             <div class="mb-3">
-                <label for="email" class="form-label">Email:</label>
-                <input name="email" id="email" class="form-control" th:value="${user.email}">
+                <label for="notes">Edit your notes below:</label>
+                <textarea name="notes" id="notes" class="form-control"
+                          th:field="${user.notes}" rows="10"></textarea>
             </div>
-            <div class="mb-3">
-                <label for="address" class="form-label">Address:</label>
-                <input name="address" id="address" class="form-control" th:value="${user.address}">
-            </div>
+
             <input type="hidden" name="username" th:value="${user.username}">
             <input type="hidden" name="token" th:value="${token}">
             <div class="mb-3" th:if="${success}">
