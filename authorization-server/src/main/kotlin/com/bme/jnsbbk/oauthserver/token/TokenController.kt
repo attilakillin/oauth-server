@@ -16,6 +16,8 @@ import com.bme.jnsbbk.oauthserver.user.UserService
 import com.bme.jnsbbk.oauthserver.utils.RandomString
 import com.bme.jnsbbk.oauthserver.utils.getOrNull
 import com.bme.jnsbbk.oauthserver.utils.getServerBaseUrl
+import io.jsonwebtoken.MalformedJwtException
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.*
@@ -131,5 +133,28 @@ class TokenController(
         )
 
         return ResponseEntity.ok(response)
+    }
+
+    @PostMapping("/revoke")
+    fun revokeToken(
+        @RequestHeader("Authorization") header: String?, // The credentials of the client
+        @RequestParam params: Map<String, String>
+    ): ResponseEntity<Unit> {
+        val client = clientService.authenticateWithEither(header, params)
+            ?: unauthorized("invalid_client")
+
+        val jwt = params["token"] ?: badRequest("no_token")
+
+        var tokenId = jwt
+        try { // We try to parse the token as a JWT, but continue silently if we fail
+            if (jwt.contains('.'))
+                tokenId = tokenJwtHandler.getValidTokenId(jwt) ?: return ResponseEntity.ok().build()
+        } catch (ignored: MalformedJwtException) {}
+
+        val token = tokenRepository.findByIdOrNull(tokenId) ?: return ResponseEntity.ok().build()
+
+        if (token.clientId == client.id) tokenRepository.deleteById(tokenId)
+
+        return ResponseEntity.ok().build()
     }
 }
