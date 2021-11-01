@@ -143,12 +143,12 @@ class TokenController(
         val client = clientService.authenticateWithEither(header, params)
             ?: unauthorized("invalid_client")
 
-        val jwt = params["token"] ?: badRequest("no_token")
+        val tokenIn = params["token"] ?: badRequest("no_token")
 
-        var tokenId = jwt
+        var tokenId = tokenIn
         try { // We try to parse the token as a JWT, but continue silently if we fail
-            if (jwt.contains('.'))
-                tokenId = tokenJwtHandler.getValidTokenId(jwt) ?: return ResponseEntity.ok().build()
+            if (tokenIn.contains('.'))
+                tokenId = tokenJwtHandler.getValidTokenId(tokenIn) ?: return ResponseEntity.ok().build()
         } catch (ignored: MalformedJwtException) {}
 
         val token = tokenRepository.findByIdOrNull(tokenId) ?: return ResponseEntity.ok().build()

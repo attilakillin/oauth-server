@@ -6,6 +6,7 @@ import com.bme.jnsbbk.oauthserver.user.UserService
 import com.bme.jnsbbk.oauthserver.user.entities.User
 import com.bme.jnsbbk.oauthserver.user.entities.UserInfo
 import com.bme.jnsbbk.oauthserver.user.entities.fromNullable
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
@@ -52,17 +53,47 @@ class HomeController(
 
     @GetMapping("/home/authorizations")
     fun getAuthorizations(@AuthenticationPrincipal principal: User, model: Model): String {
-        val tokens = tokenRepository.findAllByUserId(principal.id)
-        val data = tokens.map {
-            object {
-                val value = it.value
-                val clientId = it.clientId
-                val scope = it.scope.joinToString(" ")
-                val active = it.isTimestampValid()
-            }
-        }
-        model.addAttribute("tokens", data)
-
+        fillModelWithTokens(principal.id, model)
         return "home-authorizations"
     }
+
+    @PostMapping("/home/authorizations/revoke")
+    fun revokeToken(
+        @AuthenticationPrincipal principal: User,
+        @RequestParam("token") tokenId: String,
+        model: Model
+    ): String {
+        val token = tokenRepository.findByIdOrNull(tokenId)
+        if (token != null && token.userId == principal.id) {
+            tokenRepository.deleteById(tokenId)
+            model.addAttribute("revoke_success", true)
+        } else {
+            model.addAttribute("revoke_failure", true)
+        }
+
+        fillModelWithTokens(principal.id, model)
+        return "home-authorizations"
+    }
+
+    private fun fillModelWithTokens(userId: String, model: Model) {
+        val tokens = tokenRepository.findAllByUserId(userId).map {
+            TokenRow(
+                value = it.value,
+                type = it.type.name,
+                clientId = it.clientId,
+                scope = it.scope.joinToString(" "),
+                active = if (it.isTimestampValid()) "Yes" else "No"
+            )
+        }
+
+        model.addAttribute("tokens", tokens)
+    }
+
+    data class TokenRow(
+        val value: String,
+        val type: String,
+        val clientId: String,
+        val scope: String,
+        val active: String
+    )
 }
