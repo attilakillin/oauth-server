@@ -3,6 +3,8 @@ package com.bme.jnsbbk.oauthserver.authorization
 import com.bme.jnsbbk.oauthserver.authorization.entities.AuthRequest
 import com.bme.jnsbbk.oauthserver.authorization.entities.UnvalidatedAuthRequest
 import com.bme.jnsbbk.oauthserver.client.ClientRepository
+import com.bme.jnsbbk.oauthserver.token.TokenFactory
+import com.bme.jnsbbk.oauthserver.token.TokenRepository
 import com.bme.jnsbbk.oauthserver.user.UserRepository
 import com.bme.jnsbbk.oauthserver.utils.RandomString
 import com.fasterxml.jackson.module.kotlin.convertValue
@@ -23,6 +25,8 @@ class AuthorizationController(
     private val clientRepository: ClientRepository,
     private val authCodeRepository: AuthCodeRepository,
     private val authCodeFactory: AuthCodeFactory,
+    private val tokenFactory: TokenFactory,
+    private val tokenRepository: TokenRepository,
     private val userRepository: UserRepository
 ) {
     private val requests = mutableMapOf<String, AuthRequest>()
@@ -71,6 +75,15 @@ class AuthorizationController(
         request.userId = userRepository.findByUsername(principal.name)?.id
             ?: return errorPageWithReason(model, "User authentication failed!")
 
+        return when (request.responseType) {
+            "code" -> handleCodeResponse(params, request)
+            "token" -> handleTokenResponse(params, request)
+            else -> redirectWithError(request.redirectUri, "unsupported_response_type")
+        }
+    }
+
+    /** Handles responses to valid authorization code requests. */
+    private fun handleCodeResponse(params: Map<String, String>, request: AuthRequest): String {
         if (params["approve"] == null)
             return redirectWithError(request.redirectUri, "access_denied")
 
@@ -80,10 +93,41 @@ class AuthorizationController(
         }
         request.scope = scope
 
-        return when (request.responseType) {
-            "code" -> handleCodeResponse(request)
-            else -> redirectWithError(request.redirectUri, "unsupported_response_type")
+        val code = RandomString.generateUntil(16) { !authCodeRepository.existsById(it) }
+        authCodeRepository.save(authCodeFactory.fromRequest(code, request))
+
+        return "redirect:" +
+                buildUrlWithParams(request.redirectUri, mapOf("code" to code, "state" to request.state))
+    }
+
+    private fun handleTokenResponse(params: Map<String, String>, request: AuthRequest): String {
+        if (params["approve"] == null)
+            return redirectWithError(request.redirectUri, "access_denied", true)
+
+        val scope = getScopeFrom(params)
+        scope.forEach {
+            if (it !in request.scope)
+                return redirectWithError(request.redirectUri, "invalid_scope", true)
         }
+        request.scope = scope
+
+        val code = authCodeFactory.fromRequest("irrelevant", request)
+        val access = tokenFactory.accessFromCode(
+            RandomString.generateUntil { !tokenRepository.existsById(it) },
+            code
+        )
+        tokenRepository.save(access)
+        val response = tokenFactory.responseJwtFromTokens(access, null)
+
+        val responseMap = mapOf(
+            "access_token" to response.accessToken,
+            "token_type" to response.tokenType,
+            "scope" to response.scope.joinToString(" "),
+            "state" to request.state
+        )
+
+        return "redirect:" +
+                buildUrlWithFragment(request.redirectUri, responseMap)
     }
 
     private fun Model.addClientAttributes(id: String) {
@@ -91,10 +135,19 @@ class AuthorizationController(
         this.addAttribute("client_name", client.extraData["client_name"])
     }
 
-    private fun buildURL(base: String, params: Map<String, String?>): String {
+    private fun buildUrlWithParams(base: String, params: Map<String, String?>): String {
         val builder = UriComponentsBuilder.fromUriString(base)
         params.forEach { (key, value) -> if (value != null) builder.queryParam(key, value) }
         return builder.toUriString()
+    }
+
+    private fun buildUrlWithFragment(base: String, params: Map<String, String?>): String {
+        val fragmentBuilder = UriComponentsBuilder.fromUriString("")
+        params.forEach { (key, value) -> if (value != null) fragmentBuilder.queryParam(key, value) }
+        return UriComponentsBuilder
+            .fromUriString(base)
+            .fragment(fragmentBuilder.toUriString().removePrefix("?"))
+            .toUriString()
     }
 
     private fun errorPageWithReason(model: Model, reason: String): String {
@@ -102,8 +155,12 @@ class AuthorizationController(
         return "auth_error"
     }
 
-    private fun redirectWithError(redirectUri: String, error: String) =
-        "redirect:" + buildURL(redirectUri, mapOf("error" to error))
+    private fun redirectWithError(redirectUri: String, error: String, inFragment: Boolean = false): String {
+        return if (inFragment)
+            "redirect:" + buildUrlWithFragment(redirectUri, mapOf("error" to error))
+        else
+            "redirect:" + buildUrlWithParams(redirectUri, mapOf("error" to error))
+    }
 
     private fun getScopeFrom(params: Map<String, String>): Set<String> {
         return params
@@ -114,12 +171,4 @@ class AuthorizationController(
             .toSet()
     }
 
-    /** Handles responses to valid authorization code requests. */
-    private fun handleCodeResponse(request: AuthRequest): String {
-        val code = RandomString.generateUntil(16) { !authCodeRepository.existsById(it) }
-        authCodeRepository.save(authCodeFactory.fromRequest(code, request))
-
-        return "redirect:" +
-            buildURL(request.redirectUri, mapOf("code" to code, "state" to request.state))
-    }
 }

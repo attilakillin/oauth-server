@@ -3,6 +3,8 @@ package com.bme.jnsbbk.oauthserver.authorization
 import com.bme.jnsbbk.oauthserver.authorization.entities.AuthRequest
 import com.bme.jnsbbk.oauthserver.client.ClientRepository
 import com.bme.jnsbbk.oauthserver.client.entities.Client
+import com.bme.jnsbbk.oauthserver.token.TokenFactory
+import com.bme.jnsbbk.oauthserver.token.TokenRepository
 import com.bme.jnsbbk.oauthserver.user.UserRepository
 import com.bme.jnsbbk.oauthserver.user.UserService
 import com.bme.jnsbbk.oauthserver.utils.RandomString
@@ -36,6 +38,8 @@ class AuthorizationControllerTests {
     @MockkBean private lateinit var passwordEncoder: PasswordEncoder
     @MockkBean private lateinit var authCodeRepository: AuthCodeRepository
     @MockkBean private lateinit var authCodeFactory: AuthCodeFactory
+    @MockkBean private lateinit var tokenFactory: TokenFactory
+    @MockkBean private lateinit var tokenRepository: TokenRepository
 
     @Test
     fun authorizationRequested_showsErrorOnSensitiveInfoIssue() {

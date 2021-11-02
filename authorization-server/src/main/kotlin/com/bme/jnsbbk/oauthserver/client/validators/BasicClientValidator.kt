@@ -21,7 +21,7 @@ class BasicClientValidator : ClientValidator {
     private object Accepted {
         val authMethods = arrayOf("none", "client_secret_basic", "client_secret_post")
         val authMethodsWithSecret = arrayOf("client_secret_basic", "client_secret_post")
-        val grantPairs = mapOf("authorization_code" to "code")
+        val grantPairs = mapOf("authorization_code" to "code", "implicit" to "token")
     }
 
     override fun validateNewOrElse(new: UnvalidatedClient, onFailure: () -> Nothing): Client {

@@ -64,14 +64,16 @@ class TokenController(
         val message = "invalid_grant"
         if (codeValue == null) badRequest(message)
 
-        val code = authCodeRepository.findById(codeValue).getOrNull() ?: badRequest(message)
+        val code = authCodeRepository.findByIdOrNull(codeValue) ?: badRequest(message)
 
         authCodeRepository.delete(code) // The code exists, and was used, so it must be deleted
 
         if (code.clientId != client.id || !code.isTimestampValid()) badRequest(message)
 
-        val accessToken = tokenFactory.accessFromCode(RandomString.generate(), code)
-        val refreshToken = tokenFactory.refreshFromCode(RandomString.generate(), code)
+        fun generateUnique(): String = RandomString.generateUntil { !tokenRepository.existsById(it) }
+
+        val accessToken = tokenFactory.accessFromCode(generateUnique(), code)
+        val refreshToken = tokenFactory.refreshFromCode(generateUnique(), code)
 
         tokenRepository.save(accessToken)
         tokenRepository.save(refreshToken)
@@ -118,7 +120,11 @@ class TokenController(
 
         val responseOnFail = ResponseEntity.ok(mapOf("active" to "false"))
 
-        val id = tokenJwtHandler.getValidTokenId(jwt) ?: return responseOnFail
+        val id = try {
+            tokenJwtHandler.getValidTokenId(jwt) ?: return responseOnFail
+        } catch (ex: MalformedJwtException) {
+            badRequest("malformed_token")
+        }
         val token = tokenRepository.findAccessById(id) ?: return responseOnFail
         if (!token.isTimestampValid()) return responseOnFail
         val user = userService.getUserById(token.userId) ?: return responseOnFail

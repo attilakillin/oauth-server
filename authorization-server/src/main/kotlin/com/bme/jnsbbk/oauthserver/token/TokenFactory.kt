@@ -30,7 +30,7 @@ class TokenFactory(
     }
 
     /** Creates a JWT token response from the given [access] and [refresh] tokens. */
-    fun responseJwtFromTokens(access: Token, refresh: Token): TokenResponse {
+    fun responseJwtFromTokens(access: Token, refresh: Token?): TokenResponse {
         val expiresIn = if (access.expiresAt == null) {
             null
         } else {
@@ -39,7 +39,7 @@ class TokenFactory(
 
         return TokenResponse(
             accessToken = jwtHandler.createSignedAccess(access),
-            refreshToken = refresh.value,
+            refreshToken = refresh?.value,
             tokenType = "Bearer",
             expiresIn = expiresIn,
             scope = access.scope

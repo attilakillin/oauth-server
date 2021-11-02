@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
@@ -145,9 +146,10 @@ class TokenControllerTests {
         )
 
         every { clientService.authenticateWithEither(any(), any()) } returns client
-        every { authCodeRepository.findById(any()) } returns Optional.of(code)
+        every { authCodeRepository.findByIdOrNull(any()) } returns code
         every { authCodeRepository.delete(any()) } just runs
         every { tokenRepository.save(any()) } answers { firstArg() }
+        every { tokenRepository.existsById(any()) } returns false
         every { tokenFactory.accessFromCode(any(), any()) } returns access
         every { tokenFactory.refreshFromCode(any(), any()) } returns refresh
         every { tokenFactory.responseJwtFromTokens(any(), any()) } returns response
