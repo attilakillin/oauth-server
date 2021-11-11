@@ -10,8 +10,8 @@ spring:
 # Settings related to this specific application
 application:
   resource-servers:
-    urls:                                    # If the URL of a resource server registration request
-      - 172.16.0.0/16                        # is not whitelisted here, the request will be denied.
+    urls:                                    # If the base URL of a resource server registration request
+      - http://localhost:8081                # is not whitelisted here, the request will be denied.
     user-token:
       lifespan: 60                           # The lifespan of user tokens issued to resource servers.
   scheduling:

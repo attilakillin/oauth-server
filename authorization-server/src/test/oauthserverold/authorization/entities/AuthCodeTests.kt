@@ -1,6 +1,9 @@
-package com.bme.jnsbbk.oauthserver.authorization.entities
+package com.bme.jnsbbk.oauthserverold.authorization.entities
 
-import com.bme.jnsbbk.oauthserver.forManyTimestampCombinations
+import com.bme.jnsbbk.oauthserver.authorization.entities.AuthCode
+import com.bme.jnsbbk.oauthserver.authorization.entities.isExpired
+import com.bme.jnsbbk.oauthserver.authorization.entities.isTimestampValid
+import com.bme.jnsbbk.oauthserverold.forManyTimestampCombinations
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.time.Instant

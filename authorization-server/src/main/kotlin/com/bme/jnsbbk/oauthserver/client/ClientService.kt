@@ -2,7 +2,7 @@ package com.bme.jnsbbk.oauthserver.client
 
 import com.bme.jnsbbk.oauthserver.client.entities.Client
 import com.bme.jnsbbk.oauthserver.utils.decodeAsHttpBasic
-import com.bme.jnsbbk.oauthserver.utils.getOrNull
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 
 @Service
@@ -11,7 +11,7 @@ class ClientService(
 ) {
     /** Authenticate a client based on its ID and secret. Returns null if unauthorized. */
     fun authenticate(id: String, secret: String): Client? {
-        val client = clientRepository.findById(id).getOrNull() ?: return null
+        val client = clientRepository.findByIdOrNull(id) ?: return null
         return if (client.secret == secret) client else null
     }
 

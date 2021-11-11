@@ -1,4 +1,4 @@
-package com.bme.jnsbbk.oauthserver.token
+package com.bme.jnsbbk.oauthserverold.token
 
 import com.bme.jnsbbk.oauthserver.authorization.AuthCodeRepository
 import com.bme.jnsbbk.oauthserver.authorization.entities.AuthCode
@@ -7,6 +7,9 @@ import com.bme.jnsbbk.oauthserver.client.entities.Client
 import com.bme.jnsbbk.oauthserver.jwt.IdTokenJwtHandler
 import com.bme.jnsbbk.oauthserver.jwt.TokenJwtHandler
 import com.bme.jnsbbk.oauthserver.resource.ResourceServerService
+import com.bme.jnsbbk.oauthserver.token.TokenController
+import com.bme.jnsbbk.oauthserver.token.TokenFactory
+import com.bme.jnsbbk.oauthserver.token.TokenRepository
 import com.bme.jnsbbk.oauthserver.token.entities.Token
 import com.bme.jnsbbk.oauthserver.token.entities.TokenResponse
 import com.bme.jnsbbk.oauthserver.token.entities.TokenType

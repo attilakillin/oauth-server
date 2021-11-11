@@ -1,5 +1,8 @@
-package com.bme.jnsbbk.oauthserver.exceptions
+package com.bme.jnsbbk.oauthserverold.exceptions
 
+import com.bme.jnsbbk.oauthserver.exceptions.ApiException
+import com.bme.jnsbbk.oauthserver.exceptions.badRequest
+import com.bme.jnsbbk.oauthserver.exceptions.unauthorized
 import com.bme.jnsbbk.oauthserver.user.UserService
 import com.ninjasquad.springmockk.MockkBean
 import org.hamcrest.Matchers.containsString

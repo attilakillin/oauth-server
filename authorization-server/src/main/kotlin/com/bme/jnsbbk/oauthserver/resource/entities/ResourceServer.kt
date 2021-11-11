@@ -17,7 +17,7 @@ data class ResourceServer(
     @Id val id: String,
     val secret: String,
     @Column(unique = true)
-    val url: String,
+    val baseUrl: String,
     @JsonSerialize(using = SpacedSetSerializer::class)
     val scope: Set<String>
 )

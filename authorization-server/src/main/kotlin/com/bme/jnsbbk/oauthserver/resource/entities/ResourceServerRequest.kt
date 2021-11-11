@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 data class ResourceServerRequest(
     val id: String?,
     val secret: String?,
+    val baseUrl: String?,
     @JsonDeserialize(using = SpacedSetDeserializer::class)
     val scope: Set<String>
 )

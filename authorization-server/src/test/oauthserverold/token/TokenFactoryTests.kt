@@ -1,8 +1,9 @@
-package com.bme.jnsbbk.oauthserver.token
+package com.bme.jnsbbk.oauthserverold.token
 
 import com.bme.jnsbbk.oauthserver.authorization.entities.AuthCode
 import com.bme.jnsbbk.oauthserver.config.AppConfig
 import com.bme.jnsbbk.oauthserver.jwt.TokenJwtHandler
+import com.bme.jnsbbk.oauthserver.token.TokenFactory
 import com.bme.jnsbbk.oauthserver.token.entities.TokenType
 import com.bme.jnsbbk.oauthserver.utils.RandomString
 import io.mockk.every

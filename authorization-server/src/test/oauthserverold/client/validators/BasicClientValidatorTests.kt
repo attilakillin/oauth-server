@@ -1,10 +1,11 @@
-package com.bme.jnsbbk.oauthserver.client.validators
+package com.bme.jnsbbk.oauthserverold.client.validators
 
-import com.bme.jnsbbk.oauthserver.ValidationException
+import com.bme.jnsbbk.oauthserverold.ValidationException
 import com.bme.jnsbbk.oauthserver.client.ClientRepository
 import com.bme.jnsbbk.oauthserver.client.entities.Client
 import com.bme.jnsbbk.oauthserver.client.entities.UnvalidatedClient
-import com.bme.jnsbbk.oauthserver.onError
+import com.bme.jnsbbk.oauthserver.client.validators.BasicClientValidator
+import com.bme.jnsbbk.oauthserverold.onError
 import com.bme.jnsbbk.oauthserver.utils.StringSetConverter
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs

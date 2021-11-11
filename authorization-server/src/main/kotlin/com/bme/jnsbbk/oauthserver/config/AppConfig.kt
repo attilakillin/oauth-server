@@ -20,7 +20,7 @@ data class AppConfig(
     )
 
     data class ResourceServers(
-        /** Every URL (or subnet) the server should accept as a valid resource server URL must be listed here. */
+        /** Every URL the server should accept as a valid resource server base URL must be listed here. */
         val urls: List<String> = listOf(),
         /** The lifespan of the token issued to resource servers which authenticate a specific user. */
         val userToken: Lifespan = Lifespan()

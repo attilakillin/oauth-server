@@ -88,7 +88,10 @@ class BasicClientValidator : ClientValidator {
             val response = Accepted.grantPairs[it]
             if (response != null) responses.add(response)
         }
-        responses.forEach { grants.add(Accepted.grantPairs.findKey(it)) }
+        responses.forEach {
+            val grant = Accepted.grantPairs.findKey(it)
+            if (grant != null) grants.add(grant)
+        }
 
         grantTypes = grants
         responseTypes = responses

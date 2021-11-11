@@ -21,14 +21,16 @@ class IdTokenJwtHandler(
     // TODO Publish public key somewhere
 
     /** Creates a signed JWT with the resource server id as the audience and the user id as the subject. */
-    fun createSigned(clientId: String, user: User, nonce: String?): String {
+    fun createSigned(clientId: String, user: User, scope: Set<String>, nonce: String?): String {
         val lifespan = appConfig.tokens.idToken
         val now = Instant.now()
 
         val additionalClaims = mutableMapOf<String, Any>()
         if (nonce != null) additionalClaims["nonce"] = nonce
 
-        // TODO Based on the request scope, add additional data
+        if ("profile" in scope) additionalClaims["name"] = user.info.name
+        if ("email" in scope) additionalClaims["email"] = user.info.email
+        if ("address" in scope) additionalClaims["address"] = user.info.address
 
         return Jwts.builder()
             .setHeader(mapOf("typ" to "JWT", "alg" to RSAKey.algorithm, "kid" to id))

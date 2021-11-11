@@ -9,7 +9,6 @@ import com.bme.jnsbbk.oauthserver.resource.entities.ResourceServerRequest
 import com.bme.jnsbbk.oauthserver.user.entities.User
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
-import org.springframework.security.web.util.matcher.IpAddressMatcher
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.util.UriComponentsBuilder
@@ -38,19 +37,8 @@ class ResourceServerController(
         @RequestBody params: ResourceServerRequest,
         request: HttpServletRequest
     ): ResponseEntity<ResourceServer> {
-        val url = request.remoteHost
-
-        var accepted = false
-        for (allowedUrl in appConfig.resourceServers.urls) {
-            val matcher = IpAddressMatcher(allowedUrl)
-            if (matcher.matches(url)) {
-                accepted = true
-                break
-            }
-        }
-
-        if (!accepted) {
-            badRequest("unknown_resource_server_url: $url")
+        if (params.baseUrl == null || params.baseUrl !in appConfig.resourceServers.urls) {
+            badRequest("unknown_resource_server_url: ${params.baseUrl}")
         }
 
         if (params.id != null && params.secret != null) {
@@ -60,11 +48,11 @@ class ResourceServerController(
             }
         }
 
-        if (resourceServerService.serverExistsByUrl(url)) {
+        if (resourceServerService.serverExistsByUrl(params.baseUrl)) {
             badRequest("resource_server_already_registered")
         }
 
-        val rs = resourceServerService.createServer(url, params.scope)
+        val rs = resourceServerService.createServer(params.baseUrl, params.scope)
         return ResponseEntity.ok(rs)
     }
 
@@ -83,7 +71,7 @@ class ResourceServerController(
         @AuthenticationPrincipal user: User
     ): String {
         val server = resourceServerService.getServerById(serverId) ?: unauthorized("unknown_resource_server")
-        val redirectUri = "http://${server.url}:8081" + (redirectPath ?: "") // TODO Temporary
+        val redirectUri = server.baseUrl + (redirectPath ?: "")
 
         val token = resourceServerJwtHandler.createSigned(serverId, user.id)
         val encodedToken = Base64.getUrlEncoder().encodeToString(token.toByteArray(Charsets.UTF_8))

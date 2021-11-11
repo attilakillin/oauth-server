@@ -1,5 +1,6 @@
-package com.bme.jnsbbk.oauthserver.authorization
+package com.bme.jnsbbk.oauthserverold.authorization
 
+import com.bme.jnsbbk.oauthserver.authorization.AuthCodeFactory
 import com.bme.jnsbbk.oauthserver.authorization.entities.AuthRequest
 import com.bme.jnsbbk.oauthserver.config.AppConfig
 import com.bme.jnsbbk.oauthserver.utils.RandomString

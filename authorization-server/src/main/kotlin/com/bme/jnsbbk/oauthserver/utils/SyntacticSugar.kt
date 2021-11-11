@@ -3,9 +3,6 @@ package com.bme.jnsbbk.oauthserver.utils
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder
 import java.util.*
 
-/** Provides a Kotlin-idiomatic wrapper for getting a value from an [Optional]. */
-fun <T> Optional<T>.getOrNull(): T? = if (isPresent) get() else null
-
 /**
  * Provides easy access to the base URL of the server.
  *
@@ -21,7 +18,7 @@ fun anyNotNull(vararg things: Any?) = things.any { it != null }
 fun anyTrue(vararg things: Boolean) = things.any { it }
 
 /** Method to find a key of a given [Map] with the given [value]. */
-fun <K, V> Map<K, V>.findKey(value: V) = filterValues { it == value }.keys.first()
+fun <K, V> Map<K, V>.findKey(value: V): K? = filterValues { it == value }.keys.firstOrNull()
 
 /** Decode a string as if it was a HTTP Basic header string with a Base64 encoded 'value:value' pattern. */
 fun String.decodeAsHttpBasic(): Pair<String, String>? {

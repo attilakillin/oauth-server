@@ -3,6 +3,7 @@ package com.bme.jnsbbk.oauthserver.authorization
 import com.bme.jnsbbk.oauthserver.authorization.entities.AuthRequest
 import com.bme.jnsbbk.oauthserver.authorization.entities.UnvalidatedAuthRequest
 import com.bme.jnsbbk.oauthserver.client.ClientRepository
+import com.bme.jnsbbk.oauthserver.config.ServerMetadata
 import com.bme.jnsbbk.oauthserver.token.TokenFactory
 import com.bme.jnsbbk.oauthserver.token.TokenRepository
 import com.bme.jnsbbk.oauthserver.user.UserRepository
@@ -19,7 +20,7 @@ import org.springframework.web.util.UriComponentsBuilder
 import java.security.Principal
 
 @Controller
-@RequestMapping("/oauth/authorize")
+@RequestMapping(ServerMetadata.Endpoints.authorization)
 class AuthorizationController(
     private val authRequestService: AuthRequestService,
     private val clientRepository: ClientRepository,

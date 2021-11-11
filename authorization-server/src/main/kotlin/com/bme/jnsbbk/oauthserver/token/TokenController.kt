@@ -4,6 +4,7 @@ import com.bme.jnsbbk.oauthserver.authorization.AuthCodeRepository
 import com.bme.jnsbbk.oauthserver.authorization.entities.isTimestampValid
 import com.bme.jnsbbk.oauthserver.client.ClientService
 import com.bme.jnsbbk.oauthserver.client.entities.Client
+import com.bme.jnsbbk.oauthserver.config.ServerMetadata
 import com.bme.jnsbbk.oauthserver.exceptions.badRequest
 import com.bme.jnsbbk.oauthserver.exceptions.unauthorized
 import com.bme.jnsbbk.oauthserver.jwt.IdTokenJwtHandler
@@ -23,7 +24,7 @@ import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.*
 
 @Controller
-@RequestMapping("/oauth/token")
+@RequestMapping(ServerMetadata.Endpoints.token)
 class TokenController(
     private val clientService: ClientService,
     private val resourceServerService: ResourceServerService,
@@ -81,7 +82,7 @@ class TokenController(
 
         val user = userService.getUserById(code.userId)
         if ("openid" in code.scope && user != null) {
-            response.idToken = idTokenJwtHandler.createSigned(client.id, user, code.nonce)
+            response.idToken = idTokenJwtHandler.createSigned(client.id, user, code.scope, code.nonce)
         }
 
         return response

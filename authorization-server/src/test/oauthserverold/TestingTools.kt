@@ -1,4 +1,4 @@
-package com.bme.jnsbbk.oauthserver
+package com.bme.jnsbbk.oauthserverold
 
 import java.time.Instant
 

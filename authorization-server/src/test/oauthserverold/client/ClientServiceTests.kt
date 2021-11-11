@@ -1,5 +1,7 @@
-package com.bme.jnsbbk.oauthserver.client
+package com.bme.jnsbbk.oauthserverold.client
 
+import com.bme.jnsbbk.oauthserver.client.ClientRepository
+import com.bme.jnsbbk.oauthserver.client.ClientService
 import com.bme.jnsbbk.oauthserver.client.entities.Client
 import com.bme.jnsbbk.oauthserver.utils.RandomString
 import io.mockk.every

@@ -1,5 +1,8 @@
-package com.bme.jnsbbk.oauthserver.user
+package com.bme.jnsbbk.oauthserverold.user
 
+import com.bme.jnsbbk.oauthserver.user.UserController
+import com.bme.jnsbbk.oauthserver.user.UserRepository
+import com.bme.jnsbbk.oauthserver.user.UserService
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import org.junit.jupiter.api.Test

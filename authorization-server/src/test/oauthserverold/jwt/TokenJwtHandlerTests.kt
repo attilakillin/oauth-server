@@ -1,8 +1,12 @@
-package com.bme.jnsbbk.oauthserver.jwt
+package com.bme.jnsbbk.oauthserverold.jwt
 
 import com.bme.jnsbbk.oauthserver.client.ClientRepository
 import com.bme.jnsbbk.oauthserver.client.entities.Client
 import com.bme.jnsbbk.oauthserver.exceptions.ApiException
+import com.bme.jnsbbk.oauthserver.jwt.RSAKey
+import com.bme.jnsbbk.oauthserver.jwt.RSAKeyRepository
+import com.bme.jnsbbk.oauthserver.jwt.TokenJwtHandler
+import com.bme.jnsbbk.oauthserver.jwt.newWithId
 import com.bme.jnsbbk.oauthserver.token.entities.Token
 import com.bme.jnsbbk.oauthserver.token.entities.TokenType
 import com.bme.jnsbbk.oauthserver.utils.RandomString

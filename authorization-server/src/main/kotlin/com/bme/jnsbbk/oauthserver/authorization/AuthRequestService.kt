@@ -3,7 +3,7 @@ package com.bme.jnsbbk.oauthserver.authorization
 import com.bme.jnsbbk.oauthserver.authorization.entities.AuthRequest
 import com.bme.jnsbbk.oauthserver.authorization.entities.UnvalidatedAuthRequest
 import com.bme.jnsbbk.oauthserver.client.ClientRepository
-import com.bme.jnsbbk.oauthserver.utils.getOrNull
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 
 @Service
@@ -12,7 +12,7 @@ class AuthRequestService(
 ) {
 
     fun isSensitiveInfoValid(request: UnvalidatedAuthRequest): Pair<Boolean, String> {
-        val client = request.clientId?.let { clientRepository.findById(it).getOrNull() }
+        val client = request.clientId?.let { clientRepository.findByIdOrNull(it) }
             ?: return Pair(false, "Unknown client!")
 
         val redirectMissing = if (client.redirectUris.size == 1) {
