@@ -18,7 +18,7 @@ data class Token(
     @Id val value: String,
     val type: TokenType,
     val clientId: String,
-    val userId: String,
+    val userId: String?,
     val scope: Set<String>,
     val issuedAt: Instant,
     val notBefore: Instant,

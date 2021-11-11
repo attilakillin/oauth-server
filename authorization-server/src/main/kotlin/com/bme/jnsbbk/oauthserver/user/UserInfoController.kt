@@ -24,6 +24,7 @@ class UserInfoController(
         val id = tokenJwtHandler.getValidTokenId(jwt)  ?: badRequest()
         val token = tokenRepository.findAccessById(id) ?: badRequest()
         if (!token.isTimestampValid()) badRequest()
+        if (token.userId == null) badRequest()
 
         if ("openid" !in token.scope) forbidden()
 

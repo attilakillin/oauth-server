@@ -13,8 +13,8 @@ import com.bme.jnsbbk.oauthserver.token.entities.TokenResponse
 import com.bme.jnsbbk.oauthserver.token.entities.isExpired
 import com.bme.jnsbbk.oauthserver.token.entities.isTimestampValid
 import com.bme.jnsbbk.oauthserver.user.UserService
+import com.bme.jnsbbk.oauthserver.user.entities.User
 import com.bme.jnsbbk.oauthserver.utils.RandomString
-import com.bme.jnsbbk.oauthserver.utils.getOrNull
 import com.bme.jnsbbk.oauthserver.utils.getServerBaseUrl
 import io.jsonwebtoken.MalformedJwtException
 import org.springframework.data.repository.findByIdOrNull
@@ -55,6 +55,7 @@ class TokenController(
         return when (params["grant_type"]) {
             "authorization_code" -> handleAuthCode(client, params["code"])
             "refresh_token" -> handleRefreshToken(client, params["refresh_token"])
+            "client_credentials" -> handleClientCredentials(client, params["scope"])
             else -> badRequest("unsupported_grant_type")
         }
     }
@@ -70,10 +71,8 @@ class TokenController(
 
         if (code.clientId != client.id || !code.isTimestampValid()) badRequest(message)
 
-        fun generateUnique(): String = RandomString.generateUntil { !tokenRepository.existsById(it) }
-
-        val accessToken = tokenFactory.accessFromCode(generateUnique(), code)
-        val refreshToken = tokenFactory.refreshFromCode(generateUnique(), code)
+        val accessToken = tokenFactory.accessFromCode(generateUniqueId(), code)
+        val refreshToken = tokenFactory.refreshFromCode(generateUniqueId(), code)
 
         tokenRepository.save(accessToken)
         tokenRepository.save(refreshToken)
@@ -102,23 +101,38 @@ class TokenController(
 
         if (!refresh.isTimestampValid()) badRequest(message)
 
-        val access = tokenFactory.accessFromRefresh(RandomString.generate(), refresh)
+        val access = tokenFactory.accessFromRefresh(generateUniqueId(), refresh)
         tokenRepository.save(access)
 
         return tokenFactory.responseJwtFromTokens(access, refresh)
     }
 
+    private fun handleClientCredentials(client: Client, scopeString: String?): TokenResponse {
+        val scopeIn = scopeString?.split(" ")?.toSet()
+
+        if (scopeIn != null && scopeIn.any { it !in client.scope }) badRequest("invalid_scope")
+
+        val scope = scopeIn ?: client.scope
+
+        val accessToken = tokenFactory.accessFromRawData(generateUniqueId(), client.id, null, scope)
+        tokenRepository.save(accessToken)
+
+        return tokenFactory.responseJwtFromTokens(accessToken, null)
+    }
+
+    private fun generateUniqueId(): String = RandomString.generateUntil { !tokenRepository.existsById(it) }
+
     @PostMapping("/introspect")
     fun introspectToken(
         @RequestHeader("Authorization") header: String?, // The credentials of the resource server
         @RequestBody body: Map<String, String>
-    ): ResponseEntity<Map<String, String>> {
+    ): ResponseEntity<Map<String, String?>> {
         val jwt = body["token"] ?: badRequest("invalid_request_body")
 
         resourceServerService.authenticateBasic(header)
             ?: unauthorized("unknown_resource_server")
 
-        val responseOnFail = ResponseEntity.ok(mapOf("active" to "false"))
+        val responseOnFail = ResponseEntity.ok(mapOf<String, String?>("active" to "false"))
 
         val id = try {
             tokenJwtHandler.getValidTokenId(jwt) ?: return responseOnFail
@@ -127,15 +141,18 @@ class TokenController(
         }
         val token = tokenRepository.findAccessById(id) ?: return responseOnFail
         if (!token.isTimestampValid()) return responseOnFail
-        val user = userService.getUserById(token.userId) ?: return responseOnFail
+
+        var user: User? = null
+        if (token.userId != null)
+            user = userService.getUserById(token.userId) ?: return responseOnFail
 
         val response = mapOf(
             "active" to "true",
             "iss" to getServerBaseUrl(),
-            "sub" to user.id,
+            "sub" to user?.id,
             "scope" to token.scope.joinToString(" "),
             "client_id" to token.clientId,
-            "username" to user.username
+            "username" to user?.username
         )
 
         return ResponseEntity.ok(response)

@@ -29,6 +29,9 @@ class TokenFactory(
         return fromTemplate(value, refresh.getData(), appConfig.tokens.accessToken, TokenType.ACCESS)
     }
 
+    fun accessFromRawData(value: String, clientId: String, userId: String?, scope: Set<String>) =
+        fromTemplate(value, CommonData(clientId, userId, scope), appConfig.tokens.accessToken, TokenType.ACCESS)
+
     /** Creates a JWT token response from the given [access] and [refresh] tokens. */
     fun responseJwtFromTokens(access: Token, refresh: Token?): TokenResponse {
         val expiresIn = if (access.expiresAt == null) {
@@ -73,7 +76,7 @@ class TokenFactory(
      * and a new class is used to get the data needed in the fromTemplate() function. */
     private data class CommonData(
         val clientId: String,
-        val userId: String,
+        val userId: String?,
         val scope: Set<String>
     )
 

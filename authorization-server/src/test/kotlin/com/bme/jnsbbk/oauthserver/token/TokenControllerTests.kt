@@ -237,6 +237,7 @@ class TokenControllerTests {
 
         every { clientService.authenticateWithEither(any(), any()) } returns client
         every { tokenRepository.findRefreshById(any()) } returns refresh
+        every { tokenRepository.existsById(any()) } returns true
         every { tokenFactory.accessFromRefresh(any(), any()) } returns access
         every { tokenRepository.save(any()) } answers { firstArg() }
         every { tokenFactory.responseJwtFromTokens(any(), any()) } returns response
