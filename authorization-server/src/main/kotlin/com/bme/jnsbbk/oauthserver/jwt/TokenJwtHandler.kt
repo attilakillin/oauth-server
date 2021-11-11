@@ -30,7 +30,7 @@ class TokenJwtHandler(
     fun createSignedAccess(token: Token): String {
         val client = getClientById(token.clientId)
         return Jwts.builder()
-            .setHeader(mapOf("typ" to "JWT", "alg" to RSAKey.algorithm))
+            .setHeader(mapOf("typ" to "JWT", "alg" to RSAKey.algorithm, "kid" to "token_" + client.id))
             .setInfo(token, client)
             .signWith(getKeyById(client.id).private)
             .compact()
@@ -39,15 +39,19 @@ class TokenJwtHandler(
     /** Checks whether the given JSON Web Token represents an active token. */
     fun getValidTokenId(jwt: String): String? {
         val unsecureJwt = jwt.replaceAfterLast('.', "")
-        val unvalidatedClaims = Jwts.parserBuilder().build().parseClaimsJwt(unsecureJwt).body
-        val key = getKeyById(unvalidatedClaims.audience).public
+        val jwtObject = Jwts.parserBuilder().build().parseClaimsJwt(unsecureJwt)
+        if (jwtObject.header["kid"] != "token_" + jwtObject.body.audience) return null
+        val key = getKeyById(jwtObject.body.audience).public
 
         return parseClaimsOrNull(jwt, key)?.id
     }
 
     /** Returns an RSA key if it exists for the given [id], or creates one if it doesn't. */
-    private fun getKeyById(id: String): RSAKey =
-        rsaKeyRepository.findByIdOrNull(id) ?: rsaKeyRepository.save(RSAKey.newWithId(id))
+    private fun getKeyById(id: String): RSAKey {
+        val keyId = "token_$id"
+        return rsaKeyRepository.findByIdOrNull(keyId)
+            ?: rsaKeyRepository.save(RSAKey.newWithId(keyId))
+    }
 
     /** Either returns a valid client with the given [id], or throws a [BadRequestException]. */
     private fun getClientById(id: String): Client =
@@ -57,7 +61,7 @@ class TokenJwtHandler(
     private fun JwtBuilder.setInfo(token: Token, client: Client): JwtBuilder {
         setIssuer(getServerBaseUrl())
         setSubject(token.userId)
-        setAudience(client.id) // TODO This should be the resource server
+        setAudience(client.id)
         setId(token.value)
         setIssuedAt(Date.from(token.issuedAt))
         if (token.expiresAt != null) setExpiration(Date.from(token.expiresAt))

@@ -14,7 +14,7 @@ class IdTokenJwtHandler(
     private val appConfig: AppConfig,
     rsaKeyRepository: RSAKeyRepository
 ) {
-    private val id = "id-token-id"
+    private val id = "openid_idtoken"
     private val keyPair: RSAKey = rsaKeyRepository.findByIdOrNull(id)
         ?: rsaKeyRepository.save(RSAKey.newWithId(id))
 
