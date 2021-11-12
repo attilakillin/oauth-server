@@ -17,9 +17,7 @@ class IdTokenJwtHandler(
     private val id = "openid_idtoken"
     private val keyPair: RSAKey = rsaKeyRepository.findByIdOrNull(id)
         ?: rsaKeyRepository.save(RSAKey.newWithId(id))
-
-    // TODO Publish public key somewhere
-
+    
     /** Creates a signed JWT with the resource server id as the audience and the user id as the subject. */
     fun createSigned(clientId: String, user: User, scope: Set<String>, nonce: String?): String {
         val lifespan = appConfig.tokens.idToken

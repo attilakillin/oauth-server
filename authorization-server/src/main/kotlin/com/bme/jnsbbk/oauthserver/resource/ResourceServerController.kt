@@ -3,106 +3,113 @@ package com.bme.jnsbbk.oauthserver.resource
 import com.bme.jnsbbk.oauthserver.config.AppConfig
 import com.bme.jnsbbk.oauthserver.exceptions.badRequest
 import com.bme.jnsbbk.oauthserver.exceptions.unauthorized
-import com.bme.jnsbbk.oauthserver.jwt.ResourceServerJwtHandler
 import com.bme.jnsbbk.oauthserver.resource.entities.ResourceServer
 import com.bme.jnsbbk.oauthserver.resource.entities.ResourceServerRequest
 import com.bme.jnsbbk.oauthserver.user.entities.User
+import com.bme.jnsbbk.oauthserver.user.entities.mapOfUsername
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.stereotype.Controller
+import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.util.UriComponentsBuilder
-import java.util.*
-import javax.servlet.http.HttpServletRequest
 
 @Controller
 @RequestMapping("/oauth/resource")
 class ResourceServerController(
     private val resourceServerService: ResourceServerService,
-    private val resourceServerJwtHandler: ResourceServerJwtHandler,
-    private val appConfig: AppConfig
+    appConfig: AppConfig
 ) {
+    private val config = appConfig.resourceServers
 
     /**
-     * Called any time a resource server tries to register.
+     * Called when a potential resource server tries to register.
      *
-     * The sender must have its URL registered in the application's configuration file, and
-     * must provide a JSON body that corresponds to the [params] parameter.
+     * The request must include a base URL, if it is missing, or not registered in the application's
+     * configuration file, the registration fails. If the resource server sends its credentials in the
+     * request, the server will try to find a matching registration instead of creating a new one.
      *
-     * This method returns a JSON object containing the credentials of the newly registered
-     * resource server.
+     * If the base URL is otherwise already registered, the server responds with a relevant error. In
+     * any other case, a new registration is created.
      */
     @PostMapping
-    fun handleRegistration(
-        @RequestBody params: ResourceServerRequest,
-        request: HttpServletRequest
-    ): ResponseEntity<ResourceServer> {
-        if (params.baseUrl == null || params.baseUrl !in appConfig.resourceServers.urls) {
-            badRequest("unknown_resource_server_url: ${params.baseUrl}")
+    fun handleRegistration(@RequestBody request: ResourceServerRequest): ResponseEntity<ResourceServer> {
+        if (request.baseUrl == null || request.baseUrl !in config.urls) {
+            badRequest("unknown_base_url")
         }
 
-        if (params.id != null && params.secret != null) {
-            val saved = resourceServerService.getServerById(params.id)
-            if (saved != null && saved.secret == params.secret && saved.scope == params.scope) {
-                return ResponseEntity.ok(saved)
+        if (request.id != null && request.secret != null) {
+            val server = resourceServerService.getServerById(request.id)
+            if (server != null && server.secret == request.secret && server.scope == request.scope) {
+                return ResponseEntity.ok(server)
+            } else {
+                badRequest("no_matching_registration")
             }
         }
 
-        if (resourceServerService.serverExistsByUrl(params.baseUrl)) {
+        if (resourceServerService.serverExistsByUrl(request.baseUrl)) {
             badRequest("resource_server_already_registered")
         }
 
-        val rs = resourceServerService.createServer(params.baseUrl, params.scope)
-        return ResponseEntity.ok(rs)
+        val server = resourceServerService.createServer(request.baseUrl, request.scope)
+        return ResponseEntity.ok(server)
     }
 
     /**
-     * When called with a valid resource server ID, redirect the caller to that resource server
-     * with a JWT containing the ID of the currently logged-in user.
+     * Create and transfer a user authentication token using redirections.
      *
-     * Given a resource server ID and an optional redirect path, create a token that contains the ID
-     * of the current user, and redirect to the URL (and optional path) of the resource server with
-     * the token encoded as a query parameter. The URL is extracted from the resource server DB entity.
+     * Given a valid server ID and an authenticated user, create a URL encoded JSON Web Token as a proof of
+     * authentication and redirect the user back to the calling resource server using its base URL and an
+     * optional redirect path.
+     *
+     * The request fails and an error page is displayed if the server ID is invalid.
      */
     @GetMapping("/user")
     fun retrieveCurrentUser(
-        @RequestParam("server_id") serverId: String,
+        @RequestParam("server_id") serverId: String?,
         @RequestParam("redirect_path") redirectPath: String?,
-        @AuthenticationPrincipal user: User
+        @AuthenticationPrincipal user: User,
+        model: Model
     ): String {
-        val server = resourceServerService.getServerById(serverId) ?: unauthorized("unknown_resource_server")
-        val redirectUri = server.baseUrl + (redirectPath ?: "")
+        val server = resourceServerService.getServerById(serverId)
+        if (server == null) {
+            model.addAttribute("errorType", "invalid_resource_server_id")
+            return "generic-error"
+        }
 
-        val token = resourceServerJwtHandler.createSigned(serverId, user.id)
-        val encodedToken = Base64.getUrlEncoder().encodeToString(token.toByteArray(Charsets.UTF_8))
-
+        val token = resourceServerService.createEncodedUserToken(server, user)
         val url = UriComponentsBuilder
-            .fromUriString(redirectUri)
-            .queryParam("token", encodedToken)
+            .fromUriString(server.baseUrl + (redirectPath ?: ""))
+            .queryParam("token", token)
             .toUriString()
 
-        return "redirect:$url"
+        return "redirect:${url}"
     }
 
     /**
-     * Given a resource server token, and the credentials belonging to that resource server, validate
-     * the token, and respond with the properties of the user contained in said token.
+     * Validate a given user authentication token in the context of the authenticated resource server.
      *
-     * May respond with 401 if the server or the token is invalid, with 400 if the user doesn't exist,
-     * or with 200 and a JSON body containing the properties of the user.
+     * If the resource server authentication fails, or the token is invalid in the context of the resource
+     * server, a 401 response is generated with a relevant message. If the user contained in the token no
+     * longer exists, a 400 response is created.
+     *
+     * In any other case, the username of the user corresponding to the token is returned in a JSON object.
      */
     @PostMapping("/user/validate")
     @ResponseBody
     fun validateUserToken(
         @RequestHeader("Authorization") header: String?,
-        @RequestBody token: String
+        @RequestBody token: String?
     ): ResponseEntity<Map<String, String>> {
-        val server = resourceServerService.authenticateBasic(header) ?: unauthorized("unknown_resource_server")
+        val server = resourceServerService.authenticateBasic(header)
+            ?: unauthorized("unknown_resource_server")
 
-        if (!resourceServerJwtHandler.isTokenValid(token, server)) unauthorized("invalid_token")
+        if (token == null || !resourceServerService.isUserTokenValid(server, token))
+            unauthorized("invalid_token")
 
-        val user = resourceServerJwtHandler.getUserFrom(token) ?: badRequest("invalid_user")
+        val user = resourceServerService.getUserFromUserToken(server, token)
+            ?: badRequest("invalid_user")
 
-        return ResponseEntity.ok(mapOf("username" to user.username))
+        return ResponseEntity.ok(user.mapOfUsername())
     }
 }

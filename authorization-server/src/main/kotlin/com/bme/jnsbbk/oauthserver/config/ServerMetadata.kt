@@ -19,5 +19,5 @@ object ServerMetadata {
     val grantTypesSupported = arrayOf("authorization_code", "implicit", "client_credentials")
     val tokenEndpointAuthMethodsSupported = arrayOf("none", "client_secret_basic", "client_secret_post")
     val revocationEndpointAuthMethodsSupported = arrayOf("client_secret_basic")
-    val introspectionEndpointAuthMethodsSupported  = arrayOf("client_secret_basic")
+    val introspectionEndpointAuthMethodsSupported = arrayOf("client_secret_basic")
 }

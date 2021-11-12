@@ -39,3 +39,5 @@ data class User(
     override fun isCredentialsNonExpired(): Boolean = true
     override fun isEnabled(): Boolean = true
 }
+
+fun User.mapOfUsername(): Map<String, String> = mapOf("username" to username)
