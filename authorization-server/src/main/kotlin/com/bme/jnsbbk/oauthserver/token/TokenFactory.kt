@@ -2,7 +2,7 @@ package com.bme.jnsbbk.oauthserver.token
 
 import com.bme.jnsbbk.oauthserver.authorization.entities.AuthCode
 import com.bme.jnsbbk.oauthserver.config.AppConfig
-import com.bme.jnsbbk.oauthserver.jwt.TokenJwtHandler
+import com.bme.jnsbbk.oauthserver.jwt.AccessTokenHandler
 import com.bme.jnsbbk.oauthserver.token.entities.Token
 import com.bme.jnsbbk.oauthserver.token.entities.TokenResponse
 import com.bme.jnsbbk.oauthserver.token.entities.TokenType
@@ -12,36 +12,57 @@ import java.time.Instant
 
 @Service
 class TokenFactory(
-    val jwtHandler: TokenJwtHandler,
+    val accessTokenHandler: AccessTokenHandler,
     val appConfig: AppConfig
 ) {
     /** Creates an access token with the given [value] and from the given [code]. */
-    fun accessFromCode(value: String, code: AuthCode) =
-        fromTemplate(value, code.getData(), appConfig.tokens.accessToken, TokenType.ACCESS)
+    fun accessFromCode(value: String, code: AuthCode): Token {
+        return fromTemplate(
+            value = value,
+            data = code.getData(),
+            times = appConfig.tokens.accessToken,
+            type = TokenType.ACCESS
+        )
+    }
 
     /** Creates a refresh token with the given [value] and from the given [code]. */
-    fun refreshFromCode(value: String, code: AuthCode) =
-        fromTemplate(value, code.getData(), appConfig.tokens.refreshToken, TokenType.REFRESH)
+    fun refreshFromCode(value: String, code: AuthCode): Token {
+        return fromTemplate(
+            value = value,
+            data = code.getData(),
+            times = appConfig.tokens.refreshToken,
+            type = TokenType.REFRESH
+        )
+    }
 
     /** Creates an access token with the given [value] and from the given [refresh] token. */
     fun accessFromRefresh(value: String, refresh: Token): Token {
         require(refresh.type == TokenType.REFRESH)
-        return fromTemplate(value, refresh.getData(), appConfig.tokens.accessToken, TokenType.ACCESS)
+        return fromTemplate(
+            value = value,
+            data = refresh.getData(),
+            times = appConfig.tokens.accessToken,
+            type = TokenType.ACCESS
+        )
     }
 
-    fun accessFromRawData(value: String, clientId: String, userId: String?, scope: Set<String>) =
-        fromTemplate(value, CommonData(clientId, userId, scope), appConfig.tokens.accessToken, TokenType.ACCESS)
+    /** Creates an access token from raw data supplied in the parameters. */
+    fun accessFromRawData(value: String, clientId: String, userId: String?, scope: Set<String>): Token {
+        return fromTemplate(
+            value = value,
+            data = CommonData(clientId, userId, scope),
+            times = appConfig.tokens.accessToken,
+            type = TokenType.ACCESS
+        )
+    }
 
     /** Creates a JWT token response from the given [access] and [refresh] tokens. */
     fun responseJwtFromTokens(access: Token, refresh: Token?): TokenResponse {
-        val expiresIn = if (access.expiresAt == null) {
-            null
-        } else {
-            Duration.between(Instant.now(), access.expiresAt).seconds
-        }
+        val expiresIn =
+            if (access.expiresAt != null) Duration.between(Instant.now(), access.expiresAt).seconds else null
 
         return TokenResponse(
-            accessToken = jwtHandler.createSignedAccess(access),
+            accessToken = accessTokenHandler.createToken(access),
             refreshToken = refresh?.value,
             tokenType = "Bearer",
             expiresIn = expiresIn,

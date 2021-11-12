@@ -4,8 +4,6 @@ import com.bme.jnsbbk.oauthserver.token.TokenRepository
 import com.bme.jnsbbk.oauthserver.token.entities.isTimestampValid
 import com.bme.jnsbbk.oauthserver.user.UserService
 import com.bme.jnsbbk.oauthserver.user.entities.User
-import com.bme.jnsbbk.oauthserver.user.entities.UserInfo
-import com.bme.jnsbbk.oauthserver.user.entities.fromNullable
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.stereotype.Controller
@@ -43,10 +41,9 @@ class HomeController(
         @AuthenticationPrincipal user: User,
         model: Model
     ): String {
-        user.info = UserInfo.fromNullable(name, email, address)
-        userService.updateUser(user)
+        val info = userService.updateUserInfo(user, name, email, address)
 
-        model.addAttribute("userinfo", user.info)
+        model.addAttribute("userinfo", info)
         model.addAttribute("success", true)
         return "home-userinfo"
     }

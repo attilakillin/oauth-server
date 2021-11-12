@@ -34,14 +34,13 @@ abstract class AbstractTokenHandler(
         lifespan: AppConfig.Lifespan,
         setUniqueClaims: JwtBuilder.() -> JwtBuilder
     ): String {
-        val id = "${keyPrefix}_${keyId}"
-        val header = mapOf("typ" to "JWT", "kid" to id, "alg" to RSAKey.algorithm)
+        val header = mapOf("typ" to "JWT", "kid" to keyId, "alg" to RSAKey.algorithm)
 
         return Jwts.builder()
             .setHeader(header)
             .setUniqueClaims()
             .setLifespan(lifespan)
-            .signWith(getKeyById(id).private)
+            .signWith(getKeyById(keyId).private)
             .compact()
     }
 
@@ -60,11 +59,18 @@ abstract class AbstractTokenHandler(
     }
 
     protected fun parseSignedToken(token: String, keyId: String): Jws<Claims>? {
-        val id = "${keyPrefix}_${keyId}"
-        val parser = Jwts.parserBuilder().setSigningKey(getKeyById(id).public).build()
+        val parser = Jwts.parserBuilder().setSigningKey(getKeyById(keyId).public).build()
 
         return try {
             parser.parseClaimsJws(token)
+        } catch (ex: JwtException) { null }
+    }
+
+    protected fun parseUnsignedToken(token: String): Jwt<Header<*>, Claims>? {
+        val parser = Jwts.parserBuilder().build()
+
+        return try {
+            parser.parseClaimsJwt(token)
         } catch (ex: JwtException) { null }
     }
 }

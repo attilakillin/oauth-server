@@ -6,5 +6,6 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface UserRepository : JpaRepository<User, String> {
+    /** Finds a user by their username. Returns null if no such user exists. */
     fun findByUsername(username: String): User?
 }
