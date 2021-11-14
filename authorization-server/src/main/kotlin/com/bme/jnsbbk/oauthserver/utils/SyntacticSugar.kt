@@ -1,15 +1,21 @@
 package com.bme.jnsbbk.oauthserver.utils
 
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder
+import com.bme.jnsbbk.oauthserver.config.AppConfig
+import org.springframework.beans.factory.getBean
+import org.springframework.context.ApplicationContext
+import org.springframework.context.ApplicationContextAware
+import org.springframework.stereotype.Component
 import java.util.*
 
-/**
- * Provides easy access to the base URL of the server.
- *
- * This function can throw an exception if used outside a Spring component,
- * since there is no current context to query the path from.
- */
-fun getServerBaseUrl(): String = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString()
+@Component
+object AppContext : ApplicationContextAware {
+    lateinit var context: ApplicationContext private set
+
+    override fun setApplicationContext(context: ApplicationContext) { this.context = context }
+
+}
+
+fun getIssuerString(): String = AppContext.context.getBean<AppConfig>(AppConfig::class).issuerString
 
 /** Provides an easy-to-read wrapper for multiple null checks. */
 fun anyNotNull(vararg things: Any?) = things.any { it != null }

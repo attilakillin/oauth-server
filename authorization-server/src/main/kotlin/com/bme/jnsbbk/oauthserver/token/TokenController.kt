@@ -4,7 +4,7 @@ import com.bme.jnsbbk.oauthserver.authorization.AuthCodeRepository
 import com.bme.jnsbbk.oauthserver.authorization.entities.isTimestampValid
 import com.bme.jnsbbk.oauthserver.client.ClientService
 import com.bme.jnsbbk.oauthserver.client.entities.Client
-import com.bme.jnsbbk.oauthserver.config.ServerMetadata
+import com.bme.jnsbbk.oauthserver.wellknown.ServerMetadata
 import com.bme.jnsbbk.oauthserver.exceptions.badRequest
 import com.bme.jnsbbk.oauthserver.exceptions.unauthorized
 import com.bme.jnsbbk.oauthserver.resource.ResourceServerService
@@ -106,7 +106,7 @@ class TokenController(
      * If the introspection fails for any reason (invalid token or invalid user) the response is simply
      * {"active": "false"}. If it succeeds, a complex JSON response is created.
      */
-    @PostMapping("/introspect")
+    @PostMapping(ServerMetadata.Endpoints.tokenIntrospect)
     fun introspectToken(
         @RequestHeader("Authorization") header: String?,
         @RequestBody body: Map<String, String>
@@ -127,7 +127,7 @@ class TokenController(
      * The client must authenticate itself and must send a token to revoke in its body as a JSON object.
      * The server may respond with a 200 OK even if no token revocation took place.
      */
-    @PostMapping("/revoke")
+    @PostMapping(ServerMetadata.Endpoints.tokenRevoke)
     fun revokeToken(
         @RequestHeader("Authorization") header: String?,
         @RequestBody body: Map<String, String>

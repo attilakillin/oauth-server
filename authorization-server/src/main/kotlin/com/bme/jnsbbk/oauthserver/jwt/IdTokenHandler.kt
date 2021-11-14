@@ -3,7 +3,7 @@ package com.bme.jnsbbk.oauthserver.jwt
 import com.bme.jnsbbk.oauthserver.authorization.entities.AuthCode
 import com.bme.jnsbbk.oauthserver.config.AppConfig
 import com.bme.jnsbbk.oauthserver.user.entities.User
-import com.bme.jnsbbk.oauthserver.utils.getServerBaseUrl
+import com.bme.jnsbbk.oauthserver.utils.getIssuerString
 import org.springframework.stereotype.Service
 
 @Service
@@ -24,7 +24,7 @@ class IdTokenHandler(
         if ("address" in code.scope) info["address"] = user.info.address
 
         return createSignedToken(key, lifespan) {
-            setIssuer(getServerBaseUrl())
+            setIssuer(getIssuerString())
             setSubject(user.id)
             setAudience(code.clientId)
             addClaims(info)

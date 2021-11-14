@@ -3,11 +3,11 @@ package com.bme.jnsbbk.oauthserver.client
 import com.bme.jnsbbk.oauthserver.client.entities.Client
 import com.bme.jnsbbk.oauthserver.client.entities.UnvalidatedClient
 import com.bme.jnsbbk.oauthserver.client.validators.ClientValidator
-import com.bme.jnsbbk.oauthserver.config.ServerMetadata
+import com.bme.jnsbbk.oauthserver.wellknown.ServerMetadata
 import com.bme.jnsbbk.oauthserver.exceptions.ApiException
 import com.bme.jnsbbk.oauthserver.exceptions.badRequest
 import com.bme.jnsbbk.oauthserver.exceptions.unauthorized
-import com.bme.jnsbbk.oauthserver.utils.getServerBaseUrl
+import com.bme.jnsbbk.oauthserver.utils.getIssuerString
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -87,7 +87,7 @@ class ClientRegistrationController(
     }
 
     private fun Client.withRegistrationUri(): Client {
-        this.extraData["registration_client_uri"] = getServerBaseUrl() + "/register/$id"
+        this.extraData["registration_client_uri"] = getIssuerString() + "/register/$id"
         return this
     }
 

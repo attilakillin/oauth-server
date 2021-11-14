@@ -9,6 +9,7 @@ spring:
 
 # Settings related to this specific application
 application:
+  issuer-string: http://172.16.1.1:8080
   resource-servers:
     urls:                                    # If the base URL of a resource server registration request
       - http://localhost:8081                # is not whitelisted here, the request will be denied.

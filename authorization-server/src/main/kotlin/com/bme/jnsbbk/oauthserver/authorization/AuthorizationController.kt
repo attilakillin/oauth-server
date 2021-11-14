@@ -2,7 +2,7 @@ package com.bme.jnsbbk.oauthserver.authorization
 
 import com.bme.jnsbbk.oauthserver.authorization.entities.AuthRequest
 import com.bme.jnsbbk.oauthserver.authorization.entities.UnvalidatedAuthRequest
-import com.bme.jnsbbk.oauthserver.config.ServerMetadata
+import com.bme.jnsbbk.oauthserver.wellknown.ServerMetadata
 import com.bme.jnsbbk.oauthserver.user.entities.User
 import com.bme.jnsbbk.oauthserver.utils.RandomString
 import com.bme.jnsbbk.oauthserver.utils.URL

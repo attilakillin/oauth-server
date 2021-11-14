@@ -3,7 +3,7 @@ package com.bme.jnsbbk.oauthserver.jwt
 import com.bme.jnsbbk.oauthserver.config.AppConfig
 import com.bme.jnsbbk.oauthserver.token.TokenRepository
 import com.bme.jnsbbk.oauthserver.token.entities.Token
-import com.bme.jnsbbk.oauthserver.utils.getServerBaseUrl
+import com.bme.jnsbbk.oauthserver.utils.getIssuerString
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 
@@ -18,7 +18,7 @@ class AccessTokenHandler(
     /** Creates an access token JWT from the specified [token]. */
     fun createToken(token: Token): String {
         return createSignedToken(token.clientId, lifespan) {
-            setIssuer(getServerBaseUrl())
+            setIssuer(getIssuerString())
             setId(token.value)
         }
     }
@@ -29,7 +29,7 @@ class AccessTokenHandler(
         return validateToken(token, keyId) {
             val claims = it.body
 
-            return@validateToken claims.issuer == getServerBaseUrl()
+            return@validateToken claims.issuer == getIssuerString()
                 && tokenRepository.existsById(claims.id)
         }
     }

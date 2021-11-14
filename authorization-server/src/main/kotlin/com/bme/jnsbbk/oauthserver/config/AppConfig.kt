@@ -8,6 +8,8 @@ import org.springframework.context.annotation.Configuration
 @ConstructorBinding
 @ConfigurationProperties("application")
 data class AppConfig(
+    /** This string appears in the iss field of every JWT. */
+    var issuerString: String = "issuer_string_not_configured",
     var resourceServers: ResourceServers = ResourceServers(),
     var scheduling: Scheduling = Scheduling(),
     var tokens: Tokens = Tokens()

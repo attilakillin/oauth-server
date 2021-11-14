@@ -6,7 +6,7 @@ import com.bme.jnsbbk.oauthserver.jwt.IdTokenHandler
 import com.bme.jnsbbk.oauthserver.token.entities.*
 import com.bme.jnsbbk.oauthserver.user.UserService
 import com.bme.jnsbbk.oauthserver.utils.RandomString
-import com.bme.jnsbbk.oauthserver.utils.getServerBaseUrl
+import com.bme.jnsbbk.oauthserver.utils.getIssuerString
 import org.springframework.stereotype.Service
 
 @Service
@@ -76,7 +76,7 @@ class TokenService(
 
         return mapOf(
             "active" to "true",
-            "iss" to getServerBaseUrl(),
+            "iss" to getIssuerString(),
             "sub" to user?.id,
             "scope" to token.scope.joinToString(" "),
             "client_id" to token.clientId,

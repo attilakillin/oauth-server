@@ -4,7 +4,7 @@ import com.bme.jnsbbk.oauthserver.config.AppConfig
 import com.bme.jnsbbk.oauthserver.resource.entities.ResourceServer
 import com.bme.jnsbbk.oauthserver.user.UserService
 import com.bme.jnsbbk.oauthserver.user.entities.User
-import com.bme.jnsbbk.oauthserver.utils.getServerBaseUrl
+import com.bme.jnsbbk.oauthserver.utils.getIssuerString
 import org.springframework.stereotype.Service
 
 @Service
@@ -18,7 +18,7 @@ class ResourceTokenHandler(
     /** Creates a token representing the given [user] in the context of the resource [server]. */
     fun createToken(server: ResourceServer, user: User): String {
         return createSignedToken(server.id, lifespan) {
-            setIssuer(getServerBaseUrl())
+            setIssuer(getIssuerString())
             setSubject(user.id)
             setAudience(server.id)
         }
@@ -29,7 +29,7 @@ class ResourceTokenHandler(
         return validateToken(token, server.id) {
             val claims = it.body
 
-            return@validateToken claims.issuer == getServerBaseUrl()
+            return@validateToken claims.issuer == getIssuerString()
                 && claims.audience == server.id
                 && userService.userExistsById(claims.subject)
         }

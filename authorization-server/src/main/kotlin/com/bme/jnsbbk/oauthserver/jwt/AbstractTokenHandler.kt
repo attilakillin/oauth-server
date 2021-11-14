@@ -42,7 +42,7 @@ abstract class AbstractTokenHandler(
         lifespan: AppConfig.Lifespan,
         setUniqueClaims: JwtBuilder.() -> Unit
     ): String {
-        val header = mapOf("typ" to "JWT", "kid" to keyId, "alg" to RSAKey.algorithm)
+        val header = mapOf("typ" to "JWT", "kid" to "${keyPrefix}_${keyId}", "alg" to RSAKey.algorithm)
 
         return Jwts.builder()
             .setHeader(header)
