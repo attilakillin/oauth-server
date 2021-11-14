@@ -1,6 +1,8 @@
 package com.bme.jnsbbk.oauthserver.user
 
 import com.bme.jnsbbk.oauthserver.user.entities.User
+import com.bme.jnsbbk.oauthserver.user.entities.UserInfo
+import com.bme.jnsbbk.oauthserver.user.entities.fromNullable
 import com.bme.jnsbbk.oauthserver.utils.RandomString
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.core.userdetails.UserDetails
@@ -21,13 +23,19 @@ class UserService(
     }
 
     /** Returns true or false depending on whether a user with the given username exists or not. */
-    fun userExistsByUsername(username: String): Boolean = userRepository.findByUsername(username) != null
+    fun userExistsByUsername(username: String): Boolean {
+        return userRepository.findByUsername(username) != null
+    }
 
     /** Returns true or false depending on whether a user with the given ID exists or not. */
-    fun userExistsById(id: String): Boolean = userRepository.findById(id).isPresent
+    fun userExistsById(id: String): Boolean {
+        return userRepository.findByIdOrNull(id) != null
+    }
 
     /** Returns a user by its ID, or null, if no such user exists. */
-    fun getUserById(id: String): User? = userRepository.findByIdOrNull(id)
+    fun getUserById(id: String?): User? {
+        return if (id != null) userRepository.findByIdOrNull(id) else null
+    }
 
     /** Creates and persists a user with the given credentials and roles. */
     fun createUser(username: String, password: String, roles: Set<String> = setOf("USER")): UserDetails {
@@ -36,5 +44,10 @@ class UserService(
         return userRepository.save(user)
     }
 
-    fun updateUser(user: User): User = userRepository.save(user)
+    /** Update the user's info with the specified values. Returns the updated user info. */
+    fun updateUserInfo(user: User, name: String?, email: String?, address: String?): UserInfo {
+        user.info = UserInfo.fromNullable(name, email, address)
+        userRepository.save(user)
+        return user.info
+    }
 }

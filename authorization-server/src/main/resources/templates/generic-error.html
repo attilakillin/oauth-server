@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" class="h-100">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link th:href="@{/css/bootstrap.min.css}" rel="stylesheet">
+
+        <title>OAuth Server :: Error</title>
+    </head>
+    <body class="container h-100">
+        <div class="row h-100 justify-content-center align-items-center">
+            <div class="col-md-8 col-lg-6 m-1 p-3 rounded" style="background: #eeeeee">
+                <h3 class="mb-1 text-center">An error occurred!</h3>
+                <div class="mb-3" th:switch="${errorType}">
+                    <div th:case="'invalid_resource_server_id'">
+                        <p>The resource server ID received in the request was invalid!</p>
+
+                        <p>
+                            This usually means that there's a programming error on the resource server side,
+                            or that someone is trying to get an access token in your name.
+                        </p>
+                    </div>
+                    <div th:case="'auth_invalid_client'">
+                        <p>The authorization request contained an invalid client ID!</p>
+
+                        <p>This might mean that a third party tried to request an authorization in your name.</p>
+                    </div>
+                    <div th:case="'auth_invalid_uri'">
+                        <p>The authorization request contained an invalid redirect URI!</p>
+
+                        <p>
+                            The request contained a valid client ID, but the redirect URI was either missing,
+                            or it was not registered as one of the client's redirect URIs.
+                        </p>
+                    </div>
+                    <div th:case="'auth_no_matching_request'">
+                        <p>The authorization response couldn't be matched to a request!</p>
+
+                        <p>
+                            This might mean that a third party is trying to bypass user authorization
+                            and gain access to their resources without their approval.
+                        </p>
+                    </div>
+                </div>
+                <div class="d-grid mb-3">
+                    <a th:href="@{/}" class="btn btn-primary">
+                        Return home
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+    </body>
+</html>

@@ -30,6 +30,7 @@ class ConnectionInitializer(
         val request = HttpEntity(mapOf(
             "id" to propertyRepository.findByIdOrNull(Property.Key.ID)?.value,
             "secret" to propertyRepository.findByIdOrNull(Property.Key.SECRET)?.value,
+            "base_url" to appConfig.baseUrl,
             "scope" to appConfig.scope.joinToString(" ")
         ), headers)
 

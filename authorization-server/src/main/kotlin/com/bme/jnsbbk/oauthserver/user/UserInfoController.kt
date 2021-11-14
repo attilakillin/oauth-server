@@ -1,9 +1,8 @@
 package com.bme.jnsbbk.oauthserver.user
 
 import com.bme.jnsbbk.oauthserver.exceptions.badRequest
-import com.bme.jnsbbk.oauthserver.exceptions.forbidden
-import com.bme.jnsbbk.oauthserver.jwt.TokenJwtHandler
-import com.bme.jnsbbk.oauthserver.token.TokenRepository
+import com.bme.jnsbbk.oauthserver.exceptions.unauthorized
+import com.bme.jnsbbk.oauthserver.jwt.AccessTokenHandler
 import com.bme.jnsbbk.oauthserver.token.entities.isTimestampValid
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Controller
@@ -14,24 +13,31 @@ import org.springframework.web.bind.annotation.RequestParam
 @Controller
 @RequestMapping("/oauth/openid/userinfo")
 class UserInfoController(
-    private val userService: UserService,
-    private val tokenJwtHandler: TokenJwtHandler,
-    private val tokenRepository: TokenRepository
+    private val accessTokenHandler: AccessTokenHandler,
+    private val userService: UserService
 ) {
 
+    /**
+     * Responds to OpenID Connect user info requests.
+     *
+     * If the given JWT access token is valid, and corresponds to a token in the database, respond
+     * with information allowed by the scope of the token regarding the subject user.
+     *
+     * If the token is invalid, or the subject user doesn't exist, the method responds with a 400 message,
+     * and if the 'openid' base scope is missing, it responds with a 401 message.
+     */
     @GetMapping
     fun handleRequest(@RequestParam("token") jwt: String): ResponseEntity<Map<String, String>> {
-        val id = tokenJwtHandler.getValidTokenId(jwt)  ?: badRequest()
-        val token = tokenRepository.findAccessById(id) ?: badRequest()
-        if (!token.isTimestampValid()) badRequest()
+        val token = accessTokenHandler.convertToValidToken(jwt) ?: badRequest("invalid_token")
+        if (!token.isTimestampValid() || token.userId == null) badRequest("invalid_token")
 
-        if ("openid" !in token.scope) forbidden()
+        if ("openid" !in token.scope) unauthorized("invalid_scope")
 
-        val user = userService.getUserById(token.userId) ?: return ResponseEntity.notFound().build()
+        val user = userService.getUserById(token.userId) ?: badRequest("user_not_found")
 
         val claims = mutableMapOf("sub" to user.id)
         if ("profile" in token.scope) claims["name"] = user.info.name
-        if ("email" in token.scope) claims["email"] = user.info.email
+        if ("email"   in token.scope) claims["email"] = user.info.email
         if ("address" in token.scope) claims["address"] = user.info.address
 
         return ResponseEntity.ok(claims)

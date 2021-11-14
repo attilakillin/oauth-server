@@ -3,16 +3,17 @@ package com.bme.jnsbbk.oauthserver.client
 import com.bme.jnsbbk.oauthserver.client.entities.Client
 import com.bme.jnsbbk.oauthserver.client.entities.UnvalidatedClient
 import com.bme.jnsbbk.oauthserver.client.validators.ClientValidator
+import com.bme.jnsbbk.oauthserver.wellknown.ServerMetadata
 import com.bme.jnsbbk.oauthserver.exceptions.ApiException
 import com.bme.jnsbbk.oauthserver.exceptions.badRequest
 import com.bme.jnsbbk.oauthserver.exceptions.unauthorized
-import com.bme.jnsbbk.oauthserver.utils.getOrNull
-import com.bme.jnsbbk.oauthserver.utils.getServerBaseUrl
+import com.bme.jnsbbk.oauthserver.utils.getIssuerString
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("/oauth/clients")
+@RequestMapping(ServerMetadata.Endpoints.client)
 class ClientRegistrationController(
     private val clientValidator: ClientValidator,
     private val clientRepository: ClientRepository
@@ -86,7 +87,7 @@ class ClientRegistrationController(
     }
 
     private fun Client.withRegistrationUri(): Client {
-        this.extraData["registration_client_uri"] = getServerBaseUrl() + "/register/$id"
+        this.extraData["registration_client_uri"] = getIssuerString() + "/register/$id"
         return this
     }
 
@@ -94,7 +95,7 @@ class ClientRegistrationController(
     private fun validClientOrUnauthorized(header: String?, id: String): Client {
         val token = header?.removePrefix("Bearer ")
         if (token != header) {
-            val client = clientRepository.findById(id).getOrNull()
+            val client = clientRepository.findByIdOrNull(id)
             if (client != null && client.registrationAccessToken == token)
                 return client
         }

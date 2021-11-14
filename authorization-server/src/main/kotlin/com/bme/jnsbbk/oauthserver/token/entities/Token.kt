@@ -15,13 +15,21 @@ import javax.persistence.Id
  */
 @Entity
 data class Token(
+    /** The value of the token, a randomly generated string. Unique. */
     @Id val value: String,
+    /** The type of the token, either access or refresh. */
     val type: TokenType,
+    /** The ID of the client associated with the token. */
     val clientId: String,
-    val userId: String,
+    /** The ID of the user associated with the token. */
+    val userId: String?,
+    /** The set of scopes the token is authorized for. */
     val scope: Set<String>,
+    /** Timestamp of the moment the token was issued. */
     val issuedAt: Instant,
+    /** Earliest moment the token is valid. */
     val notBefore: Instant,
+    /** Last moment the token is valid. */
     val expiresAt: Instant?
 )
 

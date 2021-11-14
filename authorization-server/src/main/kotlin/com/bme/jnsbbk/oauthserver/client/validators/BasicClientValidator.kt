@@ -21,7 +21,7 @@ class BasicClientValidator : ClientValidator {
     private object Accepted {
         val authMethods = arrayOf("none", "client_secret_basic", "client_secret_post")
         val authMethodsWithSecret = arrayOf("client_secret_basic", "client_secret_post")
-        val grantPairs = mapOf("authorization_code" to "code")
+        val grantPairs = mapOf("authorization_code" to "code", "implicit" to "token", "client_credentials" to null)
     }
 
     override fun validateNewOrElse(new: UnvalidatedClient, onFailure: () -> Nothing): Client {
@@ -84,8 +84,14 @@ class BasicClientValidator : ClientValidator {
 
         val grants = request.grantTypes?.toMutableSet() ?: mutableSetOf("authorization_code")
         val responses = request.responseTypes?.toMutableSet() ?: mutableSetOf()
-        grants.forEach { responses.add(Accepted.grantPairs[it]!!) }
-        responses.forEach { grants.add(Accepted.grantPairs.findKey(it)) }
+        grants.forEach {
+            val response = Accepted.grantPairs[it]
+            if (response != null) responses.add(response)
+        }
+        responses.forEach {
+            val grant = Accepted.grantPairs.findKey(it)
+            if (grant != null) grants.add(grant)
+        }
 
         grantTypes = grants
         responseTypes = responses

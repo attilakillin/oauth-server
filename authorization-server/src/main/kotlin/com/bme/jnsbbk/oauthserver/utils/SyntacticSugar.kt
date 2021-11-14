@@ -1,18 +1,21 @@
 package com.bme.jnsbbk.oauthserver.utils
 
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder
+import com.bme.jnsbbk.oauthserver.config.AppConfig
+import org.springframework.beans.factory.getBean
+import org.springframework.context.ApplicationContext
+import org.springframework.context.ApplicationContextAware
+import org.springframework.stereotype.Component
 import java.util.*
 
-/** Provides a Kotlin-idiomatic wrapper for getting a value from an [Optional]. */
-fun <T> Optional<T>.getOrNull(): T? = if (isPresent) get() else null
+@Component
+object AppContext : ApplicationContextAware {
+    lateinit var context: ApplicationContext private set
 
-/**
- * Provides easy access to the base URL of the server.
- *
- * This function can throw an exception if used outside a Spring component,
- * since there is no current context to query the path from.
- */
-fun getServerBaseUrl(): String = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString()
+    override fun setApplicationContext(context: ApplicationContext) { this.context = context }
+
+}
+
+fun getIssuerString(): String = AppContext.context.getBean<AppConfig>(AppConfig::class).issuerString
 
 /** Provides an easy-to-read wrapper for multiple null checks. */
 fun anyNotNull(vararg things: Any?) = things.any { it != null }
@@ -21,9 +24,13 @@ fun anyNotNull(vararg things: Any?) = things.any { it != null }
 fun anyTrue(vararg things: Boolean) = things.any { it }
 
 /** Method to find a key of a given [Map] with the given [value]. */
-fun <K, V> Map<K, V>.findKey(value: V) = filterValues { it == value }.keys.first()
+fun <K, V> Map<K, V>.findKey(value: V): K? = filterValues { it == value }.keys.firstOrNull()
 
-/** Decode a string as if it was a HTTP Basic header string with a Base64 encoded 'value:value' pattern. */
+/**
+ * Decode a string as if it was an HTTP Basic header string.
+ *
+ * Decodes a Base64-encoded string with a 'value:value' pattern. Returns the two values as a nullable pair.
+ */
 fun String.decodeAsHttpBasic(): Pair<String, String>? {
     if (!startsWith("Basic ")) return null
     val content = Base64.getUrlDecoder()

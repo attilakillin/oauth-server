@@ -37,7 +37,7 @@ class OAuthTokenController(
 
         val user = userDataRepository.findByIdOrNull(response.username)
 
-        val scope = response.scope.split(" ")
+        val scope = response.scope!!.split(" ")
         if ("read" !in scope)
             return ResponseEntity.status(401).body(mapOf("error" to "invalid_scope"))
 
@@ -56,11 +56,11 @@ class OAuthTokenController(
         if (response == null || response.active == "false")
             return ResponseEntity.status(401).body(mapOf("error" to "invalid_token"))
 
-        val scope = response.scope.split(" ")
+        val scope = response.scope!!.split(" ")
         if ("write" !in scope)
             return ResponseEntity.status(401).body(mapOf("error" to "invalid_scope"))
 
-        val userData = UserData(response.username, notes)
+        val userData = UserData(response.username!!, notes)
         userDataRepository.save(userData)
 
         return ResponseEntity.status(204).build()
@@ -68,10 +68,10 @@ class OAuthTokenController(
 
     private data class IntrospectResponse(
         val active: String,
-        val iss: String,
-        val sub: String,
-        val scope: String,
-        val username: String
+        val iss: String?,
+        val sub: String?,
+        val scope: String?,
+        val username: String?
     )
 
     private fun introspectToken(token: String): IntrospectResponse? {

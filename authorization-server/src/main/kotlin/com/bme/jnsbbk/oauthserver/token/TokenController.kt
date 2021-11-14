@@ -4,33 +4,24 @@ import com.bme.jnsbbk.oauthserver.authorization.AuthCodeRepository
 import com.bme.jnsbbk.oauthserver.authorization.entities.isTimestampValid
 import com.bme.jnsbbk.oauthserver.client.ClientService
 import com.bme.jnsbbk.oauthserver.client.entities.Client
+import com.bme.jnsbbk.oauthserver.wellknown.ServerMetadata
 import com.bme.jnsbbk.oauthserver.exceptions.badRequest
 import com.bme.jnsbbk.oauthserver.exceptions.unauthorized
-import com.bme.jnsbbk.oauthserver.jwt.IdTokenJwtHandler
-import com.bme.jnsbbk.oauthserver.jwt.TokenJwtHandler
 import com.bme.jnsbbk.oauthserver.resource.ResourceServerService
 import com.bme.jnsbbk.oauthserver.token.entities.TokenResponse
-import com.bme.jnsbbk.oauthserver.token.entities.isExpired
 import com.bme.jnsbbk.oauthserver.token.entities.isTimestampValid
-import com.bme.jnsbbk.oauthserver.user.UserService
-import com.bme.jnsbbk.oauthserver.utils.RandomString
-import com.bme.jnsbbk.oauthserver.utils.getOrNull
-import com.bme.jnsbbk.oauthserver.utils.getServerBaseUrl
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.*
 
 @Controller
-@RequestMapping("/oauth/token")
+@RequestMapping(ServerMetadata.Endpoints.token)
 class TokenController(
     private val clientService: ClientService,
     private val resourceServerService: ResourceServerService,
     private val authCodeRepository: AuthCodeRepository,
-    private val tokenRepository: TokenRepository,
-    private val tokenFactory: TokenFactory,
-    private val tokenJwtHandler: TokenJwtHandler,
-    private val idTokenJwtHandler: IdTokenJwtHandler,
-    private val userService: UserService
+    private val tokenService: TokenService
 ) {
 
     /**
@@ -44,7 +35,7 @@ class TokenController(
     @PostMapping
     @ResponseBody
     fun issueToken(
-        @RequestHeader("Authorization") header: String?, // The credentials of the client
+        @RequestHeader("Authorization") header: String?,
         @RequestParam params: Map<String, String>
     ): TokenResponse {
         val client = clientService.authenticateWithEither(header, params)
@@ -53,83 +44,98 @@ class TokenController(
         return when (params["grant_type"]) {
             "authorization_code" -> handleAuthCode(client, params["code"])
             "refresh_token" -> handleRefreshToken(client, params["refresh_token"])
+            "client_credentials" -> handleClientCredentials(client, params["scope"])
             else -> badRequest("unsupported_grant_type")
         }
     }
 
-    /** Handles responses when the grant type was 'authorization_code'. */
-    private fun handleAuthCode(client: Client, codeValue: String?): TokenResponse {
-        val message = "invalid_grant"
-        if (codeValue == null) badRequest(message)
+    /**
+     * Handles requests with the 'authorization_code' grant type.
+     *
+     * Given an authorization code value, find the related authorization request, and generate
+     * a response based on that. The response contains a refresh token and may contain an ID
+     * token if the 'openid' scope is present.
+     */
+    private fun handleAuthCode(client: Client, code: String?): TokenResponse {
+        if (code == null) badRequest("invalid_grant")
+        val authCode = authCodeRepository.findByIdOrNull(code) ?: badRequest("invalid_grant")
 
-        val code = authCodeRepository.findById(codeValue).getOrNull() ?: badRequest(message)
+        authCodeRepository.delete(authCode) // The code exists, and was used, so it must be deleted
 
-        authCodeRepository.delete(code) // The code exists, and was used, so it must be deleted
+        if (authCode.clientId != client.id || !authCode.isTimestampValid()) badRequest("invalid_grant")
 
-        if (code.clientId != client.id || !code.isTimestampValid()) badRequest(message)
-
-        val accessToken = tokenFactory.accessFromCode(RandomString.generate(), code)
-        val refreshToken = tokenFactory.refreshFromCode(RandomString.generate(), code)
-
-        tokenRepository.save(accessToken)
-        tokenRepository.save(refreshToken)
-
-        val response = tokenFactory.responseJwtFromTokens(accessToken, refreshToken)
-
-        val user = userService.getUserById(code.userId)
-        if ("openid" in code.scope && user != null) {
-            response.idToken = idTokenJwtHandler.createSigned(client.id, user, code.nonce)
-        }
-
-        return response
+        return tokenService.createResponseFromAuthCode(authCode)
     }
 
-    /** Handles responses when the grant type was 'refresh_token'. */
-    private fun handleRefreshToken(client: Client, refreshValue: String?): TokenResponse {
-        val message = "invalid_grant"
-        if (refreshValue == null) badRequest(message)
+    /**
+     * Handles requests with the 'refresh_token' grant type.
+     *
+     * Given a refresh token value, find the related refresh token and generate a response based
+     * on that. The response will contain a new access token and the received refresh token.
+     * No ID token is included, as no user authentication has taken place.
+     */
+    private fun handleRefreshToken(client: Client, code: String?): TokenResponse {
+        if (code == null) badRequest("invalid_grant")
+        val refresh = tokenService.findOrRemoveRefreshToken(code, client.id) ?: badRequest("invalid_grant")
 
-        val refresh = tokenRepository.findRefreshById(refreshValue) ?: badRequest(message)
-
-        if (refresh.clientId != client.id || refresh.isExpired()) {
-            tokenRepository.delete(refresh) // If the token is expired or compromised, it must be deleted.
-            badRequest(message)
-        }
-
-        if (!refresh.isTimestampValid()) badRequest(message)
-
-        val access = tokenFactory.accessFromRefresh(RandomString.generate(), refresh)
-        tokenRepository.save(access)
-
-        return tokenFactory.responseJwtFromTokens(access, refresh)
+        return tokenService.createResponseFromRefreshToken(refresh)
     }
 
-    @PostMapping("/introspect")
+    /**
+     * Handles requests with the 'client_credentials' grant type.
+     *
+     * In this version, the request contains only the scope the client requests (or null, if it requests
+     * every scope it has registered with). If the requested scope was declared at registration, we
+     * generate an access token and no refresh token (as the client can always request another access token).
+     */
+    private fun handleClientCredentials(client: Client, scopeIn: String?): TokenResponse {
+        var scope = client.scope
+        if (scopeIn != null) {
+            scope = scopeIn.split(" ").toSet()
+            if (scope.any { it !in client.scope }) badRequest("invalid_scope")
+        }
+
+        return tokenService.createResponseWithJustAccessToken(client.id, null, scope)
+    }
+
+    /**
+     * Responds to token introspection requests sent by resource servers.
+     *
+     * The resource server must authenticate itself, and must send a token to introspect in a JSON object.
+     *
+     * If the introspection fails for any reason (invalid token or invalid user) the response is simply
+     * {"active": "false"}. If it succeeds, a complex JSON response is created.
+     */
+    @PostMapping(ServerMetadata.Endpoints.tokenIntrospect)
     fun introspectToken(
-        @RequestHeader("Authorization") header: String?, // The credentials of the resource server
+        @RequestHeader("Authorization") header: String?,
         @RequestBody body: Map<String, String>
-    ): ResponseEntity<Map<String, String>> {
+    ): ResponseEntity<Map<String, String?>> {
         val jwt = body["token"] ?: badRequest("invalid_request_body")
+        resourceServerService.authenticateBasic(header) ?: unauthorized("unknown_resource_server")
 
-        resourceServerService.authenticateBasic(header)
-            ?: unauthorized("unknown_resource_server")
+        val token = tokenService.convertFromJwt(jwt)
+        if (token == null || !token.isTimestampValid())
+            return ResponseEntity.ok(mapOf("active" to "false"))
 
-        val responseOnFail = ResponseEntity.ok(mapOf("active" to "false"))
+        return ResponseEntity.ok(tokenService.createIntrospectResponse(token))
+    }
 
-        val id = tokenJwtHandler.getValidTokenId(jwt) ?: return responseOnFail
-        val token = tokenRepository.findAccessById(id) ?: return responseOnFail
-        if (!token.isTimestampValid()) return responseOnFail
-        val user = userService.getUserById(token.userId) ?: return responseOnFail
+    /**
+     * Responds to token revocation requests sent by clients.
+     *
+     * The client must authenticate itself and must send a token to revoke in its body as a JSON object.
+     * The server may respond with a 200 OK even if no token revocation took place.
+     */
+    @PostMapping(ServerMetadata.Endpoints.tokenRevoke)
+    fun revokeToken(
+        @RequestHeader("Authorization") header: String?,
+        @RequestBody body: Map<String, String>
+    ): ResponseEntity<Unit> {
+        val token = body["token"] ?: badRequest("invalid_request_body")
+        val client = clientService.authenticateWithEither(header, body) ?: unauthorized("invalid_client")
 
-        val response = mapOf(
-            "active" to "true",
-            "iss" to getServerBaseUrl(),
-            "sub" to user.id,
-            "scope" to token.scope.joinToString(" "),
-            "client_id" to token.clientId,
-            "username" to user.username
-        )
-
-        return ResponseEntity.ok(response)
+        tokenService.revokeTokenFromString(token, client.id)
+        return ResponseEntity.ok().build()
     }
 }

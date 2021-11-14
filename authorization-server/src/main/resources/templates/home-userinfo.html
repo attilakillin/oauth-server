@@ -10,6 +10,9 @@
     <body class="container h-100">
         <div class="row h-100 justify-content-center align-items-center">
             <div class="col-md-6 col-lg-5 m-1 p-3 rounded" style="background: #eeeeee">
+                <div class="mb-2">
+                    <a th:href="@{/home}">Back</a>
+                </div>
                 <form th:action="@{/home/userinfo}" method="post">
                     <h3 class="text-center">Manage stored information</h3>
                     <div class="text-center">

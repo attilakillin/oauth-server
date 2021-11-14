@@ -1,27 +1,41 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" class="h-100">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link href="/css/bootstrap.min.css" rel="stylesheet">
+        <link th:href="@{/css/bootstrap.min.css}" rel="stylesheet">
 
-        <title>Authorize OAuth client</title>
+        <title>OAuth Server :: Authorize client</title>
     </head>
-    <body>
-        <h1>Authorize client '<span th:text="${client_name}" th:remove="tag"></span>'?</h1>
-        <form method="post" th:action="@{/oauth/authorize}">
-            <p>The client is requesting access to the following:</p>
-            <ul>
-                <li th:each="item : ${scope}" th:with="id = 'scope_' + ${item}">
-                    <input type="checkbox" th:name="${id}" th:id="${id}" checked="checked">
-                    <label th:for="${id}" th:text="${item}"></label>
-                </li>
-            </ul>
-            <input type="hidden" name="reqId" th:value="${reqId}">
-            <input type="submit" name="approve" value="Approve">
-            <input type="submit" name="deny" value="Deny">
-        </form>
+    <body class="container h-100">
+        <div class="row h-100 justify-content-center align-items-center">
+            <div class="col-md-6 col-lg-5 m-1 p-3 rounded" style="background: #eeeeee">
+                <form th:action="@{/oauth/authorize}" method="post">
+                    <h3 class="text-center" th:text="${'Authorize client ' + clientId + '?'}"></h3>
+                    <div class="text-center">
+                        <p>The client is requesting access to the following:</p>
+                    </div>
 
-        <script src="/js/bootstrap.bundle.min.js"></script>
+                    <div class="mt-1" th:each="item : ${scope}" th:with="id = 'scope_' + ${item}">
+                        <input type="checkbox" class="form-check-input" checked="checked"
+                               th:name="${id}" th:id="${id}">
+                        <label class="form-check-label" th:for="${id}" th:text="${item}"></label>
+                    </div>
+
+                    <input type="hidden" name="reqId" th:value="${reqId}">
+
+                    <div class="row mt-3">
+                        <div class="col-6 d-grid">
+                            <input type="submit" class="btn btn-primary" name="approve" value="Approve">
+                        </div>
+                        <div class="col-6 d-grid">
+                            <input type="submit" class="btn btn-secondary" name="deny" value="Deny">
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
     </body>
 </html>

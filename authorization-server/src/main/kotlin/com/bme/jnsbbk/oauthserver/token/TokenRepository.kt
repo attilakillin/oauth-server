@@ -11,16 +11,14 @@ import java.time.Instant
 @Repository
 interface TokenRepository : JpaRepository<Token, String> {
 
+    /** Remove expired tokens. This method is called periodically. */
     @Modifying
     @Query("DELETE FROM Token token WHERE token.expiresAt IS NOT NULL AND token.expiresAt < :time")
     fun removeTokensThatExpireBefore(time: Instant): Int
 
-    fun findFirstByValueAndType(value: String, type: TokenType): Token?
+    /** Find a token by both value and token type. */
+    fun findByValueAndType(value: String, type: TokenType): Token?
 
+    /** Find every token that the given user authorized. */
     fun findAllByUserId(userId: String): List<Token>
-
-    @JvmDefault // With this annotation, JPA won't try to map the function to a query.
-    fun findAccessById(value: String): Token? = findFirstByValueAndType(value, TokenType.ACCESS)
-    @JvmDefault
-    fun findRefreshById(value: String): Token? = findFirstByValueAndType(value, TokenType.REFRESH)
 }

@@ -30,14 +30,14 @@ class UserController(
     fun handleRegistration(
         @RequestParam username: String,
         @RequestParam password: String,
-        @RequestParam password_confirm: String,
+        @RequestParam("passwordConfirm") passwordConfirm: String,
         request: HttpServletRequest,
         model: Model
     ): String {
         val bindAttributes = { message: String ->
             model.addAttribute("username", username)
                 .addAttribute("password", password)
-                .addAttribute("password_confirm", password_confirm)
+                .addAttribute("password_confirm", passwordConfirm)
                 .addAttribute("message", message)
         }
 
@@ -45,7 +45,7 @@ class UserController(
             bindAttributes("This username is taken, please choose another one!")
             return "user-register"
         }
-        if (password != password_confirm) {
+        if (password != passwordConfirm) {
             bindAttributes("The password doesn't match the confirmation password!")
             return "user-register"
         }

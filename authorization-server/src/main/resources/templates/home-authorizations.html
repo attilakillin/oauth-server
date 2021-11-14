@@ -10,6 +10,9 @@
     <body class="container h-100">
         <div class="row h-100 justify-content-center align-items-center">
             <div class="col-lg-10 m-1 p-3 rounded" style="background: #eeeeee">
+                <div class="mb-2">
+                    <a th:href="@{/home}">Back</a>
+                </div>
                 <h3 class="text-center">Manage authorized clients</h3>
                 <div class="text-center">
                     <p>
@@ -21,21 +24,46 @@
                     <thead>
                         <tr>
                             <th scope="col">Value</th>
+                            <th scope="col">Type</th>
                             <th scope="col">Client ID</th>
                             <th scope="col">Scope</th>
                             <th scope="col">Active?</th>
+                            <th scope="col"></th>
                         </tr>
                     </thead>
                     <tr th:each="token: ${tokens}">
                         <td th:text="${token.value}"></td>
+                        <td th:text="${token.type}"></td>
                         <td th:text="${token.clientId}"></td>
                         <td th:text="${token.scope}"></td>
                         <td th:text="${(token.active) ? 'Yes' : 'No'}"></td>
+                        <td>
+                            <button class="btn btn-outline-secondary" th:data-token="${token.value}"
+                                    onclick="revoke(this.getAttribute('data-token'))"
+                            >
+                                Revoke
+                            </button>
+                        </td>
                     </tr>
                 </table>
+                <div class="mb-3" th:if="${revoke_success}">
+                    <p class="text-success">Token revoked!</p>
+                </div>
+                <div class="mb-3" th:if="${revoke_failure}">
+                    <p class="text-danger">Couldn't revoke token!</p>
+                </div>
+                <form th:action="@{/home/authorizations/revoke}" method="POST" id="token_form">
+                    <input type="hidden" id="token_input" name="token"/>
+                </form>
             </div>
         </div>
 
         <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+        <script>
+            function revoke(token) {
+                document.getElementById("token_input").value = token
+                document.getElementById("token_form").submit();
+            }
+        </script>
     </body>
 </html>

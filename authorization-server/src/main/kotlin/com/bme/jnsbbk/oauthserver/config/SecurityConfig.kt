@@ -23,7 +23,8 @@ class SecurityConfig(
             "/oauth/resource/user/validate",
             "/oauth/token",
             "/oauth/token/**",
-            "/user/register"
+            "/user/register",
+            "/.well-known/**"
         )
 
         http
