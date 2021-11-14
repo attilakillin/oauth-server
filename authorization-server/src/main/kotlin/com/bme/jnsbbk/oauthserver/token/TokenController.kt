@@ -95,7 +95,7 @@ class TokenController(
             if (scope.any { it !in client.scope }) badRequest("invalid_scope")
         }
 
-        return tokenService.createResponseWithJustAccessToken(client.id, scope)
+        return tokenService.createResponseWithJustAccessToken(client.id, null, scope)
     }
 
     /**

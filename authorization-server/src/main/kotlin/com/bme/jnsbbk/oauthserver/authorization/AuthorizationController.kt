@@ -2,33 +2,24 @@ package com.bme.jnsbbk.oauthserver.authorization
 
 import com.bme.jnsbbk.oauthserver.authorization.entities.AuthRequest
 import com.bme.jnsbbk.oauthserver.authorization.entities.UnvalidatedAuthRequest
-import com.bme.jnsbbk.oauthserver.client.ClientRepository
 import com.bme.jnsbbk.oauthserver.config.ServerMetadata
-import com.bme.jnsbbk.oauthserver.token.TokenFactory
-import com.bme.jnsbbk.oauthserver.token.TokenRepository
-import com.bme.jnsbbk.oauthserver.user.UserRepository
+import com.bme.jnsbbk.oauthserver.user.entities.User
 import com.bme.jnsbbk.oauthserver.utils.RandomString
+import com.bme.jnsbbk.oauthserver.utils.URL
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.util.UriComponentsBuilder
-import java.security.Principal
 
 @Controller
 @RequestMapping(ServerMetadata.Endpoints.authorization)
 class AuthorizationController(
-    private val authRequestService: AuthRequestService,
-    private val clientRepository: ClientRepository,
-    private val authCodeRepository: AuthCodeRepository,
-    private val authCodeFactory: AuthCodeFactory,
-    private val tokenFactory: TokenFactory,
-    private val tokenRepository: TokenRepository,
-    private val userRepository: UserRepository
+    private val authorizationService: AuthorizationService
 ) {
     private val requests = mutableMapOf<String, AuthRequest>()
 
@@ -42,19 +33,30 @@ class AuthorizationController(
     fun authorizationRequested(@RequestParam params: Map<String, String>, model: Model): String {
         val request = jacksonObjectMapper().convertValue<UnvalidatedAuthRequest>(params)
 
-        val (senValid, senMessage) = authRequestService.isSensitiveInfoValid(request)
-        if (!senValid) return errorPageWithReason(model, senMessage)
+        if (!authorizationService.validateRequestClient(request)) {
+            model.addAttribute("errorType", "auth_invalid_client")
+            return "generic-error"
+        }
+        if (!authorizationService.validateRequestUri(request)) {
+            model.addAttribute("errorType", "auth_invalid_uri")
+            return "generic-error"
+        }
 
-        val (addValid, addMessage) = authRequestService.isAdditionalInfoValid(request)
-        if (!addValid) return redirectWithError(request.redirectUri!!, addMessage)
+        val url = URL(requireNotNull(request.redirectUri))
+        if (!authorizationService.validateRequestResponseType(request)) {
+            return url.withParam("error", "unsupported_response_type").redirect()
+        }
+        if (!authorizationService.validateRequestScope(request)) {
+            return url.withParam("error", "invalid_scope").redirect()
+        }
 
-        val validRequest = authRequestService.convertToValidRequest(request)
+        val authRequest = authorizationService.convertToValidRequest(request)
+        val requestId = RandomString.generateUntil(8) { it !in requests.keys }
+        requests[requestId] = authRequest
 
-        val reqId = RandomString.generateUntil(8) { it !in requests.keys }
-        requests[reqId] = validRequest
-
-        model.addAllAttributes(mapOf("reqId" to reqId, "scope" to validRequest.scope))
-        model.addClientAttributes(validRequest.clientId)
+        model.addAttribute("reqId", requestId)
+        model.addAttribute("scope", authRequest.scope)
+        model.addAttribute("clientId", authRequest.clientId)
         return "auth-form"
     }
 
@@ -62,114 +64,74 @@ class AuthorizationController(
      * Processes authorization forms sent by the user.
      *
      * If the authorization passes validation, the function redirects the caller to the client,
-     * otherwise it either displays an error page in place,or redirects the user to the client.
+     * otherwise it either displays an error page in place, or redirects the user to the client.
      */
     @PostMapping
     fun approveAuthorization(
         @RequestParam params: Map<String, String>,
-        model: Model,
-        principal: Principal
+        @AuthenticationPrincipal user: User,
+        model: Model
     ): String {
         val request = requests.remove(params["reqId"])
-            ?: return errorPageWithReason(model, "No matching authorization request!")
+        if (request == null) {
+            model.addAttribute("errorType", "auth_no_matching_request")
+            return "generic-error"
+        }
 
-        request.userId = userRepository.findByUsername(principal.name)?.id
-            ?: return errorPageWithReason(model, "User authentication failed!")
+        request.userId = user.id
+        val url = URL(request.redirectUri)
 
         return when (request.responseType) {
-            "code" -> handleCodeResponse(params, request)
-            "token" -> handleTokenResponse(params, request)
-            else -> redirectWithError(request.redirectUri, "unsupported_response_type")
+            "code" -> handleCodeResponse(request, params)
+            "token" -> handleTokenResponse(request, params)
+            else -> url.withParam("error", "unsupported_response_type").redirect()
         }
     }
 
-    /** Handles responses to valid authorization code requests. */
-    private fun handleCodeResponse(params: Map<String, String>, request: AuthRequest): String {
-        if (params["approve"] == null)
-            return redirectWithError(request.redirectUri, "access_denied")
-
-        val scope = getScopeFrom(params)
-        scope.forEach {
-            if (it !in request.scope) return redirectWithError(request.redirectUri, "invalid_scope")
+    /**
+     * Handles responses to valid authorization code requests.
+     *
+     * If the request is not approved, or contains an invalid scope, the function returns a redirection
+     * string with an error message appended. Otherwise, it saves the authorization code and redirects
+     * to the client with the code as a query parameter.
+     */
+    private fun handleCodeResponse(request: AuthRequest, params: Map<String, String>): String {
+        val url = URL(request.redirectUri)
+        if (params["approve"] == null) {
+            return url.withParam("error", "access_denied").redirect()
         }
-        request.scope = scope
 
-        val code = RandomString.generateUntil(16) { !authCodeRepository.existsById(it) }
-        authCodeRepository.save(authCodeFactory.fromRequest(code, request))
-
-        return "redirect:" +
-                buildUrlWithParams(request.redirectUri, mapOf("code" to code, "state" to request.state))
-    }
-
-    private fun handleTokenResponse(params: Map<String, String>, request: AuthRequest): String {
-        if (params["approve"] == null)
-            return redirectWithError(request.redirectUri, "access_denied", true)
-
-        val scope = getScopeFrom(params)
-        scope.forEach {
-            if (it !in request.scope)
-                return redirectWithError(request.redirectUri, "invalid_scope", true)
+        val scope = authorizationService.extractPrefixedScopes(params, "scope_")
+        if (scope.any { it !in request.scope }) {
+            return url.withParam("error", "invalid_scope").redirect()
         }
         request.scope = scope
 
-        val code = authCodeFactory.fromRequest("irrelevant", request)
-        val access = tokenFactory.accessFromCode(
-            RandomString.generateUntil { !tokenRepository.existsById(it) },
-            code
-        )
-        tokenRepository.save(access)
-        val response = tokenFactory.responseJwtFromTokens(access, null)
+        val code = authorizationService.createAuthCode(request)
 
-        val responseMap = mapOf(
-            "access_token" to response.accessToken,
-            "token_type" to response.tokenType,
-            "scope" to response.scope.joinToString(" "),
-            "state" to request.state
-        )
-
-        return "redirect:" +
-                buildUrlWithFragment(request.redirectUri, responseMap)
+        return url.withParams(mapOf("code" to code.value, "state" to request.state)).redirect()
     }
 
-    private fun Model.addClientAttributes(id: String) {
-        val client = clientRepository.findById(id).get()
-        this.addAttribute("client_name", client.extraData["client_name"])
-    }
+    /**
+     * Handles responses to token requests of the implicit flow.
+     *
+     * If the request is not approved, or contains an invalid scope, the function returns a redirection
+     * string with an error message appended as a URI fragment. Otherwise, it creates an access token and
+     * redirects to the client with the token and all necessary parameters as fragment variables.
+     */
+    private fun handleTokenResponse(request: AuthRequest, params: Map<String, String>): String {
+        val url = URL(request.redirectUri)
+        if (params["approve"] == null) {
+            return url.withFragment("error", "access_denied").redirect()
+        }
 
-    private fun buildUrlWithParams(base: String, params: Map<String, String?>): String {
-        val builder = UriComponentsBuilder.fromUriString(base)
-        params.forEach { (key, value) -> if (value != null) builder.queryParam(key, value) }
-        return builder.toUriString()
-    }
+        val scope = authorizationService.extractPrefixedScopes(params, "scope_")
+        if (scope.any { it !in request.scope }) {
+            return url.withFragment("error", "invalid_scope").redirect()
+        }
+        request.scope = scope
 
-    private fun buildUrlWithFragment(base: String, params: Map<String, String?>): String {
-        val fragmentBuilder = UriComponentsBuilder.fromUriString("")
-        params.forEach { (key, value) -> if (value != null) fragmentBuilder.queryParam(key, value) }
-        return UriComponentsBuilder
-            .fromUriString(base)
-            .fragment(fragmentBuilder.toUriString().removePrefix("?"))
-            .toUriString()
+        val response = authorizationService.createImplicitResponse(request)
+        return url.withFragments(response).redirect()
     }
-
-    private fun errorPageWithReason(model: Model, reason: String): String {
-        model.addAttribute("reason", reason)
-        return "auth_error"
-    }
-
-    private fun redirectWithError(redirectUri: String, error: String, inFragment: Boolean = false): String {
-        return if (inFragment)
-            "redirect:" + buildUrlWithFragment(redirectUri, mapOf("error" to error))
-        else
-            "redirect:" + buildUrlWithParams(redirectUri, mapOf("error" to error))
-    }
-
-    private fun getScopeFrom(params: Map<String, String>): Set<String> {
-        return params
-            .asSequence()
-            .filter { it.key.startsWith("scope_") }
-            .distinct()
-            .map { it.key.removePrefix("scope_") }
-            .toSet()
-    }
-
 }

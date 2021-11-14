@@ -15,9 +15,30 @@
                     <div th:case="'invalid_resource_server_id'">
                         <p>The resource server ID received in the request was invalid!</p>
 
-                        <p class="text-muted">
+                        <p>
                             This usually means that there's a programming error on the resource server side,
                             or that someone is trying to get an access token in your name.
+                        </p>
+                    </div>
+                    <div th:case="'auth_invalid_client'">
+                        <p>The authorization request contained an invalid client ID!</p>
+
+                        <p>This might mean that a third party tried to request an authorization in your name.</p>
+                    </div>
+                    <div th:case="'auth_invalid_uri'">
+                        <p>The authorization request contained an invalid redirect URI!</p>
+
+                        <p>
+                            The request contained a valid client ID, but the redirect URI was either missing,
+                            or it was not registered as one of the client's redirect URIs.
+                        </p>
+                    </div>
+                    <div th:case="'auth_no_matching_request'">
+                        <p>The authorization response couldn't be matched to a request!</p>
+
+                        <p>
+                            This might mean that a third party is trying to bypass user authorization
+                            and gain access to their resources without their approval.
                         </p>
                     </div>
                 </div>

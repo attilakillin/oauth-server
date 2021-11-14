@@ -8,7 +8,9 @@ import java.time.Instant
 
 /** Factory class to create authorization codes from specific templates. */
 @Service
-class AuthCodeFactory(val appConfig: AppConfig) {
+class AuthCodeFactory(appConfig: AppConfig) {
+    private val config = appConfig.tokens.authCode
+
     /**
      * Creates an authorization code with the given [value] and from the given [request].
      *
@@ -18,9 +20,8 @@ class AuthCodeFactory(val appConfig: AppConfig) {
      */
     fun fromRequest(value: String, request: AuthRequest): AuthCode {
         val now = Instant.now()
-        val notBefore = now.plusSeconds(appConfig.tokens.authCode.notBeforeOffset)
-        val lifespan = appConfig.tokens.authCode.lifespan
-        val expiresAt = if (lifespan == 0L) null else notBefore.plusSeconds(lifespan)
+        val notBefore = now.plusSeconds(config.notBeforeOffset)
+        val expiresAt = if (config.lifespan != 0L) notBefore.plusSeconds(config.lifespan) else null
 
         return AuthCode(
             value = value,

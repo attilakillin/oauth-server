@@ -11,7 +11,7 @@ object ServerMetadata {
     var issuer: String = ""
     val authorizationEndpoint = Endpoints.authorization
     val tokenEndpoint = Endpoints.token
-    val jwksUri = "/public/jwks"
+    val jwksUri = "/.well-known/jwks"
     val registrationEndpoint = Endpoints.client
     val revocationEndpoint = "/oauth/token/revoke"
     val introspectionEndpoint = "/oauth/token/introspect"

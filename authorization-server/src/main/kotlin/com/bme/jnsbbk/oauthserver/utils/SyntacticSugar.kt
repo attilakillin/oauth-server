@@ -20,7 +20,11 @@ fun anyTrue(vararg things: Boolean) = things.any { it }
 /** Method to find a key of a given [Map] with the given [value]. */
 fun <K, V> Map<K, V>.findKey(value: V): K? = filterValues { it == value }.keys.firstOrNull()
 
-/** Decode a string as if it was a HTTP Basic header string with a Base64 encoded 'value:value' pattern. */
+/**
+ * Decode a string as if it was an HTTP Basic header string.
+ *
+ * Decodes a Base64-encoded string with a 'value:value' pattern. Returns the two values as a nullable pair.
+ */
 fun String.decodeAsHttpBasic(): Pair<String, String>? {
     if (!startsWith("Basic ")) return null
     val content = Base64.getUrlDecoder()

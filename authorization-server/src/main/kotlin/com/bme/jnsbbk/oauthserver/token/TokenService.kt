@@ -7,7 +7,6 @@ import com.bme.jnsbbk.oauthserver.token.entities.*
 import com.bme.jnsbbk.oauthserver.user.UserService
 import com.bme.jnsbbk.oauthserver.utils.RandomString
 import com.bme.jnsbbk.oauthserver.utils.getServerBaseUrl
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 
 @Service
@@ -18,17 +17,6 @@ class TokenService(
     private val tokenRepository: TokenRepository,
     private val userService: UserService
 ) {
-
-    /** Returns whether a token of any type with the given value exists or not. */
-    fun tokenExistsByValue(value: String): Boolean {
-        return tokenRepository.findByIdOrNull(value) != null
-    }
-
-    /** Returns a token with the given value. */
-    fun getTokenByValue(value: String): Token? {
-        return tokenRepository.findByIdOrNull(value)
-    }
-
     /** Creates a valid token from the given jwt. Returns null if the token is not valid. */
     fun convertFromJwt(jwt: String): Token? {
         return accessTokenHandler.convertToValidToken(jwt)
@@ -75,8 +63,8 @@ class TokenService(
     }
 
     /** Creates a relevant token response with just an access token created here. */
-    fun createResponseWithJustAccessToken(clientId: String, scope: Set<String>): TokenResponse {
-        val access = tokenFactory.accessFromRawData(generateUniqueId(), clientId, null, scope)
+    fun createResponseWithJustAccessToken(clientId: String, userId: String?, scope: Set<String>): TokenResponse {
+        val access = tokenFactory.accessFromRawData(generateUniqueId(), clientId, userId, scope)
         tokenRepository.save(access)
 
         return tokenFactory.responseJwtFromTokens(access, null)

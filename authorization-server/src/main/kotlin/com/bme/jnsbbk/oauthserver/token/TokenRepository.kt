@@ -10,6 +10,7 @@ import java.time.Instant
 
 @Repository
 interface TokenRepository : JpaRepository<Token, String> {
+
     /** Remove expired tokens. This method is called periodically. */
     @Modifying
     @Query("DELETE FROM Token token WHERE token.expiresAt IS NOT NULL AND token.expiresAt < :time")

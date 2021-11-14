@@ -14,6 +14,7 @@ class IdTokenHandler(
     private val lifespan = appConfig.tokens.idToken
     private val key = "token"
 
+    /** Creates an ID token from the given authorization [code] representing the given [user]. */
     fun createToken(user: User, code: AuthCode): String {
         val info = mutableMapOf<String, Any>()
         if (code.nonce != null) info["nonce"] = code.nonce
@@ -27,8 +28,6 @@ class IdTokenHandler(
             setSubject(user.id)
             setAudience(code.clientId)
             addClaims(info)
-
-            return@createSignedToken this
         }
     }
 }

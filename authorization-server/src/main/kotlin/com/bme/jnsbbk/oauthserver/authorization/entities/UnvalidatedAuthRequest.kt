@@ -16,10 +16,10 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
 data class UnvalidatedAuthRequest(
     val clientId: String?,
-    var redirectUri: String?,
+    val redirectUri: String?,
     val responseType: String?,
     val state: String?,
     val nonce: String?,
     @JsonDeserialize(using = SpacedSetDeserializer::class)
-    var scope: Set<String>?
+    val scope: Set<String>?
 )
