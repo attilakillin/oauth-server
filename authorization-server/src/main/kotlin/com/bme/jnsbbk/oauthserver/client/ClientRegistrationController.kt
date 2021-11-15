@@ -1,22 +1,20 @@
 package com.bme.jnsbbk.oauthserver.client
 
 import com.bme.jnsbbk.oauthserver.client.entities.Client
-import com.bme.jnsbbk.oauthserver.client.entities.UnvalidatedClient
-import com.bme.jnsbbk.oauthserver.client.validators.ClientValidator
-import com.bme.jnsbbk.oauthserver.wellknown.ServerMetadata
+import com.bme.jnsbbk.oauthserver.client.entities.ClientRequest
 import com.bme.jnsbbk.oauthserver.exceptions.ApiException
 import com.bme.jnsbbk.oauthserver.exceptions.badRequest
 import com.bme.jnsbbk.oauthserver.exceptions.unauthorized
 import com.bme.jnsbbk.oauthserver.utils.getIssuerString
-import org.springframework.data.repository.findByIdOrNull
+import com.bme.jnsbbk.oauthserver.wellknown.ServerMetadata
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping(ServerMetadata.Endpoints.client)
 class ClientRegistrationController(
-    private val clientValidator: ClientValidator,
-    private val clientRepository: ClientRepository
+    private val clientRepository: ClientRepository,
+    private val clientService: ClientService
 ) {
 
     /**
@@ -25,10 +23,11 @@ class ClientRegistrationController(
      * Throws an [ApiException] if the requested registration is invalid.
      */
     @PostMapping
-    fun registerClient(@RequestBody requested: UnvalidatedClient): ResponseEntity<Client> {
-        val client = clientValidator.validateNewOrElse(requested) {
+    fun registerClient(@RequestBody request: ClientRequest): ResponseEntity<Client> {
+        if (!clientService.validateClientRegistration(request)) {
             badRequest("invalid_client_metadata")
         }
+        val client = clientService.createValidClient(request)
 
         clientRepository.save(client)
         return ResponseEntity.ok(client.withRegistrationUri())
@@ -45,7 +44,7 @@ class ClientRegistrationController(
         @RequestHeader("Authorization") header: String?,
         @PathVariable id: String
     ): ResponseEntity<Client> {
-        val client = validClientOrUnauthorized(header, id)
+        val client = clientService.getAuthorizedClient(id, header) ?: unauthorized()
         return ResponseEntity.ok(client.withRegistrationUri())
     }
 
@@ -60,7 +59,7 @@ class ClientRegistrationController(
         @RequestHeader("Authorization") header: String?,
         @PathVariable id: String
     ): ResponseEntity<String> {
-        val client = validClientOrUnauthorized(header, id)
+        val client = clientService.getAuthorizedClient(id, header) ?: unauthorized()
         clientRepository.delete(client)
         return ResponseEntity.noContent().build()
     }
@@ -68,38 +67,29 @@ class ClientRegistrationController(
     /**
      * Updates the information of the given client.
      *
-     * Given the right authentication, updates the client with the [requested] values.
+     * Given the right authentication, updates the client with the [request] values.
      * Throws an [ApiException] if authentication fails, or the request is invalid.
      */
     @PutMapping("/{id}")
     fun updateClient(
         @RequestHeader("Authorization") header: String?,
         @PathVariable id: String,
-        @RequestBody requested: UnvalidatedClient
+        @RequestBody request: ClientRequest
     ): ResponseEntity<Client> {
-        val oldClient = validClientOrUnauthorized(header, id)
-        val newClient = clientValidator.validateUpdateOrElse(requested, oldClient) {
+        val client = clientService.getAuthorizedClient(id, header) ?: unauthorized()
+
+        if (!clientService.validateClientUpdate(client, request)) {
             badRequest("invalid_client_metadata")
         }
+        val newClient = clientService.updateValidClient(client, request)
 
         clientRepository.save(newClient)
         return ResponseEntity.ok(newClient.withRegistrationUri())
     }
 
+    /** Adds a registration management URL to the client's extra data. */
     private fun Client.withRegistrationUri(): Client {
         this.extraData["registration_client_uri"] = getIssuerString() + "/register/$id"
         return this
-    }
-
-    /** Validates the authentication [header] for the given client [id]. */
-    private fun validClientOrUnauthorized(header: String?, id: String): Client {
-        val token = header?.removePrefix("Bearer ")
-        if (token != header) {
-            val client = clientRepository.findByIdOrNull(id)
-            if (client != null && client.registrationAccessToken == token)
-                return client
-        }
-
-        unauthorized()
     }
 }

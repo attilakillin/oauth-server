@@ -4,12 +4,12 @@ import com.bme.jnsbbk.oauthserver.authorization.AuthCodeRepository
 import com.bme.jnsbbk.oauthserver.authorization.entities.isTimestampValid
 import com.bme.jnsbbk.oauthserver.client.ClientService
 import com.bme.jnsbbk.oauthserver.client.entities.Client
-import com.bme.jnsbbk.oauthserver.wellknown.ServerMetadata
 import com.bme.jnsbbk.oauthserver.exceptions.badRequest
 import com.bme.jnsbbk.oauthserver.exceptions.unauthorized
 import com.bme.jnsbbk.oauthserver.resource.ResourceServerService
 import com.bme.jnsbbk.oauthserver.token.entities.TokenResponse
 import com.bme.jnsbbk.oauthserver.token.entities.isTimestampValid
+import com.bme.jnsbbk.oauthserver.wellknown.ServerMetadata
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Controller

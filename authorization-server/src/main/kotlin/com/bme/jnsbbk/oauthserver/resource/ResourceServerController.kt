@@ -83,7 +83,7 @@ class ResourceServerController(
             .queryParam("token", token)
             .toUriString()
 
-        return "redirect:${url}"
+        return "redirect:$url"
     }
 
     /**

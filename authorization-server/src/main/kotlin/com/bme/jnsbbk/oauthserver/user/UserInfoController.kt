@@ -37,7 +37,7 @@ class UserInfoController(
 
         val claims = mutableMapOf("sub" to user.id)
         if ("profile" in token.scope) claims["name"] = user.info.name
-        if ("email"   in token.scope) claims["email"] = user.info.email
+        if ("email" in token.scope) claims["email"] = user.info.email
         if ("address" in token.scope) claims["address"] = user.info.address
 
         return ResponseEntity.ok(claims)

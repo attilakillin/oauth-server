@@ -1,10 +1,8 @@
 @file:Suppress("JpaAttributeTypeInspection")
 package com.bme.jnsbbk.oauthserver.client.entities
 
-import com.bme.jnsbbk.oauthserver.utils.SpacedSetDeserializer
 import com.bme.jnsbbk.oauthserver.utils.SpacedSetSerializer
 import com.fasterxml.jackson.annotation.*
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import java.time.Instant
 import javax.persistence.*
@@ -18,38 +16,39 @@ import javax.persistence.*
  *
  * Less important properties are stored in the [extraData] string map.
  *
- * @see UnvalidatedClient
+ * @see ClientRequest
  */
 @Entity
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-class Client(
+data class Client(
+    /** The ID of the client. Created at validation, is unique. */
     @JsonProperty("client_id") @Id val id: String,
+    /** The secret of the client. Depending on the auth method, may be null. */
+    @JsonProperty("client_secret") val secret: String?,
+    /** The allowed redirection URIs of the client. */
+    val redirectUris: Set<String>,
+    /** The auth method used at the token endpoint. May be "none" if the client doesn't use the token endpoint. */
+    val tokenEndpointAuthMethod: String,
+    /** All accepted grant types. */
+    val grantTypes: Set<String>,
+    /** Every accepted response type. */
+    val responseTypes: Set<String>,
+    /** The set of scopes the client is authorized to request. */
+    @JsonSerialize(using = SpacedSetSerializer::class) val scope: Set<String>,
+    /** The instant the client ID was issued at. */
+    @JsonProperty("client_id_issued_at") val idIssuedAt: Instant,
+    /** The last moment the client's secret is valid before expiration. May be null if it never expires. */
+    @JsonProperty("client_secret_expires_at") val secretExpiresAt: Instant? = null,
+    /** A random string that the client uses to manage its registration. */
+    val registrationAccessToken: String
 ) {
-    @JsonProperty("client_secret")
-    var secret: String? = null
-
-    lateinit var redirectUris: Set<String>
-    lateinit var tokenEndpointAuthMethod: String
-    lateinit var grantTypes: Set<String>
-    lateinit var responseTypes: Set<String>
-
-    @JsonSerialize(using = SpacedSetSerializer::class)
-    @JsonDeserialize(using = SpacedSetDeserializer::class)
-    lateinit var scope: Set<String>
-
-    @JsonProperty("client_id_issued_at")
-    lateinit var idIssuedAt: Instant
-
-    @JsonProperty("client_secret_expires_at")
-    var expiresAt: Instant? = null
-
-    lateinit var registrationAccessToken: String
-
+    /** All extra data is stored in this string map. */
     @JsonIgnore
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "client_extra_data")
     val extraData = mutableMapOf<String, String>()
 
+    /** Used by Jackson to retrieve every extra field stored about the client. */
     @JsonAnyGetter
     fun getAllExtra() = extraData
 }
