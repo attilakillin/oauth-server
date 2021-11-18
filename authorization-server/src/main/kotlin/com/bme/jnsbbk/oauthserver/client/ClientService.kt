@@ -38,12 +38,13 @@ class ClientService(
      * Returns null if unauthorized, or if both methods are used simultaneously.
      */
     fun authenticateWithEither(authHeader: String?, parameters: Map<String, String>): Client? {
-        val client1 = if (authHeader != null) authenticateBasic(authHeader) else null
+        val client1 = authenticateBasic(authHeader ?: "")
         val client2 = authenticateParam(parameters)
-        return if (client1 != null) {
-            if (client2 == null) client1 else null // If both methods were used simultaneously, return null.
+
+        return if (client1 != null && client2 != null) {
+            null
         } else {
-            client2
+            client1 ?: client2
         }
     }
 

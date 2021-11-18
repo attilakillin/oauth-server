@@ -30,7 +30,7 @@ class UserController(
     fun handleRegistration(
         @RequestParam username: String,
         @RequestParam password: String,
-        @RequestParam("passwordConfirm") passwordConfirm: String,
+        @RequestParam("password_confirm") passwordConfirm: String,
         request: HttpServletRequest,
         model: Model
     ): String {
