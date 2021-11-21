@@ -6,16 +6,15 @@ import io.mockk.every
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.FilterType
 import org.springframework.security.config.annotation.web.WebSecurityConfigurer
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 
-@AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest(
     AuthorizationController::class,
     excludeFilters = [ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = [WebSecurityConfigurer::class])],
@@ -89,5 +88,12 @@ class AuthorizationControllerTests {
         mvc
             .perform(get("/oauth/authorize").param("redirect_uri", "url"))
             .andExpect(view().name("auth-form"))
+    }
+
+    @Test
+    fun approveAuthorization_withInvalidRequestId() {
+        mvc
+            .perform(post("/oauth/authorize").param("reqId", "invalid"))
+            .andExpect(view().name("generic-error"))
     }
 }

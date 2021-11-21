@@ -18,9 +18,8 @@ import org.springframework.web.util.UriComponentsBuilder
 @RequestMapping("/oauth/resource")
 class ResourceServerController(
     private val resourceServerService: ResourceServerService,
-    appConfig: AppConfig
+    private val appConfig: AppConfig
 ) {
-    private val config = appConfig.resourceServers
 
     /**
      * Called when a potential resource server tries to register.
@@ -34,7 +33,7 @@ class ResourceServerController(
      */
     @PostMapping
     fun handleRegistration(@RequestBody request: ResourceServerRequest): ResponseEntity<ResourceServer> {
-        if (request.baseUrl == null || request.baseUrl !in config.urls) {
+        if (request.baseUrl == null || request.baseUrl !in appConfig.resourceServers.urls) {
             badRequest("unknown_base_url")
         }
 
