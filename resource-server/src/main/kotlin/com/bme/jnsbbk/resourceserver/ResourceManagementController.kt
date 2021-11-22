@@ -15,6 +15,7 @@ class ResourceManagementController(
     val userDataRepository: UserDataRepository
 ) {
 
+    /** Returns the user data form to the caller with the necessary template parameters. */
     @GetMapping
     fun handleRequest(
         @RequestParam("token") token: String?,
@@ -28,6 +29,7 @@ class ResourceManagementController(
         return "resource-content"
     }
 
+    /** Saves the given [notes] string as the user's data. */
     @PostMapping
     fun handleSave(
         @RequestParam("token") token: String?,

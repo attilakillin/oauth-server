@@ -2,7 +2,6 @@ package com.bme.jnsbbk.resourceserver.configuration
 
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.SmartInitializingSingleton
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
@@ -15,7 +14,7 @@ import org.springframework.web.client.postForObject
 @Component
 class ConnectionInitializer(
     val appConfig: AppConfig,
-    val propertyRepository: PropertyRepository
+    val propertyService: PropertyService
 ) : SmartInitializingSingleton {
 
     /**
@@ -28,20 +27,16 @@ class ConnectionInitializer(
     override fun afterSingletonsInstantiated() {
         val headers = HttpHeaders().apply { contentType = MediaType.APPLICATION_JSON }
         val request = HttpEntity(mapOf(
-            "id" to propertyRepository.findByIdOrNull(Property.Key.ID)?.value,
-            "secret" to propertyRepository.findByIdOrNull(Property.Key.SECRET)?.value,
+            "id" to propertyService.getProperty(Property.Key.ID),
+            "secret" to propertyService.getProperty(Property.Key.SECRET),
             "base_url" to appConfig.baseUrl,
-            "scope" to appConfig.scope.joinToString(" ")
+            "scope" to "read write"
         ), headers)
 
         val url = appConfig.authorizationServer.url + appConfig.authorizationServer.endpoints.registration
         val response = RestTemplate().postForObject<ResponseObject>(url, request)
 
-        propertyRepository.saveAll(listOf(
-            Property(Property.Key.ID, response.id),
-            Property(Property.Key.SECRET, response.secret),
-            Property(Property.Key.SCOPE, response.scope)
-        ))
+        propertyService.saveConfiguration(response.id, response.secret)
 
         val logger = LoggerFactory.getLogger(this::class.java)
         logger.info("Resource server ID:     " + response.id)
@@ -51,7 +46,6 @@ class ConnectionInitializer(
     /** Private response object class that enforces type safety. */
     private data class ResponseObject(
         val id: String,
-        val secret: String,
-        val scope: String
+        val secret: String
     )
 }

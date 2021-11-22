@@ -2,8 +2,7 @@ package com.bme.jnsbbk.resourceserver.authentication
 
 import com.bme.jnsbbk.resourceserver.configuration.AppConfig
 import com.bme.jnsbbk.resourceserver.configuration.Property
-import com.bme.jnsbbk.resourceserver.configuration.PropertyRepository
-import org.springframework.data.repository.findByIdOrNull
+import com.bme.jnsbbk.resourceserver.configuration.PropertyService
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.web.client.RestTemplate
@@ -14,9 +13,14 @@ import java.util.*
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
+/**
+ * Intercepts requests and validates a user authentication token present in them.
+ *
+ * If no such token can be found, it redirects the caller to the login page of the auth server.
+ */
 class AuthenticationInterceptor(
-    private val propertyRepository: PropertyRepository,
-    appConfig: AppConfig
+    private val propertyService: PropertyService,
+    private val config: AppConfig.AuthorizationServer
 ) : HandlerInterceptor {
 
     override fun preHandle(request: HttpServletRequest, response: HttpServletResponse, handler: Any): Boolean {
@@ -27,46 +31,46 @@ class AuthenticationInterceptor(
             return false
         }
 
-        val validation = sendValidationQuery(token)
+        val username = validateTokenAndRetrieveUsername(token)
 
-        if (validation == null) {
+        if (username == null) {
             response.sendRedirect("login-error")
             return false
         }
 
-        request.setAttribute("username", validation["username"])
+        request.setAttribute("username", username)
         return true
     }
 
-    private val auth = appConfig.authorizationServer
-
+    /** Shorthand property for getting the user token request URL of the auth server. */
     private val userTokenRequestUrl: String
         get() {
-            val id = propertyRepository.findByIdOrNull(Property.Key.ID)!!.value
+            val id = propertyService.getProperty(Property.Key.ID)
 
             return UriComponentsBuilder
-                .fromUriString(auth.url + auth.endpoints.userTokenRequest)
+                .fromUriString(config.url + config.endpoints.userTokenRequest)
                 .queryParam("server_id", id)
                 .toUriString()
         }
 
-    private fun sendValidationQuery(tokenParam: String): Map<String, String>? {
+    /** Validates a given token and return sthe name of the user associated with it, or null if an error occurs. */
+    private fun validateTokenAndRetrieveUsername(tokenParam: String): String? {
         val token = try {
             Base64.getUrlDecoder().decode(tokenParam).toString(Charsets.UTF_8)
         } catch (e: Exception) {
             tokenParam
         }
 
-        val id = propertyRepository.findByIdOrNull(Property.Key.ID)!!.value
-        val secret = propertyRepository.findByIdOrNull(Property.Key.SECRET)!!.value
+        val id = propertyService.getProperty(Property.Key.ID) ?: return null
+        val secret = propertyService.getProperty(Property.Key.SECRET) ?: return null
 
         val headers = HttpHeaders().apply { setBasicAuth(id, secret) }
         val request = HttpEntity(token, headers)
 
-        val url = auth.url + auth.endpoints.userTokenValidation
+        val url = config.url + config.endpoints.userTokenValidation
 
         return try {
-            RestTemplate().postForEntity<Map<String, String>>(url, request).body
+            RestTemplate().postForEntity<Map<String, String>>(url, request).body?.get("username")
         } catch (e: Exception) {
             null
         }

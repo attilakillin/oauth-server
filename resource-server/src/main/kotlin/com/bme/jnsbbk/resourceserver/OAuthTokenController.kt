@@ -2,7 +2,7 @@ package com.bme.jnsbbk.resourceserver
 
 import com.bme.jnsbbk.resourceserver.configuration.AppConfig
 import com.bme.jnsbbk.resourceserver.configuration.Property
-import com.bme.jnsbbk.resourceserver.configuration.PropertyRepository
+import com.bme.jnsbbk.resourceserver.configuration.PropertyService
 import com.bme.jnsbbk.resourceserver.resources.UserData
 import com.bme.jnsbbk.resourceserver.resources.UserDataRepository
 import org.springframework.data.repository.findByIdOrNull
@@ -21,11 +21,12 @@ import org.springframework.web.client.postForEntity
 @Controller
 @RequestMapping("/oauth/token")
 class OAuthTokenController(
-    private val propertyRepository: PropertyRepository,
+    private val propertyService: PropertyService,
     private val userDataRepository: UserDataRepository,
     private val appConfig: AppConfig
 ) {
 
+    /** Handles GET requests from clients. */
     @GetMapping
     fun handleQuery(@RequestParam token: String?): ResponseEntity<Map<String, String?>> {
         if (token == null)
@@ -35,15 +36,15 @@ class OAuthTokenController(
         if (response == null || response.active == "false")
             return ResponseEntity.status(401).body(mapOf("error" to "invalid_token"))
 
-        val user = userDataRepository.findByIdOrNull(response.username)
-
         val scope = response.scope!!.split(" ")
         if ("read" !in scope)
             return ResponseEntity.status(401).body(mapOf("error" to "invalid_scope"))
 
-        return ResponseEntity.ok(mapOf("username" to response.username, "notes" to user?.notes))
+        val notes = userDataRepository.findByIdOrNull(response.username)?.notes
+        return ResponseEntity.ok(mapOf("username" to response.username, "notes" to notes))
     }
 
+    /** Handles POST requests from clients. */
     @PostMapping
     fun handleUpdate(
         @RequestParam token: String?,
@@ -60,12 +61,11 @@ class OAuthTokenController(
         if ("write" !in scope)
             return ResponseEntity.status(401).body(mapOf("error" to "invalid_scope"))
 
-        val userData = UserData(response.username!!, notes)
-        userDataRepository.save(userData)
-
+        userDataRepository.save(UserData(response.username!!, notes))
         return ResponseEntity.status(204).build()
     }
 
+    /** Data class that wraps the introspection response into a strongly-typed class. */
     private data class IntrospectResponse(
         val active: String,
         val iss: String?,
@@ -75,8 +75,8 @@ class OAuthTokenController(
     )
 
     private fun introspectToken(token: String): IntrospectResponse? {
-        val id = propertyRepository.findByIdOrNull(Property.Key.ID)!!.value
-        val secret = propertyRepository.findByIdOrNull(Property.Key.SECRET)!!.value
+        val id = propertyService.getProperty(Property.Key.ID) ?: return null
+        val secret = propertyService.getProperty(Property.Key.SECRET) ?: return null
 
         val headers = HttpHeaders().apply {
             contentType = MediaType.APPLICATION_JSON
