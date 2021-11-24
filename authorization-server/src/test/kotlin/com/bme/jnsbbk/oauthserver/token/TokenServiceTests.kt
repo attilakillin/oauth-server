@@ -59,6 +59,17 @@ class TokenServiceTests {
     )
     private val user = User("user_id", "username", "password")
 
+    /** Test function: convertFromJwt() */
+
+    @Test
+    fun convertFromJwt_worksAsExpected() {
+        every { accessTokenHandler.convertToValidToken(any()) } returns token
+        Assertions.assertNotNull(service.convertFromJwt("jwt"))
+
+        every { accessTokenHandler.convertToValidToken(any()) } returns null
+        Assertions.assertNull(service.convertFromJwt("jwt"))
+    }
+
     /** Test function: createResponseFromAuthCode() */
 
     @Test

@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 
@@ -60,5 +61,19 @@ class UserControllerTests {
             .andExpect(view().name("user-register"))
 
         verify(exactly = 0) { userService.createUser(any(), any()) }
+    }
+
+    @Test
+    fun onLoginRequest_worksAsExpected() {
+        mvc
+            .perform(get("/user/login"))
+            .andExpect(view().name("user-login"))
+    }
+
+    @Test
+    fun onRegisterRequest_worksAsExpected() {
+        mvc
+            .perform(get("/user/register"))
+            .andExpect(view().name("user-register"))
     }
 }

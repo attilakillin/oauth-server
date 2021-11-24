@@ -43,9 +43,10 @@ fun <T> T?.isNullOr(predicate: (T) -> Boolean): Boolean = this == null || predic
 fun String.decodeAsHttpBasic(): Pair<String, String>? {
     if (!startsWith("Basic ")) return null
 
-    val content = Base64.getUrlDecoder()
-        .decode(removePrefix("Basic "))
-        .toString(Charsets.UTF_8)
+    val content = try {
+        Base64.getUrlDecoder().decode(removePrefix("Basic ")).toString(Charsets.UTF_8)
+    } catch (e: Exception) { return null }
+
     if (!content.contains(':')) return null
 
     return Pair(content.substringBefore(':'), content.substringAfter(':'))

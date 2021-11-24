@@ -18,9 +18,9 @@ import org.springframework.context.annotation.FilterType
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.config.annotation.web.WebSecurityConfigurer
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.view
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import java.time.Instant
 
 @WebMvcTest(
@@ -44,6 +44,38 @@ class HomeControllerTests {
         expiresAt = null
     )
 
+    @Test
+    fun redirectToHome_worksAsExpected() {
+        mvc
+            .perform(get("/"))
+            .andExpect(status().is3xxRedirection)
+    }
+
+    @Test
+    fun getHomeRoot_worksAsExpected() {
+        mvc
+            .perform(get("/home"))
+            .andExpect(status().isOk)
+            .andExpect(view().name("home-root"))
+    }
+
+    @Test
+    fun getUserInfo_worksAsExpected() {
+        mvc
+            .perform(get("/home/userinfo"))
+            .andExpect(status().isOk)
+            .andExpect(view().name("home-userinfo"))
+    }
+
+    @Test
+    fun getAuthorizations_worksAsExpected() {
+        every { tokenRepository.findAllByUserId("user_id") } returns emptyList()
+
+        mvc
+            .perform(get("/home/authorizations"))
+            .andExpect(status().isOk)
+            .andExpect(view().name("home-authorizations"))
+    }
 
     @Test
     fun postUserInfo_withProperValues() {

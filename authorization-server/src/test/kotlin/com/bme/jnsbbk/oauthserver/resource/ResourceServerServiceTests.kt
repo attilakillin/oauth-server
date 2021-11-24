@@ -129,6 +129,28 @@ class ResourceServerServiceTests {
         verify { jwtHandler.createToken(any(), any()) }
     }
 
+    /** Test function: isUserTokenValid() */
+
+    @Test
+    fun isUserTokenValid_worksAsExpected() {
+        every { jwtHandler.isTokenValid(any(), any()) } returns true
+        Assertions.assertTrue(service.isUserTokenValid(server, "token"))
+
+        every { jwtHandler.isTokenValid(any(), any()) } returns false
+        Assertions.assertFalse(service.isUserTokenValid(server, "token"))
+    }
+
+    /** Test function: getUserFromUserToken() */
+
+    @Test
+    fun getUserFromUserToken_worksAsExpected() {
+        every { jwtHandler.getUserFromToken(any(), any()) } returns mockk()
+        Assertions.assertNotNull(service.getUserFromUserToken(server, "token"))
+
+        every { jwtHandler.getUserFromToken(any(), any()) } returns null
+        Assertions.assertNull(service.getUserFromUserToken(server, "token"))
+    }
+
     private fun basicAuth(id: String, secret: String): String {
         val auth = Base64.getUrlEncoder().encode("$id:$secret".toByteArray()).toString(Charsets.UTF_8)
         return "Basic $auth"

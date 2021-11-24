@@ -9,8 +9,8 @@ import javax.transaction.Transactional
 
 @Component
 class ScheduledTasks(
-    val authCodeRepository: AuthCodeRepository,
-    val tokenRepository: TokenRepository
+    private val authCodeRepository: AuthCodeRepository,
+    private val tokenRepository: TokenRepository
 ) {
     /**
      * Regularly removes expired entities from multiple repositories.
