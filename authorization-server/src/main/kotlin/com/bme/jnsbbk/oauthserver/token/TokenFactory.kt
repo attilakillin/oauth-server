@@ -12,8 +12,8 @@ import java.time.Instant
 
 @Service
 class TokenFactory(
-    val accessTokenHandler: AccessTokenHandler,
-    val appConfig: AppConfig
+    private val accessTokenHandler: AccessTokenHandler,
+    private val appConfig: AppConfig
 ) {
     /** Creates an access token with the given [value] and from the given [code]. */
     fun accessFromCode(value: String, code: AuthCode): Token {

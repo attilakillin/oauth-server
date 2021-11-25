@@ -12,7 +12,7 @@ application:
   issuer-string: http://172.16.1.1:8080
   resource-servers:
     urls:                                    # If the base URL of a resource server registration request
-      - http://localhost:8081                # is not whitelisted here, the request will be denied.
+      - http://172.16.1.2:8081               # is not whitelisted here, the request will be denied.
     user-token:
       lifespan: 60                           # The lifespan of user tokens issued to resource servers.
   scheduling:

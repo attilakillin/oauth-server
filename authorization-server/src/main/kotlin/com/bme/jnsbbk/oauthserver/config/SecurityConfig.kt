@@ -18,6 +18,7 @@ class SecurityConfig(
     override fun configure(http: HttpSecurity) {
         val excluded = arrayOf(
             "/oauth/clients",
+            "/oauth/clients/**",
             "/oauth/openid/userinfo",
             "/oauth/resource",
             "/oauth/resource/user/validate",

@@ -7,6 +7,11 @@ import org.springframework.context.ApplicationContextAware
 import org.springframework.stereotype.Component
 import java.util.*
 
+/**
+ * A singleton application context class. Used in [getIssuerString] below.
+ *
+ * This component is aware of the application context, and stores it in a publicly available field.
+ */
 @Component
 object AppContext : ApplicationContextAware {
     lateinit var context: ApplicationContext private set
@@ -15,16 +20,20 @@ object AppContext : ApplicationContextAware {
 
 }
 
+/** Returns the issuer string as configured in the application properties file. */
 fun getIssuerString(): String = AppContext.context.getBean<AppConfig>(AppConfig::class).issuerString
 
-/** Provides an easy-to-read wrapper for multiple null checks. */
-fun anyNotNull(vararg things: Any?) = things.any { it != null }
+/** Extension function, the opposite of [isNullOrEmpty]. */
+fun <T> Collection<T>?.isNotNullOrEmpty(): Boolean = !isNullOrEmpty()
 
-/** Provides an easy-to-read wrapper for multiple truth checks. */
-fun anyTrue(vararg things: Boolean) = things.any { it }
+/**
+ * Extension function, returns true if the collection is either null,
+ * or all elements match the given [predicate].
+ */
+fun <T> Collection<T>?.isNullOrAll(predicate: (T) -> Boolean): Boolean = this == null || all(predicate)
 
-/** Method to find a key of a given [Map] with the given [value]. */
-fun <K, V> Map<K, V>.findKey(value: V): K? = filterValues { it == value }.keys.firstOrNull()
+/** Extension function, returns true if the object is either null, or it matches the given [predicate]. */
+fun <T> T?.isNullOr(predicate: (T) -> Boolean): Boolean = this == null || predicate(this)
 
 /**
  * Decode a string as if it was an HTTP Basic header string.
@@ -33,9 +42,12 @@ fun <K, V> Map<K, V>.findKey(value: V): K? = filterValues { it == value }.keys.f
  */
 fun String.decodeAsHttpBasic(): Pair<String, String>? {
     if (!startsWith("Basic ")) return null
-    val content = Base64.getUrlDecoder()
-        .decode(removePrefix("Basic "))
-        .toString(Charsets.UTF_8)
+
+    val content = try {
+        Base64.getUrlDecoder().decode(removePrefix("Basic ")).toString(Charsets.UTF_8)
+    } catch (e: Exception) { return null }
+
     if (!content.contains(':')) return null
+
     return Pair(content.substringBefore(':'), content.substringAfter(':'))
 }

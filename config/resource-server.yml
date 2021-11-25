@@ -18,7 +18,4 @@ application:
       token-introspection: /oauth/token/introspect         # Called to verify tokens received from clients.
       user-token-request: /oauth/resource/user             # Called to request (and validate respectively) a user
       user-token-validation: /oauth/resource/user/validate # token containing info about the logged-in user.
-  base-url: http://localhost:8081
-  scope:                                                   # These scopes will be registered with the
-    - read                                                 # authorization server upon startup.
-    - write
+  base-url: http://172.16.1.2:8081

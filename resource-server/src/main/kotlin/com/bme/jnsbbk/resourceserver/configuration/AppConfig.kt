@@ -12,9 +12,7 @@ import org.springframework.retry.annotation.EnableRetry
 data class AppConfig(
     var authorizationServer: AuthorizationServer = AuthorizationServer(),
     /** The base URL of the server. Configure at runtime. */
-    var baseUrl: String = "",
-    /** A list of scopes that are accepted by the resource server. */
-    var scope: List<String> = listOf()
+    var baseUrl: String = ""
 ) {
     data class Endpoints(
         /** This endpoint is used for registering the resource server at the authorization server. */
