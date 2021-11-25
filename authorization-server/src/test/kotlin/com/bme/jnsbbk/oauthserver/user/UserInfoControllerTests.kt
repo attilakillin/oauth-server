@@ -54,7 +54,7 @@ class UserInfoControllerTests {
 
         mvc
             .perform(get("/oauth/openid/userinfo")
-                .param("token", "jwt_string"))
+                .header("Authorization", "Bearer jwt_string"))
             .andExpect(status().isOk)
             .andExpect(content().string(containsString(user.id)))
     }
@@ -68,7 +68,7 @@ class UserInfoControllerTests {
 
         mvc
             .perform(get("/oauth/openid/userinfo")
-                .param("token", "jwt_string"))
+                .header("Authorization", "Bearer jwt_string"))
             .andExpect(status().isOk)
             .andExpect(content().string(containsString(user.id)))
             .andExpect(content().string(containsString(user.info.name)))
@@ -82,7 +82,7 @@ class UserInfoControllerTests {
 
         mvc
             .perform(get("/oauth/openid/userinfo")
-                .param("token", "jwt_string"))
+                .header("Authorization", "Bearer jwt_string"))
             .andExpect(status().isBadRequest)
     }
 
@@ -94,7 +94,7 @@ class UserInfoControllerTests {
 
         mvc
             .perform(get("/oauth/openid/userinfo")
-                .param("token", "jwt_string"))
+                .header("Authorization", "Bearer jwt_string"))
             .andExpect(status().isBadRequest)
     }
 
@@ -105,7 +105,7 @@ class UserInfoControllerTests {
 
         mvc
             .perform(get("/oauth/openid/userinfo")
-                .param("token", "jwt_string"))
+                .header("Authorization", "Bearer jwt_string"))
             .andExpect(status().isUnauthorized)
     }
 
@@ -116,7 +116,7 @@ class UserInfoControllerTests {
 
         mvc
             .perform(get("/oauth/openid/userinfo")
-                .param("token", "jwt_string"))
+                .header("Authorization", "Bearer jwt_string"))
             .andExpect(status().isBadRequest)
     }
 }

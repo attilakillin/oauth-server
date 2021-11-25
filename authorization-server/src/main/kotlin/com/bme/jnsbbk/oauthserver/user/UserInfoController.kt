@@ -7,8 +7,8 @@ import com.bme.jnsbbk.oauthserver.token.entities.isTimestampValid
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
 
 @Controller
 @RequestMapping("/oauth/openid/userinfo")
@@ -27,7 +27,10 @@ class UserInfoController(
      * and if the 'openid' base scope is missing, it responds with a 401 message.
      */
     @GetMapping
-    fun handleRequest(@RequestParam("token") jwt: String): ResponseEntity<Map<String, String>> {
+    fun handleRequest(
+        @RequestHeader("Authorization") header: String?
+    ): ResponseEntity<Map<String, String>> {
+        val jwt = header?.removePrefix("Bearer ") ?: badRequest("no_token")
         val token = accessTokenHandler.convertToValidToken(jwt) ?: badRequest("invalid_token")
         if (!token.isTimestampValid() || token.userId == null) badRequest("invalid_token")
 
