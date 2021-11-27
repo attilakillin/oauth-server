@@ -16,7 +16,7 @@ data class IntegrationClient(
     val redirectUris: Set<String>,
     val tokenEndpointAuthMethod: String,
     val grantTypes: Set<String>,
-    val responseTypes: Set<String>,
+    val responseTypes: Set<String> = setOf(),
     @JsonDeserialize(using = SpacedSetDeserializer::class) val scope: Set<String>,
     @JsonProperty("client_id_issued_at") val idIssuedAt: Instant,
     @JsonProperty("client_secret_expires_at") val secretExpiresAt: Instant?,

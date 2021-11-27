@@ -1,3 +1,8 @@
 spring:
   jpa:
     database: h2
+
+application:
+  resource-servers:
+    urls:
+      - http://resourceserver

@@ -1,3 +1,4 @@
+@file:Suppress("FunctionName")
 package com.bme.jnsbbk.oauthserver
 
 import com.bme.jnsbbk.oauthserver.client.ClientRepository
@@ -14,8 +15,9 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.test.web.servlet.delete
+import org.springframework.test.web.servlet.get
+import org.springframework.test.web.servlet.put
 
 @SpringBootTest
 @ActiveProfiles("integration")
@@ -67,9 +69,12 @@ class DynamicClientRegistrationTests {
         val original = runDynamicClientRegistration(mvc, request)
 
         val response = mvc
-            .perform(get(getUri(original))
-                .header("Authorization", "Bearer ${original.registrationAccessToken}"))
-            .andExpect(status().isOk)
+            .get(getUri(original)) {
+                header("Authorization", "Bearer ${original.registrationAccessToken}")
+            }
+            .andExpect {
+                status { isOk() }
+            }
             .andReturn().response.contentAsString
 
         val client = mapper.readValue<IntegrationClient>(response)
@@ -90,11 +95,14 @@ class DynamicClientRegistrationTests {
         )
 
         val response = mvc
-            .perform(put(getUri(original))
-                .header("Authorization", "Bearer ${original.registrationAccessToken}")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(mapper.writeValueAsString(update)))
-            .andExpect(status().isOk)
+            .put(getUri(original)) {
+                header("Authorization", "Bearer ${original.registrationAccessToken}")
+                contentType = MediaType.APPLICATION_JSON
+                content = mapper.writeValueAsString(update)
+            }
+            .andExpect {
+                status { isOk() }
+            }
             .andReturn().response.contentAsString
 
         val client = mapper.readValue<IntegrationClient>(response)
@@ -111,9 +119,12 @@ class DynamicClientRegistrationTests {
 
         val client = runDynamicClientRegistration(mvc, request)
         mvc
-            .perform(delete(getUri(client))
-                .header("Authorization", "Bearer ${client.registrationAccessToken}"))
-            .andExpect(status().isNoContent)
+            .delete(getUri(client)) {
+                header("Authorization", "Bearer ${client.registrationAccessToken}")
+            }
+            .andExpect {
+                status { isNoContent() }
+            }
 
         Assertions.assertFalse(clientRepository.existsById(client.id))
     }

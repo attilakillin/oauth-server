@@ -29,9 +29,11 @@ fun authorizeClientWithAllScopes(
         "input", "name", "approve")
 
     val result = submit.click<Page>().url
-    Assertions.assertTrue(result.query.contains("state=$state"))
 
-    return if (responseType == "code") {
+    if (responseType == "code") {
+        Assertions.assertNotNull(result.query)
+        Assertions.assertTrue(result.query.contains("state=$state"))
+
         val code = result.query
                 .split('&')
                 .find { it.startsWith("code=") }
@@ -39,7 +41,20 @@ fun authorizeClientWithAllScopes(
 
         Assertions.assertNotNull(code)
         return code!!
-    } else {
-        TODO("Implicit flow not implemented")
     }
+
+    if (responseType == "token") {
+        Assertions.assertNotNull(result.toURI().fragment)
+        Assertions.assertTrue(result.toURI().fragment.contains("state=$state"))
+
+        val token = result.toURI().fragment
+                .split('&')
+                .find { it.startsWith("access_token=") }
+                ?.removePrefix("access_token=")
+
+        Assertions.assertNotNull(token)
+        return token!!
+    }
+
+    throw IllegalStateException("Invalid response type used!")
 }
