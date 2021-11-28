@@ -89,7 +89,7 @@ class ClientRegistrationController(
 
     /** Adds a registration management URL to the client's extra data. */
     private fun Client.withRegistrationUri(): Client {
-        this.extraData["registration_client_uri"] = getIssuerString() + "/register/$id"
+        this.extraData["registration_client_uri"] = getIssuerString() + "/oauth/clients/$id"
         return this
     }
 }
