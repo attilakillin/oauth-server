@@ -27,6 +27,12 @@
                         <input type="password" name="password_confirm" id="password_confirm" required
                                minlength="8" class="form-control" th:value="${password_confirm}">
                     </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="mfa" name="mfa" value="checked">
+                            <label for="mfa" class="form-check-label">Use Multi-Factor Authentication</label>
+                        </div>
+                    </div>
                     <div class="mb-3" th:if="${message != null}">
                         <p th:text="${message}" class="text-danger"></p>
                     </div>

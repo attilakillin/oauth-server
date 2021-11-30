@@ -41,6 +41,19 @@
                             and gain access to their resources without their approval.
                         </p>
                     </div>
+                    <div th:case="'mfa_auth_user_not_found'">
+                        <p>
+                            Multi-Factor Authentication failed,
+                            as the user you logged in as could not be found again!
+                        </p>
+
+                        <p>
+                            This means that although you logged in successfully using your credentials,
+                            your information could not be retrieved for the MFA authentication phase.
+                        </p>
+
+                        <p>Try logging in again.</p>
+                    </div>
                 </div>
                 <div class="d-grid mb-3">
                     <a th:href="@{/}" class="btn btn-primary">

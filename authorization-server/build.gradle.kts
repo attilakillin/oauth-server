@@ -38,6 +38,7 @@ dependencies {
     implementation("io.jsonwebtoken:jjwt-jackson:0.11.2")
 
     implementation("mysql:mysql-connector-java:8.0.26")
+    implementation("dev.samstevens.totp:totp-spring-boot-starter:1.7.1")
 
     testImplementation("org.springframework.security:spring-security-test:5.5.1")
     testImplementation("org.springframework.boot:spring-boot-starter-test") {

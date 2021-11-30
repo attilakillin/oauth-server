@@ -11,6 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder
 @Configuration
 @EnableWebSecurity
 class SecurityConfig(
+    private val mfaLoginSuccessHandler: MfaLoginSuccessHandler,
     private val passwordEncoder: PasswordEncoder,
     private val userService: UserService
 ) : WebSecurityConfigurerAdapter() {
@@ -32,7 +33,8 @@ class SecurityConfig(
             .authorizeRequests()
                 .antMatchers("/css/**", "/js/**").permitAll()
                 .antMatchers(*excluded).permitAll()
-                .anyRequest().authenticated()
+                .antMatchers("/user/login/mfa").hasRole("PRE_MFA_AUTH")
+                .anyRequest().hasRole("USER")
                 .and()
             .csrf()
                 .ignoringAntMatchers(*excluded)
@@ -42,6 +44,7 @@ class SecurityConfig(
                 .loginProcessingUrl("/user/login")
                 .usernameParameter("username")
                 .passwordParameter("password")
+                .successHandler(mfaLoginSuccessHandler)
                 .permitAll()
                 .and()
             .logout()

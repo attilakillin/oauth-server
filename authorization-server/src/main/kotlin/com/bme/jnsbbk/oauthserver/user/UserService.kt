@@ -4,6 +4,11 @@ import com.bme.jnsbbk.oauthserver.user.entities.User
 import com.bme.jnsbbk.oauthserver.user.entities.UserInfo
 import com.bme.jnsbbk.oauthserver.user.entities.fromNullable
 import com.bme.jnsbbk.oauthserver.utils.RandomString
+import com.bme.jnsbbk.oauthserver.utils.getIssuerString
+import dev.samstevens.totp.code.HashingAlgorithm
+import dev.samstevens.totp.qr.QrData
+import dev.samstevens.totp.qr.ZxingPngQrGenerator
+import dev.samstevens.totp.util.Utils
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService
@@ -18,8 +23,16 @@ class UserService(
 ) : UserDetailsService {
 
     override fun loadUserByUsername(username: String): UserDetails {
-        return userRepository.findByUsername(username)
+        val user = userRepository.findByUsername(username)
             ?: throw UsernameNotFoundException(username)
+
+        if (user.isMfaUsed) {
+            val mfaRoles = user.roles.filter { it != "USER" }.toMutableSet()
+            mfaRoles.add("PRE_MFA_AUTH")
+            return user.copy(roles = mfaRoles)
+        } else {
+            return user
+        }
     }
 
     /** Returns true or false depending on whether a user with the given username exists or not. */
@@ -38,9 +51,20 @@ class UserService(
     }
 
     /** Creates and persists a user with the given credentials and roles. */
-    fun createUser(username: String, password: String, roles: Set<String> = setOf("USER")): UserDetails {
+    fun createUser(
+        username: String,
+        password: String,
+        useMfa: Boolean = false,
+        roles: Set<String> = setOf("USER")
+    ): User {
         val id = RandomString.generateUntil { !userRepository.existsById(it) }
-        val user = User(id, username, passwordEncoder.encode(password), roles)
+        val user = User(
+            id = id,
+            username = username,
+            password = passwordEncoder.encode(password),
+            isMfaUsed = useMfa,
+            roles = roles
+        )
         return userRepository.save(user)
     }
 
@@ -49,5 +73,20 @@ class UserService(
         user.info = UserInfo.fromNullable(name, email, address)
         userRepository.save(user)
         return user.info
+    }
+
+    /** Generate an image data string containing a QR code for MFA registration. */
+    fun getMfaQRUrl(user: User): String {
+        val qrData = QrData.Builder()
+            .label(user.username)
+            .secret(user.mfaSecret)
+            .issuer("oauth-server :: " + getIssuerString())
+            .algorithm(HashingAlgorithm.SHA256)
+            .digits(6)
+            .period(30)
+            .build()
+
+        val generator = ZxingPngQrGenerator()
+        return Utils.getDataUriForImage(generator.generate(qrData), generator.imageMimeType)
     }
 }

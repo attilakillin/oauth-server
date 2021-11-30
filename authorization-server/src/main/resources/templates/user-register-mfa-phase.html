@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" class="h-100">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link th:href="@{/css/bootstrap.min.css}" rel="stylesheet">
+
+        <title>Set up Multi-Factor Authentication</title>
+    </head>
+    <body class="container h-100">
+        <div class="row h-100 justify-content-center align-items-center">
+            <div class="col-md-6 col-lg-5 m-1 p-3 rounded" style="background: #eeeeee">
+                <form th:action="@{/user/register/mfa}" method="post">
+                    <h3 class="text-center">Register an account</h3>
+                    <div class="text-center mb-3">
+                        <p>Scan the following QR code using your Authenticator application</p>
+                    </div>
+                    <div class="text-center mb-3">
+                        <img th:src="${qr}" alt="OTP QR code"/>
+                    </div>
+
+                    <div class="d-grid mb-3">
+                        <a th:href="@{/}" class="btn btn-primary">
+                            Done, return home
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+    </body>
+</html>
