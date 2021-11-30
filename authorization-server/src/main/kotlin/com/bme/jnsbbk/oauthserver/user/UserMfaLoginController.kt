@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
+import java.util.*
 
 @Controller
 @RequestMapping("/user/login/mfa")
@@ -21,11 +22,15 @@ class UserMfaLoginController(
 
     /** Sends the MFA authentication form for login requests using MFA. */
     @GetMapping
-    fun onMfaAuthRequest(): String = "user-login-mfa-phase"
+    fun onMfaAuthRequest(@RequestParam target: String, model: Model): String {
+        model.addAttribute("target", target)
+        return "user-login-mfa-phase"
+    }
 
     @PostMapping
     fun handleMfaAuthentication(
-        @RequestParam("code") verificationCode: String,
+        @RequestParam code: String,
+        @RequestParam target: String,
         @AuthenticationPrincipal principal: UserDetails,
         model: Model
     ): String {
@@ -35,7 +40,8 @@ class UserMfaLoginController(
             return "generic-error"
         }
 
-        if (!mfaVerifier.isValidCode(user.mfaSecret, verificationCode)) {
+        if (!mfaVerifier.isValidCode(user.mfaSecret, code)) {
+            model.addAttribute("target", target)
             model.addAttribute("error", true)
             return "user-login-mfa-phase"
         }
@@ -43,6 +49,7 @@ class UserMfaLoginController(
         SecurityContextHolder.getContext().authentication =
             UsernamePasswordAuthenticationToken(user, null, user.authorities)
 
-        return "redirect:/"
+        val url = Base64.getUrlDecoder().decode(target).toString(Charsets.UTF_8)
+        return "redirect:$url"
     }
 }

@@ -24,7 +24,7 @@ class AuthorizationService(
     }
 
     /** Extracts the client referred to by the request clientId attribute. */
-    private fun getClientFrom(request: UnvalidatedAuthRequest): Client {
+    fun getClientFrom(request: UnvalidatedAuthRequest): Client {
         requireNotNull(request.clientId)
         val client = clientRepository.findByIdOrNull(request.clientId)
 

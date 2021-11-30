@@ -42,7 +42,7 @@ class AuthorizationController(
             return "generic-error"
         }
 
-        val url = URL(requireNotNull(request.redirectUri))
+        val url = URL(request.redirectUri ?: authorizationService.getClientFrom(request).redirectUris.first())
         if (!authorizationService.validateRequestResponseType(request)) {
             return url.withParam("error", "unsupported_response_type").redirect()
         }
