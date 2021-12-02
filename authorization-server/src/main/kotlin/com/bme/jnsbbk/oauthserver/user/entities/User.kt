@@ -1,6 +1,7 @@
 @file:Suppress("JpaAttributeTypeInspection")
 package com.bme.jnsbbk.oauthserver.user.entities
 
+import com.bme.jnsbbk.oauthserver.utils.RandomString
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
@@ -27,8 +28,12 @@ data class User(
     @Column(unique = true) private val username: String,
     /** The password (or some form of digest of it) of the user. */
     private val password: String,
+    /** Whether the user uses MFA or not. */
+    val isMfaUsed: Boolean = false,
+    /** A private secret used in MFA. */
+    val mfaSecret: String = RandomString.generate(),
     /** The roles of the user, necessary because of the Spring integration. */
-    private val roles: Set<String> = setOf("USER"),
+    val roles: Set<String> = setOf("USER"),
     /** Additional information stored about the user. */
     @OneToOne(cascade = [CascadeType.ALL]) @JoinColumn(name = "info_id", referencedColumnName = "id")
     var info: UserInfo = UserInfo()
@@ -37,7 +42,7 @@ data class User(
     override fun getPassword(): String = password
 
     override fun getAuthorities(): MutableCollection<out GrantedAuthority> {
-        return roles.mapTo(mutableListOf()) { SimpleGrantedAuthority(it) }
+        return roles.mapTo(mutableListOf()) { SimpleGrantedAuthority("ROLE_$it") }
     }
 
     override fun isAccountNonExpired(): Boolean = true

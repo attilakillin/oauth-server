@@ -104,7 +104,7 @@ class TokenController(
      * The resource server must authenticate itself, and must send a token to introspect in a JSON object.
      *
      * If the introspection fails for any reason (invalid token or invalid user) the response is simply
-     * {"active": "false"}. If it succeeds, a complex JSON response is created.
+     * {"active": "false"}. If it succeeds, a complex JSON response object is created.
      */
     @PostMapping(ServerMetadata.Endpoints.tokenIntrospect)
     fun introspectToken(

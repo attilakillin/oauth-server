@@ -16,7 +16,7 @@ class UserTests {
 
     @Test
     fun userDetailsAttributes_workAsExpected() {
-        Assertions.assertEquals("USER", user.authorities.first().authority)
+        Assertions.assertEquals("ROLE_USER", user.authorities.first().authority)
         Assertions.assertTrue(user.isAccountNonLocked)
         Assertions.assertTrue(user.isAccountNonExpired)
         Assertions.assertTrue(user.isCredentialsNonExpired)

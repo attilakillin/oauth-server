@@ -31,6 +31,7 @@ class UserController(
         @RequestParam username: String,
         @RequestParam password: String,
         @RequestParam("password_confirm") passwordConfirm: String,
+        @RequestParam mfa: String?,
         request: HttpServletRequest,
         model: Model
     ): String {
@@ -50,10 +51,16 @@ class UserController(
             return "user-register"
         }
 
-        userService.createUser(username, password)
-        request.logout()
-        request.login(username, password)
+        val useMfa = mfa != null
 
-        return "redirect:/"
+        val user = userService.createUser(username, password, useMfa)
+        request.logout()
+
+        if (useMfa) {
+            model.addAttribute("qr", userService.getMfaQRUrl(user))
+            return "user-register-mfa-phase"
+        } else {
+            return "redirect:/"
+        }
     }
 }

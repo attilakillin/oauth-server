@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" class="h-100">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link th:href="@{/css/bootstrap.min.css}" rel="stylesheet">
+
+        <title>Set up Multi-Factor Authentication</title>
+    </head>
+    <body class="container h-100">
+        <div class="row h-100 justify-content-center align-items-center">
+            <div class="col-md-6 col-lg-5 m-1 p-3 rounded" style="background: #eeeeee">
+                <form th:action="@{/user/login/mfa}" method="post">
+                    <h3 class="text-center">Log in to continue</h3>
+                    <div class="text-center mb-3">
+                        <p>Enter the 6-digit code visible in your Authenticator application</p>
+                    </div>
+                    <div class="text-center mb-3">
+                        <input type="text" name="code" required class="form-control" minlength="6" maxlength="6">
+                    </div>
+                    <input type="hidden" name="target" th:value="${target}">
+
+                    <div class="mb-3" th:if="${error}">
+                        <p class="text-danger">Code verification failed, please try again!</p>
+                    </div>
+                    <div class="d-grid mb-2">
+                        <button type="submit" class="btn btn-primary">Log in</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+    </body>
+</html>
