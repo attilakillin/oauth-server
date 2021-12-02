@@ -27,9 +27,7 @@ class UserService(
             ?: throw UsernameNotFoundException(username)
 
         if (user.isMfaUsed) {
-            val mfaRoles = user.roles.filter { it != "USER" }.toMutableSet()
-            mfaRoles.add("PRE_MFA_AUTH")
-            return user.copy(roles = mfaRoles)
+            return user.copy(roles = setOf("PRE_MFA_AUTH"))
         } else {
             return user
         }

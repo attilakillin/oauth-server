@@ -1,5 +1,6 @@
 package com.bme.jnsbbk.oauthserver.user
 
+import com.bme.jnsbbk.oauthserver.config.MfaLoginSuccessHandler
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import io.mockk.mockk
@@ -18,6 +19,7 @@ class UserControllerTests {
     @Autowired private lateinit var mvc: MockMvc
     @MockkBean private lateinit var userService: UserService
     @MockkBean private lateinit var passwordEncoder: PasswordEncoder
+    @MockkBean private lateinit var mfaLoginSuccessHandler: MfaLoginSuccessHandler
 
     @Test
     fun handleRegistration_withValidValues() {
