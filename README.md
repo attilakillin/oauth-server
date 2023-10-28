@@ -1,11 +1,11 @@
-# oauth-server - A WIP implementation of an OAuth 2 authorization server
+# oauth-server - A reference implementation of an OAuth 2 authorization server
 Created for the project laboratory subject at BME VIK.
 
 ---
 
 A Spring Boot server application written in Kotlin, using JUnit 5 for testing, and Thymeleaf for front-end rendering.
 
-This project is in a work-in-progress state, but the core functions are implemented and unit tested properly:
+The core functions are implemented and unit tested properly:
 
 * OAuth clients can register themselves using the OAuth Dynamic Client Registration protocol.
 * Resource owners can register and authenticate themselves using a browser of their choice.
